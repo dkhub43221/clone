@@ -691,10 +691,48 @@ local RayfieldLibrary = {
 			InputStroke = Color3.fromRGB(180, 190, 200),
 			PlaceholderColor = Color3.fromRGB(150, 150, 150)
 		},
-	}
+
+        DKHUB = {
+    TextColor = Color3.fromRGB(245, 255, 245),
+    Background = Color3.fromRGB(17, 16, 20),
+    Topbar = Color3.fromRGB(17, 16, 20),
+    Shadow = Color3.fromRGB(0, 0, 0),
+
+    NotificationBackground = Color3.fromRGB(17, 16, 20),
+    NotificationTextColor = Color3.fromRGB(245, 255, 245),
+    NotificationActionsBackground = Color3.fromRGB(15, 55, 25),
+
+    TabBackground = Color3.fromRGB(10, 14, 11),
+    TabStroke = Color3.fromRGB(18, 35, 22),
+    TabBackgroundSelected = Color3.fromRGB(18, 38, 23),
+    TabTextColor = Color3.fromRGB(150, 165, 150),
+    SelectedTabTextColor = Color3.fromRGB(120, 255, 110),
+
+    ElementBackground = Color3.fromRGB(17, 16, 20),
+    ElementBackgroundHover = Color3.fromRGB(18, 28, 20),
+    SecondaryElementBackground = Color3.fromRGB(10, 13, 11),
+
+    ElementStroke = Color3.fromRGB(35, 95, 45),
+    SecondaryElementStroke = Color3.fromRGB(45, 130, 55),
+
+    SliderBackground = Color3.fromRGB(30, 40, 32),
+    SliderProgress = Color3.fromRGB(77, 251, 16),
+    SliderStroke = Color3.fromRGB(77, 251, 16),
+
+    ToggleBackground = Color3.fromRGB(55, 60, 57),
+    ToggleEnabled = Color3.fromRGB(77, 251, 16),
+    ToggleDisabled = Color3.fromRGB(55, 60, 57),
+    ToggleEnabledStroke = Color3.fromRGB(90, 95, 90),
+    ToggleDisabledStroke = Color3.fromRGB(90, 95, 90),
+    ToggleEnabledOuterStroke = Color3.fromRGB(90, 95, 90),
+    ToggleDisabledOuterStroke = Color3.fromRGB(90, 95, 90),
+
+    DropdownSelected = Color3.fromRGB(18, 38, 23),
+    DropdownUnselected = Color3.fromRGB(12, 15, 13),
+
+    InputBackground = Color3.fromRGB(12, 15, 13),
+    InputStroke = Color3.fromRGB(77, 251, 16),
 }
-
-
 
 
 -- Interface Management
@@ -1872,6 +1910,20 @@ local function createSettings(window)
 	end
 end
 
+configTab:CreateSection('Theme Changer')
+        
+configTab:CreateDropdown({
+   Name = "Select Theme",
+   Options = {"Default", "AmberGlow", "Amethyst", "Bloom", "DarkBlue", "Green", "Light", "Ocean", "Serenity", "DKHUB"},
+   CurrentOption = {"Default"},
+   MultipleOptions = false,
+   Flag = "ThemeSelect",
+   Callback = function(Options)
+      local selectedTheme = Options[1]
+      Window.ModifyTheme(selectedTheme)
+   end,
+})
+        
 local function fadeOutKeyUI(KeyMain)
 	TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 	TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 467, 0, 175)}):Play()
@@ -2783,61 +2835,56 @@ function RayfieldLibrary:CreateWindow(Settings)
 		end
 
 		-- Label
-function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
-	local LabelValue = {}
+		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
+			local LabelValue = {}
 
-	local Label = Elements.Template.Label:Clone()
-	Label.Title.Text = LabelText
-	Label.Title.TextWrapped = true
-	Label.Title.AutomaticSize = Enum.AutomaticSize.Y
-	Label.AutomaticSize = Enum.AutomaticSize.Y
-	Label.Visible = true
-	Label.Parent = TabPage
+			local Label = Elements.Template.Label:Clone()
+			Label.Title.Text = LabelText
+			Label.Title.TextWrapped = true
+			Label.Title.Position = UDim2.new(0, 10, 0.5, 0)
+			Label.Title.Size = UDim2.new(1, -20, 0, 14)
+			Label.Title.AutomaticSize = Enum.AutomaticSize.Y
+			Label.AutomaticSize = Enum.AutomaticSize.Y
+			Label.Visible = true
+			Label.Parent = TabPage
 
-	
-	Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
+			Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
+			Label.UIStroke.Color = Color or SelectedTheme.SecondaryElementStroke
 
-	if Label:FindFirstChild("UIStroke") then
-		Label.UIStroke.Enabled = false
-	end
+			if Icon then
+				local img, rectOffset, rectSize = resolveIcon(Icon)
+				Label.Icon.Image = img
+				if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
+				if rectSize then Label.Icon.ImageRectSize = rectSize end
+				Label.Icon.Visible = true
+			else
+				Label.Icon.Image = ""
+				Label.Icon.Visible = false
+			end
 
-	if Icon then
-		local img, rectOffset, rectSize = resolveIcon(Icon)
-		Label.Icon.Image = img
-		if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
-		if rectSize then Label.Icon.ImageRectSize = rectSize end
-	else
-		Label.Icon.Image = ""
-	end
+			if Icon and Label:FindFirstChild('Icon') then
+				Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
+				Label.Title.Size = UDim2.new(1, -100, 0, 14)
+			end
 
-	if Icon and Label:FindFirstChild("Icon") then
-		Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
-		Label.Title.Size = UDim2.new(1, -100, 0, 14)
-		Label.Icon.Visible = true
-	else
-		Label.Icon.Visible = false
-		Label.Title.Position = UDim2.new(0, 15, 0.5, 0)
-		Label.Title.Size = UDim2.new(1, -30, 0, 14)
-	end
-
-	Label.Icon.ImageTransparency = 1
-	Label.BackgroundTransparency = 1
-	Label.Title.TextTransparency = 1
-
-	return LabelValue
-end
+			Label.Icon.ImageTransparency = 1
+			Label.BackgroundTransparency = 1
+			Label.UIStroke.Transparency = 1
+			Label.Title.TextTransparency = 1
 
 			Label:SetAttribute("BackgroundTransparencyTarget", Color and 0.8 or 0)
-			Label:SetAttribute("UIStrokeTransparencyTarget", Color and 0.7 or 0)
+			Label:SetAttribute("UIStrokeTransparencyTarget", 1)
 			Label:SetAttribute("TitleTextTransparencyTarget", Color and 0.2 or 0)
 
 			TweenService:Create(Label, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = Color and 0.8 or 0}):Play()
-			TweenService:Create(Label.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = Color and 0.7 or 0}):Play()
+			TweenService:Create(Label.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			TweenService:Create(Label.Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
 			TweenService:Create(Label.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = Color and 0.2 or 0}):Play()
 
 			function LabelValue:Set(NewLabel, Icon, Color)
 				Label.Title.Text = NewLabel
+				Label.Title.Position = UDim2.new(0, 10, 0.5, 0)
+				Label.Title.Size = UDim2.new(1, -20, 0, 14)
 
 				if Color then
 					Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
@@ -2854,6 +2901,9 @@ end
 					if rectSize then Label.Icon.ImageRectSize = rectSize end
 
 					Label.Icon.Visible = true
+				elseif Label:FindFirstChild('Icon') then
+					Label.Icon.Image = ""
+					Label.Icon.Visible = false
 				end
 			end
 
@@ -2999,74 +3049,6 @@ end
 		end
 
 		-- Dropdown
-----------------------------------------------------------------
--- SEARCH BAR
-----------------------------------------------------------------
-
-local SearchBox = Instance.new("TextBox")
-SearchBox.Name = "SearchBox"
-SearchBox.Parent = Dropdown.List
-SearchBox.Size = UDim2.new(1, -10, 0, 28)
-SearchBox.Position = UDim2.new(0, 5, 0, 5)
-
-SearchBox.BackgroundColor3 = SelectedTheme.ElementBackgroundHover
-SearchBox.TextColor3 = SelectedTheme.TextColor
-SearchBox.PlaceholderColor3 = Color3.fromRGB(170, 170, 170)
-
-SearchBox.PlaceholderText = "Search..."
-SearchBox.Text = ""
-SearchBox.ClearTextOnFocus = false
-SearchBox.Font = Enum.Font.Gotham
-SearchBox.TextSize = 13
-SearchBox.ZIndex = 100
-
-local SearchCorner = Instance.new("UICorner")
-SearchCorner.CornerRadius = UDim.new(0, 6)
-SearchCorner.Parent = SearchBox
-
--- Add padding to push options below the search bar
-local ListPadding = Dropdown.List:FindFirstChild("UIPadding")
-if not ListPadding then
-    ListPadding = Instance.new("UIPadding")
-    ListPadding.Parent = Dropdown.List
-end
-ListPadding.PaddingTop = UDim.new(0, 38) -- Space for search box (28 height + 10 margin)
-
-local function FilterDropdownOptions()
-    local SearchText = string.lower(SearchBox.Text)
-
-    for _, Option in ipairs(Dropdown.List:GetChildren()) do
-        if Option:IsA("Frame") and Option.Name ~= "Placeholder" then
-            if SearchText == "" then
-                Option.Visible = true
-            else
-                Option.Visible = string.find(
-                    string.lower(Option.Name),
-                    SearchText,
-                    1,
-                    true
-                ) ~= nil
-            end
-        end
-    end
-end
-
-SearchBox:GetPropertyChangedSignal("Text"):Connect(FilterDropdownOptions)
-
--- Reset search when dropdown closes
-Dropdown.List:GetPropertyChangedSignal("Visible"):Connect(function()
-    if not Dropdown.List.Visible then
-        SearchBox.Text = ""
-        FilterDropdownOptions()
-    end
-end)
-
--- Theme updates
-Rayfield.Main:GetPropertyChangedSignal("BackgroundColor3"):Connect(function()
-    SearchBox.BackgroundColor3 = SelectedTheme.ElementBackgroundHover
-    SearchBox.TextColor3 = SelectedTheme.TextColor
-end)
-
 		function Tab:CreateDropdown(DropdownSettings)
 			local Dropdown = Elements.Template.Dropdown:Clone()
 			if string.find(DropdownSettings.Name,"closed") then
@@ -3126,6 +3108,58 @@ end)
 				end
 			end
 
+			local DropdownSearch = Instance.new("Frame")
+			DropdownSearch.Name = "DropdownSearchBar"
+			DropdownSearch.BackgroundColor3 = SelectedTheme.InputBackground
+			DropdownSearch.BorderSizePixel = 0
+			DropdownSearch.Position = UDim2.new(0, 5, 0, 50)
+			DropdownSearch.Size = UDim2.new(1, -10, 0, 32)
+			DropdownSearch.Visible = false
+			DropdownSearch.ZIndex = 10
+			DropdownSearch.Parent = Dropdown
+
+			local DropdownSearchCorner = Instance.new("UICorner")
+			DropdownSearchCorner.CornerRadius = UDim.new(0, 10)
+			DropdownSearchCorner.Parent = DropdownSearch
+
+			local DropdownSearchStroke = Instance.new("UIStroke")
+			DropdownSearchStroke.Color = SelectedTheme.ElementStroke
+			DropdownSearchStroke.Thickness = 1.5
+			DropdownSearchStroke.Parent = DropdownSearch
+
+			local DropdownSearchInput = Instance.new("TextBox")
+			DropdownSearchInput.BackgroundTransparency = 1
+			DropdownSearchInput.BorderSizePixel = 0
+			DropdownSearchInput.ClearTextOnFocus = false
+			DropdownSearchInput.PlaceholderColor3 = SelectedTheme.TextColor
+			DropdownSearchInput.PlaceholderText = "Search..."
+			DropdownSearchInput.Position = UDim2.new(0, 10, 0, 0)
+			DropdownSearchInput.Size = UDim2.new(1, -20, 1, 0)
+			DropdownSearchInput.Text = ""
+			DropdownSearchInput.TextColor3 = SelectedTheme.TextColor
+			DropdownSearchInput.Font = Dropdown.Selected.Font
+			DropdownSearchInput.TextSize = Dropdown.Selected.TextSize
+			DropdownSearchInput.TextXAlignment = Enum.TextXAlignment.Left
+			DropdownSearchInput.TextYAlignment = Dropdown.Selected.TextYAlignment
+			DropdownSearchInput.ZIndex = 11
+			DropdownSearchInput.Parent = DropdownSearch
+
+			local DropdownListPosition = Dropdown.List.Position
+			local DropdownSearchOffset = DropdownSearch.Size.Y.Offset + 10
+
+			local function IsDropdownOption(Option)
+				return Option.ClassName == "Frame" and Option.Name ~= "Placeholder"
+			end
+
+			local function ApplyDropdownFilter()
+				local searchText = string.lower(DropdownSearchInput.Text)
+				for _, Option in ipairs(Dropdown.List:GetChildren()) do
+					if IsDropdownOption(Option) then
+						Option.Visible = searchText == "" or string.find(string.lower(Option.Name), searchText, 1, true) ~= nil
+					end
+				end
+			end
+
 			Dropdown.Toggle.Rotation = 180
 
 			Dropdown.Interact.MouseButton1Click:Connect(function()
@@ -3136,10 +3170,12 @@ end)
 				TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
 				if Debounce then return end
 				if Dropdown.List.Visible then
+					DropdownSearchInput.Text = ""
 					Debounce = true
+					Dropdown.List.Position = DropdownListPosition
 					TweenService:Create(Dropdown, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -10, 0, 45)}):Play()
 					for _, DropdownOpt in ipairs(Dropdown.List:GetChildren()) do
-						if DropdownOpt.ClassName == "Frame" and DropdownOpt.Name ~= "Placeholder" then
+						if IsDropdownOption(DropdownOpt) then
 							TweenService:Create(DropdownOpt, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 							TweenService:Create(DropdownOpt.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 							TweenService:Create(DropdownOpt.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
@@ -3148,15 +3184,18 @@ end)
 					TweenService:Create(Dropdown.List, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ScrollBarImageTransparency = 1}):Play()
 					TweenService:Create(Dropdown.Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Rotation = 180}):Play()	
 					task.wait(0.35)
+					DropdownSearch.Visible = false
 					Dropdown.List.Visible = false
 					Debounce = false
 				else
-					TweenService:Create(Dropdown, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -10, 0, 180)}):Play()
+					DropdownSearch.Visible = true
+					Dropdown.List.Position = UDim2.new(DropdownListPosition.X.Scale, DropdownListPosition.X.Offset, DropdownListPosition.Y.Scale, DropdownListPosition.Y.Offset + DropdownSearchOffset)
+					TweenService:Create(Dropdown, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -10, 0, 222)}):Play()
 					Dropdown.List.Visible = true
 					TweenService:Create(Dropdown.List, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ScrollBarImageTransparency = 0.7}):Play()
 					TweenService:Create(Dropdown.Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Rotation = 0}):Play()	
 					for _, DropdownOpt in ipairs(Dropdown.List:GetChildren()) do
-						if DropdownOpt.ClassName == "Frame" and DropdownOpt.Name ~= "Placeholder" then
+						if IsDropdownOption(DropdownOpt) then
 							if DropdownOpt.Name ~= Dropdown.Selected.Text then
 								TweenService:Create(DropdownOpt.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
 							end
@@ -3164,6 +3203,7 @@ end)
 							TweenService:Create(DropdownOpt.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 						end
 					end
+					ApplyDropdownFilter()
 				end
 			end)
 
@@ -3259,15 +3299,17 @@ end)
 						end
 
 						for _, droption in ipairs(Dropdown.List:GetChildren()) do
-							if droption.ClassName == "Frame" and droption.Name ~= "Placeholder" and not table.find(DropdownSettings.CurrentOption, droption.Name) then
+							if IsDropdownOption(droption) and not table.find(DropdownSettings.CurrentOption, droption.Name) then
 								TweenService:Create(droption, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.DropdownUnselected}):Play()
 							end
 						end
 						if not DropdownSettings.MultipleOptions then
+							DropdownSearchInput.Text = ""
 							task.wait(0.1)
+							Dropdown.List.Position = DropdownListPosition
 							TweenService:Create(Dropdown, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -10, 0, 45)}):Play()
 							for _, DropdownOpt in ipairs(Dropdown.List:GetChildren()) do
-								if DropdownOpt.ClassName == "Frame" and DropdownOpt.Name ~= "Placeholder" then
+								if IsDropdownOption(DropdownOpt) then
 									TweenService:Create(DropdownOpt, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
 									TweenService:Create(DropdownOpt.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 									TweenService:Create(DropdownOpt.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
@@ -3276,6 +3318,7 @@ end)
 							TweenService:Create(Dropdown.List, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ScrollBarImageTransparency = 1}):Play()
 							TweenService:Create(Dropdown.Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Rotation = 180}):Play()	
 							task.wait(0.35)
+							DropdownSearch.Visible = false
 							Dropdown.List.Visible = false
 						end
 						Debounce = false
@@ -3288,11 +3331,12 @@ end)
 						DropdownOption.UIStroke.Color = SelectedTheme.ElementStroke
 					end)
 				end
+				ApplyDropdownFilter()
 			end
 			SetDropdownOptions()
 
 			for _, droption in ipairs(Dropdown.List:GetChildren()) do
-				if droption.ClassName == "Frame" and droption.Name ~= "Placeholder" then
+				if IsDropdownOption(droption) then
 					if not table.find(DropdownSettings.CurrentOption, droption.Name) then
 						droption.BackgroundColor3 = SelectedTheme.DropdownUnselected
 					else
@@ -3308,6 +3352,8 @@ end)
 					end)
 				end
 			end
+
+			DropdownSearchInput:GetPropertyChangedSignal("Text"):Connect(ApplyDropdownFilter)
 
 			function DropdownSettings:Set(NewOption)
 				DropdownSettings.CurrentOption = NewOption
@@ -3349,7 +3395,7 @@ end)
 				end
 
 				for _, droption in ipairs(Dropdown.List:GetChildren()) do
-					if droption.ClassName == "Frame" and droption.Name ~= "Placeholder" then
+					if IsDropdownOption(droption) then
 						if not table.find(DropdownSettings.CurrentOption, droption.Name) then
 							droption.BackgroundColor3 = SelectedTheme.DropdownUnselected
 						else
@@ -3363,7 +3409,7 @@ end)
 			function DropdownSettings:Refresh(optionsTable: table) -- updates a dropdown with new options from optionsTable
 				DropdownSettings.Options = optionsTable
 				for _, option in Dropdown.List:GetChildren() do
-					if option.ClassName == "Frame" and option.Name ~= "Placeholder" then
+					if IsDropdownOption(option) then
 						option:Destroy()
 					end
 				end
@@ -3371,7 +3417,7 @@ end)
 
 				-- Apply selected/unselected background colors to new options
 				for _, droption in ipairs(Dropdown.List:GetChildren()) do
-					if droption.ClassName == "Frame" and droption.Name ~= "Placeholder" then
+					if IsDropdownOption(droption) then
 						if not table.find(DropdownSettings.CurrentOption, droption.Name) then
 							droption.BackgroundColor3 = SelectedTheme.DropdownUnselected
 						else
@@ -3383,7 +3429,7 @@ end)
 				-- If the dropdown is currently open, make new options visible immediately
 				if Dropdown.List.Visible then
 					for _, DropdownOpt in ipairs(Dropdown.List:GetChildren()) do
-						if DropdownOpt.ClassName == "Frame" and DropdownOpt.Name ~= "Placeholder" then
+						if IsDropdownOption(DropdownOpt) then
 							DropdownOpt.BackgroundTransparency = 0
 							DropdownOpt.Title.TextTransparency = 0
 							if not table.find(DropdownSettings.CurrentOption, DropdownOpt.Name) then
@@ -3392,6 +3438,7 @@ end)
 						end
 					end
 				end
+				ApplyDropdownFilter()
 			end
 
 			if Settings.ConfigurationSaving then
@@ -3402,6 +3449,10 @@ end)
 
 			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
 				Dropdown.Toggle.ImageColor3 = SelectedTheme.TextColor
+				DropdownSearch.BackgroundColor3 = SelectedTheme.InputBackground
+				DropdownSearchStroke.Color = SelectedTheme.ElementStroke
+				DropdownSearchInput.PlaceholderColor3 = SelectedTheme.TextColor
+				DropdownSearchInput.TextColor3 = SelectedTheme.TextColor
 				TweenService:Create(Dropdown, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 			end)
 
@@ -3544,10 +3595,13 @@ end)
 		function Tab:CreateToggle(ToggleSettings)
 			local ToggleValue = {}
 			ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
+			local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️") or ToggleSettings.Name
+			local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(196, 176, 84) or SelectedTheme.TextColor
 
 			local Toggle = Elements.Template.Toggle:Clone()
 			Toggle.Name = ToggleSettings.Name
-			Toggle.Title.Text = ToggleSettings.Name
+			Toggle.Title.Text = ToggleTitle
+			Toggle.Title.TextColor3 = ToggleTitleColor
 			Toggle.Visible = true
 			Toggle.Parent = TabPage
 
@@ -3613,7 +3667,8 @@ end)
 					print("Rayfield | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
 					warn('Check docs.sirius.menu for help with Rayfield specific development.')
 					task.wait(0.5)
-					Toggle.Title.Text = ToggleSettings.Name
+					Toggle.Title.Text = ToggleTitle
+					Toggle.Title.TextColor3 = ToggleTitleColor
 					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
 				end
@@ -3655,7 +3710,8 @@ end)
 					print("Rayfield | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
 					warn('Check docs.sirius.menu for help with Rayfield specific development.')
 					task.wait(0.5)
-					Toggle.Title.Text = ToggleSettings.Name
+					Toggle.Title.Text = ToggleTitle
+					Toggle.Title.TextColor3 = ToggleTitleColor
 					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
 				end
@@ -3676,6 +3732,7 @@ end)
 
 			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
 				Toggle.Switch.Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				Toggle.Title.TextColor3 = ToggleSettings.Warning and ToggleTitleColor or SelectedTheme.TextColor
 
 				if SelectedTheme ~= RayfieldLibrary.Theme.Default then
 					Toggle.Switch.Shadow.Visible = false
