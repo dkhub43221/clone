@@ -2999,6 +2999,74 @@ end
 		end
 
 		-- Dropdown
+----------------------------------------------------------------
+-- SEARCH BAR
+----------------------------------------------------------------
+
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Parent = Dropdown.List
+SearchBox.Size = UDim2.new(1, -10, 0, 28)
+SearchBox.Position = UDim2.new(0, 5, 0, 5)
+
+SearchBox.BackgroundColor3 = SelectedTheme.ElementBackgroundHover
+SearchBox.TextColor3 = SelectedTheme.TextColor
+SearchBox.PlaceholderColor3 = Color3.fromRGB(170, 170, 170)
+
+SearchBox.PlaceholderText = "Search..."
+SearchBox.Text = ""
+SearchBox.ClearTextOnFocus = false
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.TextSize = 13
+SearchBox.ZIndex = 100
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 6)
+SearchCorner.Parent = SearchBox
+
+-- Add padding to push options below the search bar
+local ListPadding = Dropdown.List:FindFirstChild("UIPadding")
+if not ListPadding then
+    ListPadding = Instance.new("UIPadding")
+    ListPadding.Parent = Dropdown.List
+end
+ListPadding.PaddingTop = UDim.new(0, 38) -- Space for search box (28 height + 10 margin)
+
+local function FilterDropdownOptions()
+    local SearchText = string.lower(SearchBox.Text)
+
+    for _, Option in ipairs(Dropdown.List:GetChildren()) do
+        if Option:IsA("Frame") and Option.Name ~= "Placeholder" then
+            if SearchText == "" then
+                Option.Visible = true
+            else
+                Option.Visible = string.find(
+                    string.lower(Option.Name),
+                    SearchText,
+                    1,
+                    true
+                ) ~= nil
+            end
+        end
+    end
+end
+
+SearchBox:GetPropertyChangedSignal("Text"):Connect(FilterDropdownOptions)
+
+-- Reset search when dropdown closes
+Dropdown.List:GetPropertyChangedSignal("Visible"):Connect(function()
+    if not Dropdown.List.Visible then
+        SearchBox.Text = ""
+        FilterDropdownOptions()
+    end
+end)
+
+-- Theme updates
+Rayfield.Main:GetPropertyChangedSignal("BackgroundColor3"):Connect(function()
+    SearchBox.BackgroundColor3 = SelectedTheme.ElementBackgroundHover
+    SearchBox.TextColor3 = SelectedTheme.TextColor
+end)
+
 		function Tab:CreateDropdown(DropdownSettings)
 			local Dropdown = Elements.Template.Dropdown:Clone()
 			if string.find(DropdownSettings.Name,"closed") then
