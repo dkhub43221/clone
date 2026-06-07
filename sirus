@@ -4,8 +4,6 @@
 	by Sirius
 
 	shlex  | Designing + Programming
-  dan    | programming 
-  dk     | Designing
 	iRay   | Programming
 	Max    | Programming
 	Damian | Programming
@@ -2785,39 +2783,49 @@ function RayfieldLibrary:CreateWindow(Settings)
 		end
 
 		-- Label
-		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
-			local LabelValue = {}
+function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
+	local LabelValue = {}
 
-			local Label = Elements.Template.Label:Clone()
-			Label.Title.Text = LabelText
-			Label.Title.TextWrapped = true
-			Label.Title.AutomaticSize = Enum.AutomaticSize.Y
-			Label.AutomaticSize = Enum.AutomaticSize.Y
-			Label.Visible = true
-			Label.Parent = TabPage
+	local Label = Elements.Template.Label:Clone()
+	Label.Title.Text = LabelText
+	Label.Title.TextWrapped = true
+	Label.Title.AutomaticSize = Enum.AutomaticSize.Y
+	Label.AutomaticSize = Enum.AutomaticSize.Y
+	Label.Visible = true
+	Label.Parent = TabPage
 
-			Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
-			Label.UIStroke.Color = Color or SelectedTheme.SecondaryElementStroke
+	
+	Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
 
-			if Icon then
-				local img, rectOffset, rectSize = resolveIcon(Icon)
-				Label.Icon.Image = img
-				if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
-				if rectSize then Label.Icon.ImageRectSize = rectSize end
-			else
-				Label.Icon.Image = ""
-			end
+	if Label:FindFirstChild("UIStroke") then
+		Label.UIStroke.Enabled = false
+	end
 
-			if Icon and Label:FindFirstChild('Icon') then
-				Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
-				Label.Title.Size = UDim2.new(1, -100, 0, 14)
-				Label.Icon.Visible = true
-			end
+	if Icon then
+		local img, rectOffset, rectSize = resolveIcon(Icon)
+		Label.Icon.Image = img
+		if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
+		if rectSize then Label.Icon.ImageRectSize = rectSize end
+	else
+		Label.Icon.Image = ""
+	end
 
-			Label.Icon.ImageTransparency = 1
-			Label.BackgroundTransparency = 1
-			Label.UIStroke.Transparency = 1
-			Label.Title.TextTransparency = 1
+	if Icon and Label:FindFirstChild("Icon") then
+		Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
+		Label.Title.Size = UDim2.new(1, -100, 0, 14)
+		Label.Icon.Visible = true
+	else
+		Label.Icon.Visible = false
+		Label.Title.Position = UDim2.new(0, 15, 0.5, 0)
+		Label.Title.Size = UDim2.new(1, -30, 0, 14)
+	end
+
+	Label.Icon.ImageTransparency = 1
+	Label.BackgroundTransparency = 1
+	Label.Title.TextTransparency = 1
+
+	return LabelValue
+end
 
 			Label:SetAttribute("BackgroundTransparencyTarget", Color and 0.8 or 0)
 			Label:SetAttribute("UIStrokeTransparencyTarget", Color and 0.7 or 0)
