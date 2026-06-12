@@ -14,6 +14,8 @@ if debugX then
 	warn('Initialising Rayfield')
 end
 
+
+
 local function getService(name)
 	local service = game:GetService(name)
 	return if cloneref then cloneref(service) else service
@@ -2814,7 +2816,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			end
 
 			Label.Icon.ImageTransparency = 1
-			Label.BackgroundTransparency = 1
+			Label.BackgroundTransparency = 0
 			Label.UIStroke.Transparency = 1
 			Label.Title.TextTransparency = 1
 
@@ -3385,7 +3387,9 @@ Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
 	TweenService:Create(Dropdown, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 end)
 
-return DropdownSettings
+			return DropdownSettings
+		end
+
 
 		-- Keybind
 		function Tab:CreateKeybind(KeybindSettings)
@@ -4126,8 +4130,6 @@ for _, TopbarButton in ipairs(Topbar:GetChildren()) do
 end
 
 
-local AutoLoadConfig = false
-
 function RayfieldLibrary:LoadConfiguration()
 	local config
 
@@ -4149,17 +4151,17 @@ function RayfieldLibrary:LoadConfiguration()
 				return
 			end
 
-			if AutoLoadConfig and isfile then 
+			if isfile then 
 				if callSafely(isfile, ConfigurationFolder .. "/" .. CFileName .. ConfigurationExtension) then
 					loaded = LoadConfiguration(callSafely(readfile, ConfigurationFolder .. "/" .. CFileName .. ConfigurationExtension))
 				end
-			elseif not isfile then
+			else
 				notified = true
 				RayfieldLibrary:Notify({Title = "Rayfield Configurations", Content = "We couldn't enable Configuration Saving as you are not using software with filesystem support.", Image = 4384402990})
 			end
 		end)
 
-		if success and loaded and not notified and AutoLoadConfig then
+		if success and loaded and not notified then
 			RayfieldLibrary:Notify({Title = "Rayfield Configurations", Content = "The configuration file for this script has been loaded from a previous session.", Image = 4384403532})
 		elseif not success and not notified then
 			warn('Rayfield Configurations Error | '..tostring(result))
