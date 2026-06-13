@@ -2771,32 +2771,10 @@ function Tab:CreateDivider(text)
 	local Divider = Elements.Template.Divider:Clone()
 	Divider.Visible = true
 	Divider.Parent = TabPage
-	Divider.Size = UDim2.new(1, 0, 0, 18) -- exact 18px height like screenshot
+	Divider.Size = UDim2.new(1, 0, 0, 18)
 	Divider.BackgroundTransparency = 1
 	
-	-- Left line
-	local LeftLine = Instance.new("Frame")
-	LeftLine.Name = "LeftLine"
-	LeftLine.Parent = Divider
-	LeftLine.AnchorPoint = Vector2.new(0, 0.5)
-	LeftLine.Position = UDim2.new(0, 0, 0.5, 0)
-	LeftLine.Size = UDim2.new(0.5, -30, 0, 1) -- 30px padding matches screenshot
-	LeftLine.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-	LeftLine.BorderSizePixel = 0
-	LeftLine.BackgroundTransparency = 0.65
-	
-	-- Right line  
-	local RightLine = Instance.new("Frame")
-	RightLine.Name = "RightLine"
-	RightLine.Parent = Divider
-	RightLine.AnchorPoint = Vector2.new(1, 0.5)
-	RightLine.Position = UDim2.new(1, 0, 0.5, 0)
-	RightLine.Size = UDim2.new(0.5, -30, 0, 1) -- 30px padding
-	RightLine.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-	RightLine.BorderSizePixel = 0
-	RightLine.BackgroundTransparency = 0.65
-	
-	-- Center text
+	-- Center text first
 	local TextLabel = Instance.new("TextLabel")
 	TextLabel.Name = "Text"
 	TextLabel.Parent = Divider
@@ -2806,17 +2784,47 @@ function Tab:CreateDivider(text)
 	TextLabel.AutomaticSize = Enum.AutomaticSize.X
 	TextLabel.BackgroundTransparency = 1
 	TextLabel.Text = string.upper(text or "DIVIDER")
-	TextLabel.TextSize = 11 -- exact size from screenshot
+	TextLabel.TextSize = 11
 	TextLabel.Font = Enum.Font.GothamSemibold
-	TextLabel.TextColor3 = Color3.fromRGB(110, 110, 115)
-	TextLabel.TextTransparency = 1
+	TextLabel.TextColor3 = Color3.fromRGB(125, 125, 130)
+	TextLabel.TextTransparency = 0.1
 	
-	TweenService:Create(LeftLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.65}):Play()
-	TweenService:Create(RightLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.65}):Play()
-	TweenService:Create(TextLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {TextTransparency = 0.2}):Play()
-
+	-- Calculate lines after text renders
+	task.defer(function()
+		local textWidth = TextLabel.TextBounds.X
+		local padding = 12 -- tighter like screenshot
+		
+		-- Left line - forced 1px
+		local LeftLine = Instance.new("Frame")
+		LeftLine.Name = "LeftLine"
+		LeftLine.Parent = Divider
+		LeftLine.AnchorPoint = Vector2.new(0, 0.5)
+		LeftLine.Position = UDim2.new(0, 0, 0.5, 0)
+		LeftLine.Size = UDim2.new(0.5, -(textWidth/2 + padding), 0, 1) -- 1px thick
+		LeftLine.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+		LeftLine.BorderSizePixel = 0
+		LeftLine.BackgroundTransparency = 0.75 -- thinner look
+		
+		-- Right line - forced 1px
+		local RightLine = Instance.new("Frame")
+		RightLine.Name = "RightLine"
+		RightLine.Parent = Divider
+		RightLine.AnchorPoint = Vector2.new(1, 0.5)
+		RightLine.Position = UDim2.new(1, 0, 0.5, 0)
+		RightLine.Size = UDim2.new(0.5, -(textWidth/2 + padding), 0, 1) -- 1px thick
+		RightLine.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+		RightLine.BorderSizePixel = 0
+		RightLine.BackgroundTransparency = 0.75 -- thinner look
+	end)
+	
 	function DividerValue:SetText(newText)
 		TextLabel.Text = string.upper(newText)
+		task.defer(function()
+			local textWidth = TextLabel.TextBounds.X
+			local padding = 12
+			Divider.LeftLine.Size = UDim2.new(0.5, -(textWidth/2 + padding), 0, 1)
+			Divider.RightLine.Size = UDim2.new(0.5, -(textWidth/2 + padding), 0, 1)
+		end)
 	end
 	
 	function DividerValue:SetVisible(Value)
