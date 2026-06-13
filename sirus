@@ -2837,7 +2837,59 @@ function Tab:CreateGroupbox(GroupboxSettings)
 	return GroupboxTab
 end
 
+function Tab:CreateLabeledDivider(text)
+	local TextService = game:GetService("TextService")
+	local Divider = Elements.Template.Divider:Clone()
+	Divider.Name = "LabeledDivider"
+	Divider.Parent = TabPage
+	Divider.BackgroundTransparency = 1
+	Divider.Size = UDim2.new(1, -10, 0, 14)
 
+	if Divider:FindFirstChild("Divider") then Divider.Divider:Destroy() end
+
+	local textSize = TextService:GetTextSize(text, 12, Enum.Font.Gotham, Vector2.new(1e4, 14))
+	local pad = 8
+
+	local Label = Instance.new("TextLabel")
+	Label.AnchorPoint = Vector2.new(0.5, 0.5)
+	Label.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Label.Size = UDim2.new(0, textSize.X, 0, 14)
+	Label.BackgroundTransparency = 1
+	Label.Text = text
+	Label.TextColor3 = SelectedTheme.TextColor
+	Label.Font = Enum.Font.Gotham
+	Label.TextSize = 12
+	Label.TextTransparency = 1
+	Label.Parent = Divider
+
+	local function MakeLine(name, pos, anchor)
+		local Line = Instance.new("Frame")
+		Line.Name = name
+		Line.AnchorPoint = anchor
+		Line.Position = pos
+		Line.Size = UDim2.new(0.5, -(textSize.X/2) - pad, 0, 1)
+		Line.BackgroundColor3 = SelectedTheme.ElementStroke
+		Line.BackgroundTransparency = 1
+		Line.BorderSizePixel = 0
+		Line.Parent = Divider
+		return Line
+	end
+
+	local Left = MakeLine("Left", UDim2.new(0, 0, 0.5, 0), Vector2.new(0, 0.5))
+	local Right = MakeLine("Right", UDim2.new(1, 0, 0.5, 0), Vector2.new(1, 0.5))
+
+	TweenService:Create(Left, TweenInfo.new(0.4), {BackgroundTransparency = 0.85}):Play()
+	TweenService:Create(Right, TweenInfo.new(0.4), {BackgroundTransparency = 0.85}):Play()
+	TweenService:Create(Label, TweenInfo.new(0.5), {TextTransparency = 0.4}):Play()
+
+	Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
+		Left.BackgroundColor3 = SelectedTheme.ElementStroke
+		Right.BackgroundColor3 = SelectedTheme.ElementStroke
+		Label.TextColor3 = SelectedTheme.TextColor
+	end)
+
+	return Divider
+end
 
 		-- Label
 		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
