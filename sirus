@@ -2771,7 +2771,7 @@ function Tab:CreateDivider(text)
 	local Divider = Elements.Template.Divider:Clone()
 	Divider.Visible = true
 	Divider.Parent = TabPage
-	Divider.Size = UDim2.new(1, 0, 0, 20)
+	Divider.Size = UDim2.new(1, 0, 0, 18) -- exact 18px height like screenshot
 	Divider.BackgroundTransparency = 1
 	
 	-- Left line
@@ -2780,21 +2780,21 @@ function Tab:CreateDivider(text)
 	LeftLine.Parent = Divider
 	LeftLine.AnchorPoint = Vector2.new(0, 0.5)
 	LeftLine.Position = UDim2.new(0, 0, 0.5, 0)
-	LeftLine.Size = UDim2.new(0.5, -20, 0, 1)
-	LeftLine.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	LeftLine.Size = UDim2.new(0.5, -30, 0, 1) -- 30px padding matches screenshot
+	LeftLine.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
 	LeftLine.BorderSizePixel = 0
-	LeftLine.BackgroundTransparency = 1
+	LeftLine.BackgroundTransparency = 0.65
 	
-	-- Right line
+	-- Right line  
 	local RightLine = Instance.new("Frame")
 	RightLine.Name = "RightLine"
 	RightLine.Parent = Divider
 	RightLine.AnchorPoint = Vector2.new(1, 0.5)
 	RightLine.Position = UDim2.new(1, 0, 0.5, 0)
-	RightLine.Size = UDim2.new(0.5, -20, 0, 1)
-	RightLine.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	RightLine.Size = UDim2.new(0.5, -30, 0, 1) -- 30px padding
+	RightLine.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
 	RightLine.BorderSizePixel = 0
-	RightLine.BackgroundTransparency = 1
+	RightLine.BackgroundTransparency = 0.65
 	
 	-- Center text
 	local TextLabel = Instance.new("TextLabel")
@@ -2805,19 +2805,18 @@ function Tab:CreateDivider(text)
 	TextLabel.Size = UDim2.new(0, 0, 0, 14)
 	TextLabel.AutomaticSize = Enum.AutomaticSize.X
 	TextLabel.BackgroundTransparency = 1
-	TextLabel.Text = text or "Divider"
-	TextLabel.TextSize = 12
-	TextLabel.Font = Enum.Font.Gotham
-	TextLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+	TextLabel.Text = string.upper(text or "DIVIDER")
+	TextLabel.TextSize = 11 -- exact size from screenshot
+	TextLabel.Font = Enum.Font.GothamSemibold
+	TextLabel.TextColor3 = Color3.fromRGB(110, 110, 115)
 	TextLabel.TextTransparency = 1
 	
-	-- Fade in
-	TweenService:Create(LeftLine, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
-	TweenService:Create(RightLine, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
-	TweenService:Create(TextLabel, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0.3}):Play()
+	TweenService:Create(LeftLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.65}):Play()
+	TweenService:Create(RightLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.65}):Play()
+	TweenService:Create(TextLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {TextTransparency = 0.2}):Play()
 
 	function DividerValue:SetText(newText)
-		TextLabel.Text = newText
+		TextLabel.Text = string.upper(newText)
 	end
 	
 	function DividerValue:SetVisible(Value)
