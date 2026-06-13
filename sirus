@@ -2851,50 +2851,52 @@ function Tab:CreateLabeledDivider(text)
 	Divider.Visible = true
 	Divider.Parent = TabPage
 	Divider.BackgroundTransparency = 1
-	Divider.Size = UDim2.new(1, -10, 0, 20)
+	Divider.Size = UDim2.new(1, -10, 0, 14) -- smaller height
 
-	-- Kill the default single line
 	Divider.Divider:Destroy()
 
-	-- Left line
-	local LeftLine = Instance.new("Frame")
-	LeftLine.Name = "LeftLine"
-	LeftLine.AnchorPoint = Vector2.new(0, 0.5)
-	LeftLine.Position = UDim2.new(0, 0, 0.5, 0)
-	LeftLine.Size = UDim2.new(0.5, -(#text * 3.5) - 10, 0, 1)
-	LeftLine.BackgroundColor3 = SelectedTheme.ElementStroke
-	LeftLine.BackgroundTransparency = 0.85
-	LeftLine.BorderSizePixel = 0
-	LeftLine.Parent = Divider
+	local textWidth = #text * 6 -- Gotham 12 is roughly 6px per char
+	local padding = 8
 
 	-- Center text
 	local Label = Instance.new("TextLabel")
 	Label.Name = "Title"
 	Label.AnchorPoint = Vector2.new(0.5, 0.5)
 	Label.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Label.Size = UDim2.new(0, #text * 7, 0, 14)
+	Label.Size = UDim2.new(0, textWidth, 0, 14)
 	Label.BackgroundTransparency = 1
 	Label.Text = text
 	Label.TextColor3 = SelectedTheme.TextColor
-	Label.TextTransparency = 0.4
+	Label.TextTransparency = 1
 	Label.Font = Enum.Font.Gotham
 	Label.TextSize = 12
 	Label.Parent = Divider
+
+	-- Left line
+	local LeftLine = Instance.new("Frame")
+	LeftLine.Name = "LeftLine"
+	LeftLine.AnchorPoint = Vector2.new(0, 0.5)
+	LeftLine.Position = UDim2.new(0, 0, 0.5, 0)
+	LeftLine.Size = UDim2.new(0.5, -(textWidth / 2) - padding, 0, 1)
+	LeftLine.BackgroundColor3 = SelectedTheme.ElementStroke
+	LeftLine.BackgroundTransparency = 1
+	LeftLine.BorderSizePixel = 0
+	LeftLine.Parent = Divider
 
 	-- Right line
 	local RightLine = Instance.new("Frame")
 	RightLine.Name = "RightLine"
 	RightLine.AnchorPoint = Vector2.new(1, 0.5)
 	RightLine.Position = UDim2.new(1, 0, 0.5, 0)
-	RightLine.Size = UDim2.new(0.5, -(#text * 3.5) - 10, 0, 1)
+	RightLine.Size = UDim2.new(0.5, -(textWidth / 2) - padding, 0, 1)
 	RightLine.BackgroundColor3 = SelectedTheme.ElementStroke
-	RightLine.BackgroundTransparency = 0.85
+	RightLine.BackgroundTransparency = 1
 	RightLine.BorderSizePixel = 0
 	RightLine.Parent = Divider
 
-	TweenService:Create(LeftLine, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.85}):Play()
-	TweenService:Create(RightLine, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.85}):Play()
-	TweenService:Create(Label, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+	TweenService:Create(LeftLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.85}):Play()
+	TweenService:Create(RightLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.85}):Play()
+	TweenService:Create(Label, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 0.4}):Play()
 
 	return Divider
 end
@@ -3656,337 +3658,404 @@ end
 			return KeybindSettings
 		end
 
-		-- Toggle
 		function Tab:CreateToggle(ToggleSettings)
-			local ToggleValue = {}
-			ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
-			local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️") or ToggleSettings.Name
-			local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(196, 176, 84) or SelectedTheme.TextColor
+	local ToggleValue = {}
+	ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name.. " ⚠") or ToggleSettings.Name
+	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(196, 176, 84) or SelectedTheme.TextColor
 
-			local Toggle = Elements.Template.Toggle:Clone()
-			Toggle.Name = ToggleSettings.Name
+	local Toggle = Elements.Template.Toggle:Clone()
+	Toggle.Name = ToggleSettings.Name
+	Toggle.Title.Text = ToggleTitle
+	Toggle.Title.TextColor3 = ToggleTitleColor
+	Toggle.Visible = true
+	Toggle.Parent = TabPage
+
+	Toggle.BackgroundTransparency = 1
+	Toggle.UIStroke.Transparency = 1
+	Toggle.Title.TextTransparency = 1
+	Toggle.Switch.Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	if SelectedTheme ~= RayfieldLibrary.Theme.Default then
+		Toggle.Switch.Shadow.Visible = false
+	end
+
+	TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+	TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
+
+	Toggle.Switch.UIStroke.Color = SelectedTheme.ToggleDisabledOuterStroke
+	if ToggleSettings.CurrentValue == true then
+		Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleEnabled
+		Toggle.Switch.Indicator.Position = UDim2.new(1, -20, 0.5, 0)
+	else
+		Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleDisabled
+		Toggle.Switch.Indicator.Position = UDim2.new(1, -40, 0.5, 0)
+	end
+
+	Toggle.MouseEnter:Connect(function()
+		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+	end)
+
+	Toggle.MouseLeave:Connect(function()
+		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+	end)
+
+	Toggle.Interact.MouseButton1Click:Connect(function()
+		if ToggleSettings.CurrentValue == true then
+			ToggleSettings.CurrentValue = false
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()	
+		else
+			ToggleSettings.CurrentValue = true
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()	
+		end
+
+		local Success, Response = pcall(function()
+			if debugX then warn('Running toggle \''..ToggleSettings.Name..'\' (Interact)') end
+			ToggleSettings.Callback(ToggleSettings.CurrentValue)
+		end)
+
+		if not Success then
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			Toggle.Title.Text = "Callback Error"
+			print("Rayfield | "..ToggleSettings.Name.." Callback Error "..tostring(Response))
+			warn('Check docs.sirius.menu for help with Rayfield specific development.')
+			task.wait(0.5)
 			Toggle.Title.Text = ToggleTitle
 			Toggle.Title.TextColor3 = ToggleTitleColor
-			Toggle.Visible = true
-			Toggle.Parent = TabPage
-
-			Toggle.BackgroundTransparency = 1
-			Toggle.UIStroke.Transparency = 1
-			Toggle.Title.TextTransparency = 1
-			Toggle.Switch.Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-
-			if SelectedTheme ~= RayfieldLibrary.Theme.Default then
-				Toggle.Switch.Shadow.Visible = false
-			end
-
-			TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-			TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
-
-			Toggle.Switch.UIStroke.Color = SelectedTheme.ToggleDisabledOuterStroke
-			if ToggleSettings.CurrentValue == true then
-				Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleEnabled
-				Toggle.Switch.Indicator.Position = UDim2.new(1, -20, 0.5, 0)
-			else
-				Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleDisabled
-				Toggle.Switch.Indicator.Position = UDim2.new(1, -40, 0.5, 0)
-			end
-
-			Toggle.MouseEnter:Connect(function()
-				TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
-			end)
-
-			Toggle.MouseLeave:Connect(function()
-				TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-			end)
-
-			Toggle.Interact.MouseButton1Click:Connect(function()
-				if ToggleSettings.CurrentValue == true then
-					ToggleSettings.CurrentValue = false
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
-					TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()	
-				else
-					ToggleSettings.CurrentValue = true
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
-					TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()		
-				end
-
-				local Success, Response = pcall(function()
-					if debugX then warn('Running toggle \''..ToggleSettings.Name..'\' (Interact)') end
-
-					ToggleSettings.Callback(ToggleSettings.CurrentValue)
-				end)
-
-				if not Success then
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					Toggle.Title.Text = "Callback Error"
-					print("Rayfield | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
-					warn('Check docs.sirius.menu for help with Rayfield specific development.')
-					task.wait(0.5)
-					Toggle.Title.Text = ToggleTitle
-					Toggle.Title.TextColor3 = ToggleTitleColor
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-				end
-
-				if not ToggleSettings.Ext then
-					SaveConfiguration()
-				end
-			end)
-
-			function ToggleSettings:Set(NewToggleValue)
-				if NewToggleValue == true then
-					ToggleSettings.CurrentValue = true
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
-					TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()	
-				else
-					ToggleSettings.CurrentValue = false
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
-					TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()	
-				end
-
-				local Success, Response = pcall(function()
-					if debugX then warn('Running toggle \''..ToggleSettings.Name..'\' (:Set)') end
-
-					ToggleSettings.Callback(ToggleSettings.CurrentValue)
-				end)
-
-				if not Success then
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					Toggle.Title.Text = "Callback Error"
-					print("Rayfield | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
-					warn('Check docs.sirius.menu for help with Rayfield specific development.')
-					task.wait(0.5)
-					Toggle.Title.Text = ToggleTitle
-					Toggle.Title.TextColor3 = ToggleTitleColor
-					TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-					TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-				end
-
-				if not ToggleSettings.Ext then
-					SaveConfiguration()
-				end
-			end
-
-			if not ToggleSettings.Ext then
-				if Settings.ConfigurationSaving then
-					if Settings.ConfigurationSaving.Enabled and ToggleSettings.Flag then
-						RayfieldLibrary.Flags[ToggleSettings.Flag] = ToggleSettings
-					end
-				end
-			end
-
-
-			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
-				Toggle.Switch.Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Toggle.Title.TextColor3 = ToggleSettings.Warning and ToggleTitleColor or SelectedTheme.TextColor
-
-				if SelectedTheme ~= RayfieldLibrary.Theme.Default then
-					Toggle.Switch.Shadow.Visible = false
-				end
-
-				task.wait()
-
-				Toggle.Switch.UIStroke.Color = SelectedTheme.ToggleDisabledOuterStroke
-				if not ToggleSettings.CurrentValue then
-					Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleDisabled
-				else
-					Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleEnabled
-				end
-			end)
-
-			return ToggleSettings
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
 		end
 
-		-- Slider
-		function Tab:CreateSlider(SliderSettings)
-			local SLDragging = false
-			local Slider = Elements.Template.Slider:Clone()
-			Slider.Name = SliderSettings.Name
-			Slider.Title.Text = SliderSettings.Name
-			Slider.Visible = true
-			Slider.Parent = TabPage
-
-			Slider.BackgroundTransparency = 1
-			Slider.UIStroke.Transparency = 1
-			Slider.Title.TextTransparency = 1
-
-			if SelectedTheme ~= RayfieldLibrary.Theme.Default then
-				Slider.Main.Shadow.Visible = false
-			end
-
-			Slider.Main.BackgroundColor3 = SelectedTheme.SliderBackground
-			Slider.Main.UIStroke.Color = SelectedTheme.SliderStroke
-			Slider.Main.Progress.UIStroke.Color = SelectedTheme.SliderStroke
-			Slider.Main.Progress.BackgroundColor3 = SelectedTheme.SliderProgress
-
-			TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-			TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-			TweenService:Create(Slider.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
-
-			Slider.Main.Progress.Size =	UDim2.new(0, Slider.Main.AbsoluteSize.X * ((SliderSettings.CurrentValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * ((SliderSettings.CurrentValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)
-
-			if not SliderSettings.Suffix then
-				Slider.Main.Information.Text = tostring(SliderSettings.CurrentValue)
-			else
-				Slider.Main.Information.Text = tostring(SliderSettings.CurrentValue) .. " " .. SliderSettings.Suffix
-			end
-
-			Slider.MouseEnter:Connect(function()
-				TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
-			end)
-
-			Slider.MouseLeave:Connect(function()
-				TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-			end)
-
-			Slider.Main.Interact.InputBegan:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then 
-					TweenService:Create(Slider.Main.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					TweenService:Create(Slider.Main.Progress.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					SLDragging = true 
-				end 
-			end)
-
-			Slider.Main.Interact.InputEnded:Connect(function(Input) 
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then 
-					TweenService:Create(Slider.Main.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0.4}):Play()
-					TweenService:Create(Slider.Main.Progress.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0.3}):Play()
-					SLDragging = false 
-				end 
-			end)
-
-			Slider.Main.Interact.MouseButton1Down:Connect(function(X)
-				local Current = Slider.Main.Progress.AbsolutePosition.X + Slider.Main.Progress.AbsoluteSize.X
-				local Start = Current
-				local Location = X
-				local Loop; Loop = RunService.Stepped:Connect(function()
-					if SLDragging then
-						Location = UserInputService:GetMouseLocation().X
-						Current = Current + 0.025 * (Location - Start)
-
-						if Location < Slider.Main.AbsolutePosition.X then
-							Location = Slider.Main.AbsolutePosition.X
-						elseif Location > Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X then
-							Location = Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X
-						end
-
-						if Current < Slider.Main.AbsolutePosition.X + 5 then
-							Current = Slider.Main.AbsolutePosition.X + 5
-						elseif Current > Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X then
-							Current = Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X
-						end
-
-						if Current <= Location and (Location - Start) < 0 then
-							Start = Location
-						elseif Current >= Location and (Location - Start) > 0 then
-							Start = Location
-						end
-						TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Current - Slider.Main.AbsolutePosition.X, 1, 0)}):Play()
-						local NewValue = SliderSettings.Range[1] + (Location - Slider.Main.AbsolutePosition.X) / Slider.Main.AbsoluteSize.X * (SliderSettings.Range[2] - SliderSettings.Range[1])
-
-						NewValue = math.floor(NewValue / SliderSettings.Increment + 0.5) * (SliderSettings.Increment * 10000000) / 10000000
-						NewValue = math.clamp(NewValue, SliderSettings.Range[1], SliderSettings.Range[2])
-
-						if not SliderSettings.Suffix then
-							Slider.Main.Information.Text = tostring(NewValue)
-						else
-							Slider.Main.Information.Text = tostring(NewValue) .. " " .. SliderSettings.Suffix
-						end
-
-						if SliderSettings.CurrentValue ~= NewValue then
-							local Success, Response = pcall(function()
-								SliderSettings.Callback(NewValue)
-							end)
-							if not Success then
-								TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-								TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-								Slider.Title.Text = "Callback Error"
-								print("Rayfield | "..SliderSettings.Name.." Callback Error " ..tostring(Response))
-								warn('Check docs.sirius.menu for help with Rayfield specific development.')
-								task.wait(0.5)
-								Slider.Title.Text = SliderSettings.Name
-								TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-								TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-							end
-
-							SliderSettings.CurrentValue = NewValue
-							if not SliderSettings.Ext then
-								SaveConfiguration()
-							end
-						end
-					else
-						TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Location - Slider.Main.AbsolutePosition.X > 5 and Location - Slider.Main.AbsolutePosition.X or 5, 1, 0)}):Play()
-						Loop:Disconnect()
-					end
-				end)
-			end)
-
-			function SliderSettings:Set(NewVal)
-				local NewVal = math.clamp(NewVal, SliderSettings.Range[1], SliderSettings.Range[2])
-
-				TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Slider.Main.AbsoluteSize.X * ((NewVal - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * ((NewVal - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)}):Play()
-				Slider.Main.Information.Text = tostring(NewVal) .. " " .. (SliderSettings.Suffix or "")
-
-				local Success, Response = pcall(function()
-					SliderSettings.Callback(NewVal)
-				end)
-
-				if not Success then
-					TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
-					TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-					Slider.Title.Text = "Callback Error"
-					print("Rayfield | "..SliderSettings.Name.." Callback Error " ..tostring(Response))
-					warn('Check docs.sirius.menu for help with Rayfield specific development.')
-					task.wait(0.5)
-					Slider.Title.Text = SliderSettings.Name
-					TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-					TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-				end
-
-				SliderSettings.CurrentValue = NewVal
-				if not SliderSettings.Ext then
-					SaveConfiguration()
-				end
-			end
-
-			if Settings.ConfigurationSaving then
-				if Settings.ConfigurationSaving.Enabled and SliderSettings.Flag then
-					RayfieldLibrary.Flags[SliderSettings.Flag] = SliderSettings
-				end
-			end
-
-			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
-				if SelectedTheme ~= RayfieldLibrary.Theme.Default then
-					Slider.Main.Shadow.Visible = false
-				end
-
-				Slider.Main.BackgroundColor3 = SelectedTheme.SliderBackground
-				Slider.Main.UIStroke.Color = SelectedTheme.SliderStroke
-				Slider.Main.Progress.UIStroke.Color = SelectedTheme.SliderStroke
-				Slider.Main.Progress.BackgroundColor3 = SelectedTheme.SliderProgress
-			end)
-
-			return SliderSettings
+		if not ToggleSettings.Ext then
+			SaveConfiguration()
 		end
+	end)
+
+	function ToggleSettings:Set(NewToggleValue)
+		if NewToggleValue == true then
+			ToggleSettings.CurrentValue = true
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()	
+		else
+			ToggleSettings.CurrentValue = false
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch, TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()	
+		end
+
+		local Success, Response = pcall(function()
+			if debugX then warn('Running toggle \''..ToggleSettings.Name..'\' (:Set)') end
+			ToggleSettings.Callback(ToggleSettings.CurrentValue)
+		end)
+
+		if not Success then
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			Toggle.Title.Text = "Callback Error"
+			print("Rayfield | "..ToggleSettings.Name.." Callback Error "..tostring(Response))
+			warn('Check docs.sirius.menu for help with Rayfield specific development.')
+			task.wait(0.5)
+			Toggle.Title.Text = ToggleTitle
+			Toggle.Title.TextColor3 = ToggleTitleColor
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+		end
+
+		if not ToggleSettings.Ext then
+			SaveConfiguration()
+		end
+	end
+
+	if not ToggleSettings.Ext then
+		if Settings.ConfigurationSaving then
+			if Settings.ConfigurationSaving.Enabled and ToggleSettings.Flag then
+				RayfieldLibrary.Flags[ToggleSettings.Flag] = ToggleSettings
+			end
+		end
+	end
+
+	Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
+		Toggle.Switch.Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		Toggle.Title.TextColor3 = ToggleSettings.Warning and ToggleTitleColor or SelectedTheme.TextColor
+
+		if SelectedTheme ~= RayfieldLibrary.Theme.Default then
+			Toggle.Switch.Shadow.Visible = false
+		end
+
+		task.wait()
+
+		Toggle.Switch.UIStroke.Color = SelectedTheme.ToggleDisabledOuterStroke
+		if not ToggleSettings.CurrentValue then
+			Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleDisabled
+		else
+			Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleEnabled
+		end
+	end)
+
+	return ToggleSettings
+end
+
+function Tab:CreateRangeSlider(RangeSliderSettings)
+	local RangeSliderValue = {}
+	
+	local RangeSlider = Elements.Template.Slider:Clone()
+	RangeSlider.Name = RangeSliderSettings.Name
+	RangeSlider.Title.Text = RangeSliderSettings.Name
+	RangeSlider.Visible = true
+	RangeSlider.Parent = TabPage
+	RangeSlider.Size = UDim2.new(1, -10, 0, 60)
+	
+	RangeSlider.BackgroundTransparency = 1
+	RangeSlider.UIStroke.Transparency = 1
+	RangeSlider.Title.TextTransparency = 1
+	
+	local MinValue = RangeSliderSettings.Range[1]
+	local MaxValue = RangeSliderSettings.Range[2]
+	local CurrentMin = RangeSliderSettings.CurrentValue.Min or MinValue
+	local CurrentMax = RangeSliderSettings.CurrentValue.Max or MaxValue
+	local Increment = RangeSliderSettings.Increment or 1
+	
+	local Size = MaxValue - MinValue
+	local Main = RangeSlider.Main
+	local SliderBar = Main.Slider
+	Main.Size = UDim2.new(1, -20, 0, 16)
+	Main.Position = UDim2.new(0, 10, 0, 35)
+	
+	RangeSlider.Main.Display:Destroy()
+	
+	local MinBox = Instance.new("TextBox")
+	MinBox.Name = "MinBox"
+	MinBox.Size = UDim2.new(0, 50, 0, 20)
+	MinBox.Position = UDim2.new(0, 10, 0, 8)
+	MinBox.BackgroundColor3 = SelectedTheme.InputBackground
+	MinBox.TextColor3 = SelectedTheme.TextColor
+	MinBox.Text = tostring(CurrentMin)
+	MinBox.Font = Enum.Font.Gotham
+	MinBox.TextSize = 12
+	MinBox.ClearTextOnFocus = false
+	MinBox.Parent = RangeSlider
+	
+	local MinCorner = Instance.new("UICorner")
+	MinCorner.CornerRadius = UDim.new(0, 4)
+	MinCorner.Parent = MinBox
+	
+	local MinStroke = Instance.new("UIStroke")
+	MinStroke.Color = SelectedTheme.InputStroke
+	MinStroke.Thickness = 1
+	MinStroke.Parent = MinBox
+	
+	local MaxBox = Instance.new("TextBox")
+	MaxBox.Name = "MaxBox"
+	MaxBox.Size = UDim2.new(0, 50, 0, 20)
+	MaxBox.Position = UDim2.new(1, -60, 0, 8)
+	MaxBox.BackgroundColor3 = SelectedTheme.InputBackground
+	MaxBox.TextColor3 = SelectedTheme.TextColor
+	MaxBox.Text = tostring(CurrentMax)
+	MaxBox.TextXAlignment = Enum.TextXAlignment.Right
+	MaxBox.Font = Enum.Font.Gotham
+	MaxBox.TextSize = 12
+	MaxBox.ClearTextOnFocus = false
+	MaxBox.Parent = RangeSlider
+	
+	local MaxCorner = Instance.new("UICorner")
+	MaxCorner.CornerRadius = UDim.new(0, 4)
+	MaxCorner.Parent = MaxBox
+	
+	local MaxStroke = Instance.new("UIStroke")
+	MaxStroke.Color = SelectedTheme.InputStroke
+	MaxStroke.Thickness = 1
+	MaxStroke.Parent = MaxBox
+	
+	SliderBar.BackgroundColor3 = SelectedTheme.SliderBackground
+	SliderBar.Size = UDim2.new(1, 0, 0, 6)
+	
+	local MinHandle = Instance.new("Frame")
+	MinHandle.Name = "MinHandle"
+	MinHandle.AnchorPoint = Vector2.new(0.5, 0.5)
+	MinHandle.Position = UDim2.new((CurrentMin - MinValue) / Size, 0, 0.5, 0)
+	MinHandle.Size = UDim2.new(0, 14, 0, 14)
+	MinHandle.BackgroundColor3 = Color3.fromRGB(77, 251, 16)
+	MinHandle.BorderSizePixel = 0
+	MinHandle.ZIndex = 3
+	MinHandle.Parent = Main
+	
+	local MinHandleCorner = Instance.new("UICorner")
+	MinHandleCorner.CornerRadius = UDim.new(1, 0)
+	MinHandleCorner.Parent = MinHandle
+	
+	local MinHandleStroke = Instance.new("UIStroke")
+	MinHandleStroke.Color = Color3.fromRGB(255, 255, 255)
+	MinHandleStroke.Thickness = 2
+	MinHandleStroke.Transparency = 0.3
+	MinHandleStroke.Parent = MinHandle
+	
+	local MaxHandle = Instance.new("Frame")
+	MaxHandle.Name = "MaxHandle"
+	MaxHandle.AnchorPoint = Vector2.new(0.5, 0.5)
+	MaxHandle.Position = UDim2.new((CurrentMax - MinValue) / Size, 0, 0.5, 0)
+	MaxHandle.Size = UDim2.new(0, 14, 0, 14)
+	MaxHandle.BackgroundColor3 = Color3.fromRGB(255, 120, 16)
+	MaxHandle.BorderSizePixel = 0
+	MaxHandle.ZIndex = 3
+	MaxHandle.Parent = Main
+	
+	local MaxHandleCorner = Instance.new("UICorner")
+	MaxHandleCorner.CornerRadius = UDim.new(1, 0)
+	MaxHandleCorner.Parent = MaxHandle
+	
+	local MaxHandleStroke = Instance.new("UIStroke")
+	MaxHandleStroke.Color = Color3.fromRGB(255, 255, 255)
+	MaxHandleStroke.Thickness = 2
+	MaxHandleStroke.Transparency = 0.3
+	MaxHandleStroke.Parent = MaxHandle
+	
+	local Fill = Instance.new("Frame")
+	Fill.Name = "Fill"
+	Fill.AnchorPoint = Vector2.new(0, 0.5)
+	Fill.Position = MinHandle.Position
+	Fill.Size = UDim2.new(MaxHandle.Position.X.Scale - MinHandle.Position.X.Scale, 0, 1, 0)
+	Fill.BackgroundColor3 = SelectedTheme.SliderProgress
+	Fill.BorderSizePixel = 0
+	Fill.ZIndex = 2
+	Fill.Parent = SliderBar
+	
+	local FillCorner = Instance.new("UICorner")
+	FillCorner.CornerRadius = UDim.new(1, 0)
+	FillCorner.Parent = Fill
+	
+	local function UpdateSlider(fire)
+		local MinPos = (CurrentMin - MinValue) / Size
+		local MaxPos = (CurrentMax - MinValue) / Size
+		
+		TweenService:Create(MinHandle, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {Position = UDim2.new(MinPos, 0, 0.5, 0)}):Play()
+		TweenService:Create(MaxHandle, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {Position = UDim2.new(MaxPos, 0, 0.5, 0)}):Play()
+		TweenService:Create(Fill, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {Position = UDim2.new(MinPos, 0, 0.5, 0), Size = UDim2.new(MaxPos - MinPos, 0, 1, 0)}):Play()
+		
+		MinBox.Text = tostring(CurrentMin)
+		MaxBox.Text = tostring(CurrentMax)
+		
+		if fire then
+			local Success, Response = pcall(function()
+				RangeSliderSettings.Callback({Min = CurrentMin, Max = CurrentMax})
+			end)
+			if not Success then
+				warn("Rayfield | "..RangeSliderSettings.Name.." Callback Error "..tostring(Response))
+			end
+			if not RangeSliderSettings.Ext then
+				SaveConfiguration()
+			end
+		end
+	end
+	
+	local MinDragging = false
+	local MaxDragging = false
+	
+	MinHandle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			MinDragging = true
+			TweenService:Create(MinHandle, TweenInfo.new(0.2), {Size = UDim2.new(0, 18, 0, 18)}):Play()
+		end
+	end)
+	
+	MaxHandle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			MaxDragging = true
+			TweenService:Create(MaxHandle, TweenInfo.new(0.2), {Size = UDim2.new(0, 18, 0, 18)}):Play()
+		end
+	end)
+	
+	UserInputService.InputChanged:Connect(function(input)
+		if (MinDragging or MaxDragging) and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local SizeScale = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
+			local Value = MinValue + ((MaxValue - MinValue) * SizeScale)
+			Value = math.floor(Value / Increment + 0.5) * Increment
+			
+			if MinDragging then
+				CurrentMin = math.clamp(Value, MinValue, CurrentMax - Increment)
+			elseif MaxDragging then
+				CurrentMax = math.clamp(Value, CurrentMin + Increment, MaxValue)
+			end
+			
+			UpdateSlider(true)
+		end
+	end)
+	
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			if MinDragging then
+				MinDragging = false
+				TweenService:Create(MinHandle, TweenInfo.new(0.2), {Size = UDim2.new(0, 14, 0, 14)}):Play()
+			end
+			if MaxDragging then
+				MaxDragging = false
+				TweenService:Create(MaxHandle, TweenInfo.new(0.2), {Size = UDim2.new(0, 14, 0, 14)}):Play()
+			end
+		end
+	end)
+	
+	MinBox.FocusLost:Connect(function()
+		local Num = tonumber(MinBox.Text)
+		if Num then
+			CurrentMin = math.clamp(math.floor(Num / Increment + 0.5) * Increment, MinValue, CurrentMax - Increment)
+			UpdateSlider(true)
+		else
+			MinBox.Text = tostring(CurrentMin)
+		end
+	end)
+	
+	MaxBox.FocusLost:Connect(function()
+		local Num = tonumber(MaxBox.Text)
+		if Num then
+			CurrentMax = math.clamp(math.floor(Num / Increment + 0.5) * Increment, CurrentMin + Increment, MaxValue)
+			UpdateSlider(true)
+		else
+			MaxBox.Text = tostring(CurrentMax)
+		end
+	end)
+	
+	function RangeSliderValue:Set(Value)
+		CurrentMin = math.clamp(Value.Min, MinValue, MaxValue)
+		CurrentMax = math.clamp(Value.Max, MinValue, MaxValue)
+		UpdateSlider(false)
+	end
+	
+	function RangeSliderValue:Get()
+		return {Min = CurrentMin, Max = CurrentMax}
+	end
+	
+	TweenService:Create(RangeSlider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(RangeSlider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+	TweenService:Create(RangeSlider.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+	
+	UpdateSlider(false)
+	
+	if Settings.ConfigurationSaving then
+		if Settings.ConfigurationSaving.Enabled and RangeSliderSettings.Flag then
+			RayfieldLibrary.Flags[RangeSliderSettings.Flag] = RangeSliderValue
+		end
+	end
+	
+	return RangeSliderValue
+end
 
 		Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
 			TabButton.UIStroke.Color = SelectedTheme.TabStroke
