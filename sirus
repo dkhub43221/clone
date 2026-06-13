@@ -3740,41 +3740,61 @@ end
 
 	Slider.Main.BackgroundColor3 = SelectedTheme.SliderBackground
 	Slider.Main.UIStroke.Color = SelectedTheme.SliderStroke
-	Slider.Main.Progress.UIStroke.Color = SelectedTheme.SliderStroke
-	Slider.Main.Progress.BackgroundColor3 = SelectedTheme.SliderProgress
+
+	-- Kill the progress fill, we don't want it
+	Slider.Main.Progress:Destroy()
+
+	-- Make a small handle instead
+	local Handle = Instance.new("Frame")
+	Handle.Name = "Handle"
+	Handle.AnchorPoint = Vector2.new(0.5, 0.5)
+	Handle.Position = UDim2.new((SliderSettings.CurrentValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1]), 0, 0.5, 0)
+	Handle.Size = UDim2.new(0, 12, 0, 12)
+	Handle.BackgroundColor3 = SelectedTheme.SliderProgress
+	Handle.BorderSizePixel = 0
+	Handle.ZIndex = 5
+	Handle.Parent = Slider.Main
+	Handle:AddToTheme({BackgroundColor3 = "SliderProgress"})
+
+	local HandleCorner = Instance.new("UICorner")
+	HandleCorner.CornerRadius = UDim.new(1, 0)
+	HandleCorner.Parent = Handle
+
+	local HandleStroke = Instance.new("UIStroke")
+	HandleStroke.Color = Color3.fromRGB(255, 255, 255)
+	HandleStroke.Thickness = 2
+	HandleStroke.Transparency = 0.2
+	HandleStroke.Parent = Handle
 
 	TweenService:Create(Slider, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 	TweenService:Create(Slider.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
 	TweenService:Create(Slider.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
-	Slider.Main.Progress.Size = UDim2.new(0, Slider.Main.AbsoluteSize.X * ((SliderSettings.CurrentValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * ((SliderSettings.CurrentValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)
-
-	-- Remove old info label and replace with textbox
-	Slider.Main.Information:Destroy()
-	
+	-- Textbox in the top right corner of the slider bar
 	local InputBox = Instance.new("TextBox")
 	InputBox.Name = "Information"
 	InputBox.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json")
 	InputBox.TextColor3 = SelectedTheme.TextColor
 	InputBox.Text = tostring(SliderSettings.CurrentValue)
-	InputBox.TextSize = 12
-	InputBox.AnchorPoint = Vector2.new(1, 0.5)
-	InputBox.Position = UDim2.new(1, -5, 0.5, 0)
-	InputBox.Size = UDim2.new(0, 50, 0, 14)
+	InputBox.TextSize = 11
+	InputBox.AnchorPoint = Vector2.new(1, 0)
+	InputBox.Position = UDim2.new(1, -5, 0, 2)
+	InputBox.Size = UDim2.new(0, 45, 0, 12)
 	InputBox.BackgroundColor3 = SelectedTheme.InputBackground
 	InputBox.BorderSizePixel = 0
 	InputBox.ClearTextOnFocus = false
-	InputBox.ZIndex = 5
+	InputBox.ZIndex = 6
 	InputBox.Parent = Slider.Main
 	InputBox:AddToTheme({BackgroundColor3 = "InputBackground", TextColor3 = "Text"})
 	
 	local UICorner = Instance.new("UICorner")
-	UICorner.CornerRadius = UDim.new(0, 3)
+	UICorner.CornerRadius = UDim.new(0, 2)
 	UICorner.Parent = InputBox
 	
 	local UIStroke = Instance.new("UIStroke")
 	UIStroke.Color = SelectedTheme.InputStroke
 	UIStroke.Thickness = 1
+	UIStroke.Transparency = 0.5
 	UIStroke.Parent = InputBox
 	UIStroke:AddToTheme({Color = "InputStroke"})
 
@@ -3790,7 +3810,8 @@ end
 		local NewValue = math.clamp(Value, SliderSettings.Range[1], SliderSettings.Range[2])
 		NewValue = math.floor(NewValue / SliderSettings.Increment + 0.5) * (SliderSettings.Increment * 10000000) / 10000000
 
-		TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Slider.Main.AbsoluteSize.X * ((NewValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * ((NewValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)}):Play()
+		local Pos = (NewValue - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])
+		TweenService:Create(Handle, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {Position = UDim2.new(Pos, 0, 0.5, 0)}):Play()
 		
 		if not SliderSettings.Suffix then
 			InputBox.Text = tostring(NewValue)
@@ -3833,7 +3854,6 @@ end
 	Slider.Main.Interact.InputBegan:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 			TweenService:Create(Slider.Main.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-			TweenService:Create(Slider.Main.Progress.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 			SLDragging = true
 		end
 	end)
@@ -3841,43 +3861,18 @@ end
 	Slider.Main.Interact.InputEnded:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 			TweenService:Create(Slider.Main.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0.4}):Play()
-			TweenService:Create(Slider.Main.Progress.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0.3}):Play()
 			SLDragging = false
 		end
 	end)
 
-	Slider.Main.Interact.MouseButton1Down:Connect(function(X)
-		local Current = Slider.Main.Progress.AbsolutePosition.X + Slider.Main.Progress.AbsoluteSize.X
-		local Start = Current
-		local Location = X
+	Slider.Main.Interact.MouseButton1Down:Connect(function()
 		local Loop; Loop = RunService.Stepped:Connect(function()
 			if SLDragging then
-				Location = UserInputService:GetMouseLocation().X
-				Current = Current + 0.025 * (Location - Start)
-
-				if Location < Slider.Main.AbsolutePosition.X then
-					Location = Slider.Main.AbsolutePosition.X
-				elseif Location > Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X then
-					Location = Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X
-				end
-
-				if Current < Slider.Main.AbsolutePosition.X + 5 then
-					Current = Slider.Main.AbsolutePosition.X + 5
-				elseif Current > Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X then
-					Current = Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X
-				end
-
-				if Current <= Location and (Location - Start) < 0 then
-					Start = Location
-				elseif Current >= Location and (Location - Start) > 0 then
-					Start = Location
-				end
-				TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Current - Slider.Main.AbsolutePosition.X, 1, 0)}):Play()
-				local NewValue = SliderSettings.Range[1] + (Location - Slider.Main.AbsolutePosition.X) / Slider.Main.AbsoluteSize.X * (SliderSettings.Range[2] - SliderSettings.Range[1])
-
+				local MousePos = UserInputService:GetMouseLocation().X
+				local RelPos = math.clamp((MousePos - Slider.Main.AbsolutePosition.X) / Slider.Main.AbsoluteSize.X, 0, 1)
+				local NewValue = SliderSettings.Range[1] + (SliderSettings.Range[2] - SliderSettings.Range[1]) * RelPos
 				UpdateSlider(NewValue)
 			else
-				TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Location - Slider.Main.AbsolutePosition.X > 5 and Location - Slider.Main.AbsolutePosition.X or 5, 1, 0)}):Play()
 				Loop:Disconnect()
 			end
 		end)
@@ -3897,11 +3892,8 @@ end
 		if SelectedTheme ~= RayfieldLibrary.Theme.Default then
 			Slider.Main.Shadow.Visible = false
 		end
-
 		Slider.Main.BackgroundColor3 = SelectedTheme.SliderBackground
 		Slider.Main.UIStroke.Color = SelectedTheme.SliderStroke
-		Slider.Main.Progress.UIStroke.Color = SelectedTheme.SliderStroke
-		Slider.Main.Progress.BackgroundColor3 = SelectedTheme.SliderProgress
 	end)
 
 	return SliderSettings
