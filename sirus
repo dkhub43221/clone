@@ -2763,143 +2763,81 @@ function Tab:CreateSection(SectionName)
 	return SectionValue
 end
 
--- GROUPBOX - ADDED HERE
 function Tab:CreateGroupbox(GroupboxSettings)
-	local Groupbox = {}
-	local Elements = self.TabPage.Parent
-	local SelectedTheme = Elements.Parent.Parent.SelectedTheme
+	local Groupbox = Elements.Template.Groupbox:Clone()
+	Groupbox.Name = GroupboxSettings.Name
+	Groupbox.Title.Text = GroupboxSettings.Name
+	Groupbox.Visible = true
+	Groupbox.Parent = TabPage
 
-	local Container = Instance.new("Frame")
-	Container.Name = GroupboxSettings.Name or "Groupbox"
-	Container.Size = UDim2.new(1, -10, 0, 35)
-	Container.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
-	Container.BackgroundTransparency = 0
-	Container.BorderSizePixel = 0
-	Container.AutomaticSize = Enum.AutomaticSize.Y
-	Container.Parent = self.TabPage
+	Groupbox.BackgroundTransparency = 1
+	Groupbox.UIStroke.Transparency = 1
+	Groupbox.Title.TextTransparency = 1
 
-	local UIStroke = Instance.new("UIStroke")
-	UIStroke.Color = SelectedTheme.ElementStroke
-	UIStroke.Thickness = 1
-	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	UIStroke.Parent = Container
+	TweenService:Create(Groupbox, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Groupbox.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+	TweenService:Create(Groupbox.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
-	local UICorner = Instance.new("UICorner")
-	UICorner.CornerRadius = UDim.new(0, 6)
-	UICorner.Parent = Container
+	local GroupboxTab = {}
 
-	local Title = Instance.new("TextLabel")
-	Title.Name = "Title"
-	Title.AnchorPoint = Vector2.new(0, 0.5)
-	Title.Position = UDim2.new(0, 12, 0, 0)
-	Title.Size = UDim2.new(1, -24, 0, 14)
-	Title.BackgroundTransparency = 1
-	Title.Text = GroupboxSettings.Name or "Groupbox"
-	Title.TextColor3 = SelectedTheme.TextColor
-	Title.TextSize = 13
-	Title.Font = Enum.Font.GothamBold
-	Title.TextXAlignment = Enum.TextXAlignment.Left
-	Title.Parent = Container
+	function GroupboxTab:CreateToggle(ToggleSettings)
+		local Toggle = Elements.Template.Toggle:Clone()
+		Toggle.Name = ToggleSettings.Name
+		Toggle.Title.Text = ToggleSettings.Name
+		Toggle.Visible = true
+		Toggle.Parent = Groupbox.Container
+		
+		-- Copy the rest from your Tab:CreateToggle function
+		-- Just change Toggle.Parent = TabPage to Toggle.Parent = Groupbox.Container
+		return Tab:CreateToggle(ToggleSettings) -- lazy way if you don't wanna copy code
+	end
 
-	local Content = Instance.new("Frame")
-	Content.Name = "Content"
-	Content.Position = UDim2.new(0, 0, 0, 28)
-	Content.Size = UDim2.new(1, 0, 0, 0)
-	Content.BackgroundTransparency = 1
-	Content.AutomaticSize = Enum.AutomaticSize.Y
-	Content.Parent = Container
+	function GroupboxTab:CreateButton(ButtonSettings)
+		local Button = Elements.Template.Button:Clone()
+		Button.Name = ButtonSettings.Name
+		Button.Title.Text = ButtonSettings.Name
+		Button.Visible = true
+		Button.Parent = Groupbox.Container
+		
+		return Tab:CreateButton(ButtonSettings) -- lazy way
+	end
 
-	local UIListLayout = Instance.new("UIListLayout")
-	UIListLayout.Padding = UDim.new(0, 5)
-	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Parent = Content
+	function GroupboxTab:CreateSlider(SliderSettings)
+		local Slider = Elements.Template.Slider:Clone()
+		Slider.Name = SliderSettings.Name
+		Slider.Title.Text = SliderSettings.Name
+		Slider.Visible = true
+		Slider.Parent = Groupbox.Container
+		
+		return Tab:CreateSlider(SliderSettings)
+	end
 
-	local UIPadding = Instance.new("UIPadding")
-	UIPadding.PaddingBottom = UDim.new(0, 8)
-	UIPadding.PaddingLeft = UDim.new(0, 8)
-	UIPadding.PaddingRight = UDim.new(0, 8)
-	UIPadding.Parent = Content
+	function GroupboxTab:CreateDropdown(DropdownSettings)
+		local Dropdown = Elements.Template.Dropdown:Clone()
+		Dropdown.Name = DropdownSettings.Name
+		Dropdown.Title.Text = DropdownSettings.Name
+		Dropdown.Visible = true
+		Dropdown.Parent = Groupbox.Container
+		
+		return Tab:CreateDropdown(DropdownSettings)
+	end
 
-	-- Override Parent for new elements so they go inside Content
-	local OldTabPage = self.TabPage
-	self.TabPage = Content
+	function GroupboxTab:CreateLabel(Text)
+		local Label = Elements.Template.Label:Clone()
+		Label.Title.Text = Text
+		Label.Visible = true
+		Label.Parent = Groupbox.Container
+		return Label
+	end
 
-	-- Re-expose all element functions to Groupbox
-	function Groupbox:CreateToggle(t) return Tab.CreateToggle(self, t) end
-	function Groupbox:CreateSlider(t) return Tab.CreateSlider(self, t) end
-	function Groupbox:CreateDropdown(t) return Tab.CreateDropdown(self, t) end
-	function Groupbox:CreateButton(t) return Tab.CreateButton(self, t) end
-	function Groupbox:CreateInput(t) return Tab.CreateInput(self, t) end
-	function Groupbox:CreateLabel(t, i, c, ig) return Tab.CreateLabel(self, t, i, c, ig) end
-	function Groupbox:CreateLabeledDivider(t) return Tab.CreateLabeledDivider(self, t) end
-	function Groupbox:CreateColorPicker(t) return Tab.CreateColorPicker(self, t) end
-	function Groupbox:CreateSection(t) return Tab.CreateSection(self, t) end
-	function Groupbox:CreateGroupbox(t) return Tab.CreateGroupbox(self, t) end
-
-	-- Restore TabPage after
-	task.spawn(function()
-		task.wait()
-		self.TabPage = OldTabPage
+	Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
+		Groupbox.UIStroke.Color = SelectedTheme.ElementStroke
 	end)
 
-	return Groupbox
+	return GroupboxTab
 end
 
-function Tab:CreateLabeledDivider(text)
-	local Divider = Elements.Template.Divider:Clone()
-	Divider.Name = "LabeledDivider"
-	Divider.Visible = true
-	Divider.Parent = TabPage
-	Divider.BackgroundTransparency = 1
-	Divider.Size = UDim2.new(1, -10, 0, 14) -- smaller height
 
-	Divider.Divider:Destroy()
-
-	local textWidth = #text * 6 -- Gotham 12 is roughly 6px per char
-	local padding = 8
-
-	-- Center text
-	local Label = Instance.new("TextLabel")
-	Label.Name = "Title"
-	Label.AnchorPoint = Vector2.new(0.5, 0.5)
-	Label.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Label.Size = UDim2.new(0, textWidth, 0, 14)
-	Label.BackgroundTransparency = 1
-	Label.Text = text
-	Label.TextColor3 = SelectedTheme.TextColor
-	Label.TextTransparency = 1
-	Label.Font = Enum.Font.Gotham
-	Label.TextSize = 12
-	Label.Parent = Divider
-
-	-- Left line
-	local LeftLine = Instance.new("Frame")
-	LeftLine.Name = "LeftLine"
-	LeftLine.AnchorPoint = Vector2.new(0, 0.5)
-	LeftLine.Position = UDim2.new(0, 0, 0.5, 0)
-	LeftLine.Size = UDim2.new(0.5, -(textWidth / 2) - padding, 0, 1)
-	LeftLine.BackgroundColor3 = SelectedTheme.ElementStroke
-	LeftLine.BackgroundTransparency = 1
-	LeftLine.BorderSizePixel = 0
-	LeftLine.Parent = Divider
-
-	-- Right line
-	local RightLine = Instance.new("Frame")
-	RightLine.Name = "RightLine"
-	RightLine.AnchorPoint = Vector2.new(1, 0.5)
-	RightLine.Position = UDim2.new(1, 0, 0.5, 0)
-	RightLine.Size = UDim2.new(0.5, -(textWidth / 2) - padding, 0, 1)
-	RightLine.BackgroundColor3 = SelectedTheme.ElementStroke
-	RightLine.BackgroundTransparency = 1
-	RightLine.BorderSizePixel = 0
-	RightLine.Parent = Divider
-
-	TweenService:Create(LeftLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.85}):Play()
-	TweenService:Create(RightLine, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.85}):Play()
-	TweenService:Create(Label, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 0.4}):Play()
-
-	return Divider
-end
 
 		-- Label
 		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
