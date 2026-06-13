@@ -2764,7 +2764,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			return SectionValue
 		end
 
-		function Tab:CreateLabeledDivider(text)
+function Tab:CreateLabeledDivider(text)
 	local Divider = Elements.Template.Divider:Clone()
 	Divider.Name = "LabeledDivider"
 	Divider.Visible = true
