@@ -2736,33 +2736,72 @@ function RayfieldLibrary:CreateWindow(Settings)
 			return ColorPickerSettings
 		end
 
-		-- Section
 		function Tab:CreateSection(SectionName)
 
-			local SectionValue = {}
+	local SectionValue = {}
 
-			if SDone then
-				local SectionSpace = Elements.Template.SectionSpacing:Clone()
-				SectionSpace.Visible = true
-				SectionSpace.Parent = TabPage
+	if SDone then
+		local SectionSpace = Elements.Template.SectionSpacing:Clone()
+		SectionSpace.Visible = true
+		SectionSpace.Parent = TabPage
+	end
+
+	-- Gap above search
+	local TopGap = Elements.Template.SectionSpacing:Clone()
+	TopGap.Visible = true
+	TopGap.Parent = TabPage
+	TopGap.Size = UDim2.new(1, 0, 0, 6) -- adjust gap size
+
+	-- Search bar
+	local SearchBar = Elements.Template.SearchBar:Clone() -- make sure this template exists
+	SearchBar.Name = "SearchBar"
+	SearchBar.Visible = true
+	SearchBar.Parent = TabPage
+
+	local Section = Elements.Template.SectionTitle:Clone()
+	Section.Title.Text = SectionName
+	Section.Visible = true
+	Section.Parent = TabPage
+
+	Section.Title.TextTransparency = 1
+	TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+
+	-- Search logic: hides/shows elements under this section based on text
+	local TextBox = SearchBar:FindFirstChild("TextBox")
+	if TextBox then
+		TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+			local query = string.lower(TextBox.Text)
+			local startIndex = Section.LayoutOrder + 1
+			
+			for _, v in ipairs(TabPage:GetChildren()) do
+				if v.LayoutOrder and v.LayoutOrder > startIndex then
+					-- Stop when we hit next section title
+					if v.Name == "SectionTitle" or v:FindFirstChild("Title") and v ~= Section then
+						break
+					end
+					
+					-- Find text to match against
+					local elementText = ""
+					if v:FindFirstChild("Title") then
+						elementText = v.Title.Text
+					elseif v.Name then
+						elementText = v.Name
+					end
+					
+					v.Visible = query == "" or string.find(string.lower(elementText), query, 1, true)
+				end
 			end
+		end)
+	end
 
-			local Section = Elements.Template.SectionTitle:Clone()
-			Section.Title.Text = SectionName
-			Section.Visible = true
-			Section.Parent = TabPage
+	function SectionValue:Set(NewSection)
+		Section.Title.Text = NewSection
+	end
 
-			Section.Title.TextTransparency = 1
-			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+	SDone = true
 
-			function SectionValue:Set(NewSection)
-				Section.Title.Text = NewSection
-			end
-
-			SDone = true
-
-			return SectionValue
-		end
+	return SectionValue
+end
 
 		-- Divider
 		function Tab:CreateDivider()
