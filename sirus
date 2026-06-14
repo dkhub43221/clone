@@ -2782,86 +2782,81 @@ function RayfieldLibrary:CreateWindow(Settings)
 			return DividerValue
 		end
 
-		-- Label
-		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
-			local LabelValue = {}
+		-- Label - Transparent Background Version
+function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
+	local LabelValue = {}
 
-			local Label = Elements.Template.Label:Clone()
-			Label.Title.Text = LabelText
-			Label.Title.TextWrapped = true
-			Label.Title.Position = UDim2.new(0, 10, 0.5, 0)
-			Label.Title.Size = UDim2.new(1, -20, 0, 14)
-			Label.Title.AutomaticSize = Enum.AutomaticSize.Y
-			Label.AutomaticSize = Enum.AutomaticSize.Y
-			Label.Visible = true
-			Label.Parent = TabPage
+	local Label = Elements.Template.Label:Clone()
+	Label.Title.Text = LabelText
+	Label.Title.TextWrapped = true
+	Label.Title.Position = UDim2.new(0, 10, 0.5, 0)
+	Label.Title.Size = UDim2.new(1, -20, 0, 14)
+	Label.Title.AutomaticSize = Enum.AutomaticSize.Y
+	Label.AutomaticSize = Enum.AutomaticSize.Y
+	Label.Visible = true
+	Label.Parent = TabPage
 
-			Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
-			Label.UIStroke.Color = Color or SelectedTheme.SecondaryElementStroke
+	-- Force background and stroke to be invisible
+	Label.BackgroundTransparency = 1
+	Label.UIStroke.Transparency = 1
+	Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
+	Label.UIStroke.Color = Color or SelectedTheme.SecondaryElementStroke
 
-			if Icon then
-				local img, rectOffset, rectSize = resolveIcon(Icon)
-				Label.Icon.Image = img
-				if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
-				if rectSize then Label.Icon.ImageRectSize = rectSize end
-				Label.Icon.Visible = true
-			else
-				Label.Icon.Image = ""
-				Label.Icon.Visible = false
-			end
+	if Icon then
+		local img, rectOffset, rectSize = resolveIcon(Icon)
+		Label.Icon.Image = img
+		if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
+		if rectSize then Label.Icon.ImageRectSize = rectSize end
+		Label.Icon.Visible = true
+	else
+		Label.Icon.Image = ""
+		Label.Icon.Visible = false
+	end
 
-			if Icon and Label:FindFirstChild('Icon') then
-				Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
-				Label.Title.Size = UDim2.new(1, -100, 0, 14)
-			end
+	if Icon and Label:FindFirstChild('Icon') then
+		Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
+		Label.Title.Size = UDim2.new(1, -100, 0, 14)
+	end
 
-			Label.Icon.ImageTransparency = 1
-			Label.BackgroundTransparency = 1
-			Label.UIStroke.Transparency = 1
-			Label.Title.TextTransparency = 1
+	-- Start text + icon transparent for tween-in
+	Label.Icon.ImageTransparency = 1
+	Label.Title.TextTransparency = 1
 
-			Label:SetAttribute("BackgroundTransparencyTarget", Color and 0.8 or 0)
-			Label:SetAttribute("UIStrokeTransparencyTarget", 1)
-			Label:SetAttribute("TitleTextTransparencyTarget", Color and 0.2 or 0)
+	-- Only tween text and icon, never background
+	TweenService:Create(Label.Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = Icon and 0.2 or 1}):Play()
+	TweenService:Create(Label.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = Color and 0.2 or 0}):Play()
 
-			TweenService:Create(Label, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = Color and 0.8 or 0}):Play()
-			TweenService:Create(Label.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-			TweenService:Create(Label.Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
-			TweenService:Create(Label.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = Color and 0.2 or 0}):Play()
+	function LabelValue:Set(NewLabel, Icon, Color)
+		Label.Title.Text = NewLabel
+		Label.Title.Position = UDim2.new(0, 10, 0.5, 0)
+		Label.Title.Size = UDim2.new(1, -20, 0, 14)
 
-			function LabelValue:Set(NewLabel, Icon, Color)
-				Label.Title.Text = NewLabel
-				Label.Title.Position = UDim2.new(0, 10, 0.5, 0)
-				Label.Title.Size = UDim2.new(1, -20, 0, 14)
+		-- Keep background invisible on updates
+		Label.BackgroundTransparency = 1
+		Label.UIStroke.Transparency = 1
 
-				if Color then
-					Label.BackgroundColor3 = Color or SelectedTheme.SecondaryElementBackground
-					Label.UIStroke.Color = Color or SelectedTheme.SecondaryElementStroke
-				end
+		if Icon and Label:FindFirstChild('Icon') then
+			Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
+			Label.Title.Size = UDim2.new(1, -100, 0, 14)
 
-				if Icon and Label:FindFirstChild('Icon') then
-					Label.Title.Position = UDim2.new(0, 45, 0.5, 0)
-					Label.Title.Size = UDim2.new(1, -100, 0, 14)
+			local img, rectOffset, rectSize = resolveIcon(Icon)
+			Label.Icon.Image = img
+			if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
+			if rectSize then Label.Icon.ImageRectSize = rectSize end
 
-					local img, rectOffset, rectSize = resolveIcon(Icon)
-					Label.Icon.Image = img
-					if rectOffset then Label.Icon.ImageRectOffset = rectOffset end
-					if rectSize then Label.Icon.ImageRectSize = rectSize end
-
-					Label.Icon.Visible = true
-				elseif Label:FindFirstChild('Icon') then
-					Label.Icon.Image = ""
-					Label.Icon.Visible = false
-				end
-			end
-
-			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
-				Label.BackgroundColor3 = IgnoreTheme and (Color or Label.BackgroundColor3) or SelectedTheme.SecondaryElementBackground
-				Label.UIStroke.Color = IgnoreTheme and (Color or Label.BackgroundColor3) or SelectedTheme.SecondaryElementStroke
-			end)
-
-			return LabelValue
+			Label.Icon.Visible = true
+			Label.Icon.ImageTransparency = 0.2
+		elseif Label:FindFirstChild('Icon') then
+			Label.Icon.Image = ""
+			Label.Icon.Visible = false
 		end
+	end
+
+	-- Removed theme listener so it doesn't reset background
+	-- If you want theme support for text color, add it back here but only for Label.Title.TextColor3
+
+	return LabelValue
+end
 
 		-- Paragraph
 		function Tab:CreateParagraph(ParagraphSettings)
