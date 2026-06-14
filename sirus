@@ -2737,32 +2737,56 @@ function RayfieldLibrary:CreateWindow(Settings)
 		end
 
 		-- Section
-		function Tab:CreateSection(SectionName)
+function Tab:CreateSection(SectionName, IconId)
+    local SectionValue = {}
 
-			local SectionValue = {}
+    if SDone then
+        local SectionSpace = Elements.Template.SectionSpacing:Clone()
+        SectionSpace.Visible = true
+        SectionSpace.Parent = TabPage
+    end
 
-			if SDone then
-				local SectionSpace = Elements.Template.SectionSpacing:Clone()
-				SectionSpace.Visible = true
-				SectionSpace.Parent = TabPage
-			end
+    local Section = Elements.Template.SectionTitle:Clone()
+    Section.Visible = true
+    Section.Parent = TabPage
 
-			local Section = Elements.Template.SectionTitle:Clone()
-			Section.Title.Text = SectionName
-			Section.Visible = true
-			Section.Parent = TabPage
+    -- Handle icon if provided
+    if IconId then
+        -- Create icon if your template doesn't have one
+        if not Section:FindFirstChild("Icon") then
+            local Icon = Instance.new("ImageLabel")
+            Icon.Name = "Icon"
+            Icon.Parent = Section
+            Icon.BackgroundTransparency = 1
+            Icon.Size = UDim2.new(0, 16, 0, 16) -- 16x16 icon
+            Icon.Position = UDim2.new(0, 0, 0.5, 0)
+            Icon.AnchorPoint = Vector2.new(0, 0.5)
+            Icon.ImageTransparency = 1
+            
+            -- Shift title over to make gap
+            Section.Title.Position = UDim2.new(0, 22, 0.5, 0) -- 16px icon + 6px gap
+            Section.Title.AnchorPoint = Vector2.new(0, 0.5)
+            
+            TweenService:Create(Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+        end
+        
+        Section.Icon.Image = "rbxassetid://" .. tostring(IconId)
+    end
 
-			Section.Title.TextTransparency = 1
-			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+    Section.Title.Text = SectionName
+    Section.Title.TextTransparency = 1
+    TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
 
-			function SectionValue:Set(NewSection)
-				Section.Title.Text = NewSection
-			end
+    function SectionValue:Set(NewSection, NewIconId)
+        Section.Title.Text = NewSection
+        if NewIconId and Section:FindFirstChild("Icon") then
+            Section.Icon.Image = "rbxassetid://" .. tostring(NewIconId)
+        end
+    end
 
-			SDone = true
-
-			return SectionValue
-		end
+    SDone = true
+    return SectionValue
+end
 
 		-- Divider
 		function Tab:CreateDivider()
@@ -2782,8 +2806,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			return DividerValue
 		end
 
-		-- Label - Transparent Background Version
-function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
+		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
 	local LabelValue = {}
 
 	local Label = Elements.Template.Label:Clone()
@@ -2858,6 +2881,7 @@ function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, Ignor
 	return LabelValue
 end
 
+		
 		-- Paragraph
 		function Tab:CreateParagraph(ParagraphSettings)
 			local ParagraphValue = {}
