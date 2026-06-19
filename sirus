@@ -3091,7 +3091,7 @@ end
 		ListLayout.Parent = Dropdown.List
 	end
 
-	-- Fixed: Search bar now parented to Dropdown.List with LayoutOrder = -1
+	-- Search bar with microscope icon
 	local DropdownSearch = Instance.new("Frame")
 	DropdownSearch.Name = "DropdownSearchBar"
 	DropdownSearch.BackgroundColor3 = SelectedTheme.InputBackground
@@ -3111,14 +3111,25 @@ end
 	DropdownSearchStroke.Thickness = 1.5
 	DropdownSearchStroke.Parent = DropdownSearch
 
+	-- Microscope/magnifying glass icon
+	local DropdownSearchIcon = Instance.new("ImageLabel")
+	DropdownSearchIcon.Name = "Icon"
+	DropdownSearchIcon.BackgroundTransparency = 1
+	DropdownSearchIcon.Image = "rbxassetid://6031154871" -- default search icon
+	DropdownSearchIcon.ImageColor3 = SelectedTheme.TextColor
+	DropdownSearchIcon.Size = UDim2.new(0, 16, 0, 16)
+	DropdownSearchIcon.Position = UDim2.new(0, 8, 0.5, -8)
+	DropdownSearchIcon.ZIndex = 11
+	DropdownSearchIcon.Parent = DropdownSearch
+
 	local DropdownSearchInput = Instance.new("TextBox")
 	DropdownSearchInput.BackgroundTransparency = 1
 	DropdownSearchInput.BorderSizePixel = 0
 	DropdownSearchInput.ClearTextOnFocus = false
 	DropdownSearchInput.PlaceholderColor3 = SelectedTheme.TextColor
 	DropdownSearchInput.PlaceholderText = "Search..."
-	DropdownSearchInput.Position = UDim2.new(0, 10, 0, 0)
-	DropdownSearchInput.Size = UDim2.new(1, -20, 1, 0)
+	DropdownSearchInput.Position = UDim2.new(0, 32, 0, 0) -- shifted for icon
+	DropdownSearchInput.Size = UDim2.new(1, -42, 1, 0) -- adjusted for icon
 	DropdownSearchInput.Text = ""
 	DropdownSearchInput.TextColor3 = SelectedTheme.TextColor
 	DropdownSearchInput.Font = Dropdown.Selected.Font
@@ -3212,7 +3223,7 @@ end
 
 			DropdownOption.Interact.ZIndex = 50
 			DropdownOption.Interact.MouseButton1Click:Connect(function()
-				if not DropdownSettings.MultipleOptions and table.find(DropdownSettings.CurrentOption, Option) then 
+				if not DropdownSettings.MultipleOptions and table.find(DropdownSettings.CurrentOption, Option) then
 					return
 				end
 
@@ -3416,6 +3427,7 @@ end
 		DropdownSearchStroke.Color = SelectedTheme.ElementStroke
 		DropdownSearchInput.PlaceholderColor3 = SelectedTheme.TextColor
 		DropdownSearchInput.TextColor3 = SelectedTheme.TextColor
+		DropdownSearchIcon.ImageColor3 = SelectedTheme.TextColor -- update icon color
 		TweenService:Create(Dropdown, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 	end)
 
