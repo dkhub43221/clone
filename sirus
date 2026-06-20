@@ -2419,7 +2419,7 @@ function Tab:CreateToggle(ToggleSettings)
 	local PICKER_OFFSET_X = -35
 	local PICKER_OFFSET_Y = 15
 	
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " â ") or ToggleSettings.Name
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️ ") or ToggleSettings.Name
 	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(196, 176, 84) or SelectedTheme.TextColor
 
 	local Toggle = Elements.Template.Toggle:Clone()
