@@ -3257,33 +3257,90 @@ end)
 	return ColorPickerSettings
 end
 
-		-- Section
-		function Tab:CreateSection(SectionName)
+		local TweenService = game:GetService("TweenService")
 
-			local SectionValue = {}
+local ICON_COLOR = Color3.fromRGB(17, 16, 20)
 
-			if SDone then
-				local SectionSpace = Elements.Template.SectionSpacing:Clone()
-				SectionSpace.Visible = true
-				SectionSpace.Parent = TabPage
-			end
+-- Lucide icon name -> asset ID map. Add more from https://lucide.dev/icons
+local LucideIcons = {
+    ["home"] = "rbxassetid://10734923549",
+    ["settings"] = "rbxassetid://10734950309",
+    ["settings-2"] = "rbxassetid://10734950358",
+    ["user"] = "rbxassetid://10734953858",
+    ["users"] = "rbxassetid://10734953914",
+    ["sword"] = "rbxassetid://10734962065",
+    ["shield"] = "rbxassetid://10734949856",
+    ["zap"] = "rbxassetid://10734962213",
+    ["eye"] = "rbxassetid://10734924532",
+    ["sliders-horizontal"] = "rbxassetid://10734952739",
+    ["box"] = "rbxassetid://10734933474",
+    ["layout-grid"] = "rbxassetid://10734905089",
+    ["wrench"] = "rbxassetid://10734962519",
+    ["gamepad-2"] = "rbxassetid://10734926899",
+    ["package"] = "rbxassetid://10734941441",
+    ["info"] = "rbxassetid://10734934223",
+    ["star"] = "rbxassetid://10734954222",
+}
 
-			local Section = Elements.Template.SectionTitle:Clone()
-			Section.Title.Text = SectionName
-			Section.Visible = true
-			Section.Parent = TabPage
+function Tab:CreateSection(SectionName, IconName)
+    local SectionValue = {}
 
-			Section.Title.TextTransparency = 1
-			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+    if SDone then
+        local SectionSpace = Elements.Template.SectionSpacing:Clone()
+        SectionSpace.Visible = true
+        SectionSpace.Parent = TabPage
+    end
 
-			function SectionValue:Set(NewSection)
-				Section.Title.Text = NewSection
-			end
+    local Section = Elements.Template.SectionTitle:Clone()
+    Section.Visible = true
+    Section.Parent = TabPage
 
-			SDone = true
+    -- Setup icon
+    if IconName and LucideIcons[IconName] then
+        Section.Icon.Image = LucideIcons[IconName]
+        Section.Icon.ImageColor3 = ICON_COLOR
+        Section.Icon.Visible = true
+        Section.Icon.ImageTransparency = 1
+        TweenService:Create(Section.Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+    else
+        Section.Icon.Visible = false
+        if IconName then
+            warn("[UI] Lucide icon not found:", IconName)
+        end
+    end
 
-			return SectionValue
-		end
+    Section.Title.Text = SectionName
+    Section.Title.TextTransparency = 1
+    TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+
+    function SectionValue:Set(NewSection, NewIconName)
+        Section.Title.Text = NewSection
+        if NewIconName and LucideIcons[NewIconName] then
+            Section.Icon.Image = LucideIcons[NewIconName]
+            Section.Icon.ImageColor3 = ICON_COLOR
+            Section.Icon.Visible = true
+        elseif NewIconName == nil then
+            Section.Icon.Visible = false
+        else
+            Section.Icon.Visible = false
+            warn("[UI] Lucide icon not found:", NewIconName)
+        end
+    end
+
+    function SectionValue:SetIcon(NewIconName)
+        if NewIconName and LucideIcons[NewIconName] then
+            Section.Icon.Image = LucideIcons[NewIconName]
+            Section.Icon.ImageColor3 = ICON_COLOR
+            Section.Icon.Visible = true
+        else
+            Section.Icon.Visible = false
+            warn("[UI] Lucide icon not found:", NewIconName)
+        end
+    end
+
+    SDone = true
+    return SectionValue
+end
 
 		-- Divider
 		function Tab:CreateDivider()
