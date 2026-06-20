@@ -2419,8 +2419,9 @@ function Tab:CreateToggle(ToggleSettings)
 	local PICKER_OFFSET_X = -35
 	local PICKER_OFFSET_Y = 15
 	
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️ ") or ToggleSettings.Name
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠ ") or ToggleSettings.Name
 	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(196, 176, 84) or SelectedTheme.TextColor
+	local WarningHoverColor = Color3.fromRGB(235, 210, 100) -- Lighter yellow for hover
 
 	local Toggle = Elements.Template.Toggle:Clone()
 	Toggle.Name = ToggleSettings.Name
@@ -2522,9 +2523,8 @@ function Tab:CreateToggle(ToggleSettings)
 
         local MainCP = Instance.new("ImageLabel")
         MainCP.Name = "MainCP"
-        MainCP.Size = UDim2.new(1, -20, 0, 110)  -- Smaller (was 120)
+        MainCP.Size = UDim2.new(1, -20, 0, 110)
         MainCP.Position = UDim2.new(0, 10, 0, 35)
-
 		MainCP.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
 		MainCP.BorderSizePixel = 0
 		MainCP.Image = "rbxassetid://11970108040"
@@ -2584,13 +2584,14 @@ function Tab:CreateToggle(ToggleSettings)
 		SliderPointCorner.CornerRadius = UDim.new(0, 3)
 		SliderPointCorner.Parent = SliderPoint
 
-		-- FIX: Mini Rayfield-style toggle for rainbow
+		-- FIX: Rainbow toggle always visible now
 		local RainbowToggle = Instance.new("Frame")
 		RainbowToggle.Name = "RainbowToggle"
 		RainbowToggle.Size = UDim2.new(1, -20, 0, 28)
 		RainbowToggle.Position = UDim2.new(0, 10, 0, 175)
 		RainbowToggle.BackgroundTransparency = 1
 		RainbowToggle.ZIndex = 101
+		RainbowToggle.Visible = true -- FORCE VISIBLE ON MOBILE/PC
 		RainbowToggle.Parent = ColorPickerFrame
 
 		local RainbowLabel = Instance.new("TextLabel")
@@ -2604,7 +2605,6 @@ function Tab:CreateToggle(ToggleSettings)
 		RainbowLabel.ZIndex = 102
 		RainbowLabel.Parent = RainbowToggle
 
-		-- Mini switch - same style as main toggle
 		local RainbowSwitch = Instance.new("Frame")
 		RainbowSwitch.Name = "Switch"
 		RainbowSwitch.Size = UDim2.new(0, 36, 0, 18)
@@ -2746,22 +2746,16 @@ function Tab:CreateToggle(ToggleSettings)
 			end)
 		end
 
-ColorPickerButton.MouseButton1Click:Connect(function()
+		ColorPickerButton.MouseButton1Click:Connect(function()
 			ColorPickerOpen = not ColorPickerOpen
 			if ColorPickerOpen then
 				ColorPickerFrame.Parent = Main
 				ColorPickerFrame.AnchorPoint = Vector2.new(0, 0)
 				ColorPickerFrame.Position = UDim2.new(1, 10, 0, 0) 
 				ColorPickerFrame.Visible = true
-			
-				if ColorPickerFrame:FindFirstChild("RainbowToggle") then
-					ColorPickerFrame.RainbowToggle.Visible = true
-				end
-				if useMobileSizing then
-					TweenService:Create(ColorPickerFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 230, 0, 180)}):Play()
-				else
-					TweenService:Create(ColorPickerFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 230, 0, 231)}):Play()
-				end
+				-- Rainbow toggle always visible now
+				ColorPickerFrame.RainbowToggle.Visible = true
+				TweenService:Create(ColorPickerFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 230, 0, 211)}):Play()
 			else
 				ClosePicker()
 			end
@@ -2808,12 +2802,19 @@ ColorPickerButton.MouseButton1Click:Connect(function()
 
 	UpdateToggleVisual(true)
 
+	-- FIX: Warning toggle hover = lighter yellow
 	Toggle.MouseEnter:Connect(function()
 		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+		if ToggleSettings.Warning then
+			TweenService:Create(Toggle.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextColor3 = WarningHoverColor}):Play()
+		end
 	end)
 
 	Toggle.MouseLeave:Connect(function()
 		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+		if ToggleSettings.Warning then
+			TweenService:Create(Toggle.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextColor3 = ToggleTitleColor}):Play()
+		end
 	end)
 
 	Toggle.Interact.MouseButton1Click:Connect(function()
@@ -2850,7 +2851,6 @@ ColorPickerButton.MouseButton1Click:Connect(function()
 
 	return ToggleSettings
 end
-
 		
 		-- Button
 		function Tab:CreateButton(ButtonSettings)
