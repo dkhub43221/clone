@@ -3257,32 +3257,7 @@ end)
 	return ColorPickerSettings
 end
 
-		local TweenService = game:GetService("TweenService")
-
-local ICON_COLOR = Color3.fromRGB(17, 16, 20)
-
--- Lucide icon name -> asset ID map. Add more from https://lucide.dev/icons
-local LucideIcons = {
-    ["home"] = "rbxassetid://10734923549",
-    ["settings"] = "rbxassetid://10734950309",
-    ["settings-2"] = "rbxassetid://10734950358",
-    ["user"] = "rbxassetid://10734953858",
-    ["users"] = "rbxassetid://10734953914",
-    ["sword"] = "rbxassetid://10734962065",
-    ["shield"] = "rbxassetid://10734949856",
-    ["zap"] = "rbxassetid://10734962213",
-    ["eye"] = "rbxassetid://10734924532",
-    ["sliders-horizontal"] = "rbxassetid://10734952739",
-    ["box"] = "rbxassetid://10734933474",
-    ["layout-grid"] = "rbxassetid://10734905089",
-    ["wrench"] = "rbxassetid://10734962519",
-    ["gamepad-2"] = "rbxassetid://10734926899",
-    ["package"] = "rbxassetid://10734941441",
-    ["info"] = "rbxassetid://10734934223",
-    ["star"] = "rbxassetid://10734954222",
-}
-
-function Tab:CreateSection(SectionName, IconName)
+		function Tab:CreateSection(SectionName, IconId)
     local SectionValue = {}
 
     if SDone then
@@ -3295,47 +3270,36 @@ function Tab:CreateSection(SectionName, IconName)
     Section.Visible = true
     Section.Parent = TabPage
 
-    -- Setup icon
-    if IconName and LucideIcons[IconName] then
-        Section.Icon.Image = LucideIcons[IconName]
-        Section.Icon.ImageColor3 = ICON_COLOR
+    -- Handle icon if provided
+    if IconId then
+        -- Assumes you have an ImageLabel named "Icon" in your SectionTitle template
+        Section.Icon.Image = "rbxassetid://" .. tostring(IconId)
         Section.Icon.Visible = true
-        Section.Icon.ImageTransparency = 1
-        TweenService:Create(Section.Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
     else
         Section.Icon.Visible = false
-        if IconName then
-            warn("[UI] Lucide icon not found:", IconName)
-        end
     end
 
     Section.Title.Text = SectionName
     Section.Title.TextTransparency = 1
+    
     TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+    
+    if IconId then
+        Section.Icon.ImageTransparency = 1
+        TweenService:Create(Section.Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+    end
 
-    function SectionValue:Set(NewSection, NewIconName)
+    function SectionValue:Set(NewSection, NewIconId)
         Section.Title.Text = NewSection
-        if NewIconName and LucideIcons[NewIconName] then
-            Section.Icon.Image = LucideIcons[NewIconName]
-            Section.Icon.ImageColor3 = ICON_COLOR
+        if NewIconId then
+            Section.Icon.Image = "rbxassetid://" .. tostring(NewIconId)
             Section.Icon.Visible = true
-        elseif NewIconName == nil then
-            Section.Icon.Visible = false
-        else
-            Section.Icon.Visible = false
-            warn("[UI] Lucide icon not found:", NewIconName)
         end
     end
 
-    function SectionValue:SetIcon(NewIconName)
-        if NewIconName and LucideIcons[NewIconName] then
-            Section.Icon.Image = LucideIcons[NewIconName]
-            Section.Icon.ImageColor3 = ICON_COLOR
-            Section.Icon.Visible = true
-        else
-            Section.Icon.Visible = false
-            warn("[UI] Lucide icon not found:", NewIconName)
-        end
+    function SectionValue:SetIcon(NewIconId)
+        Section.Icon.Image = "rbxassetid://" .. tostring(NewIconId)
+        Section.Icon.Visible = NewIconId ~= nil
     end
 
     SDone = true
