@@ -1677,15 +1677,198 @@ updateSnowState = function()
 	end
 end
 
+local function saveSettings() -- Save settings to config file
+	local encoded
+	local success, err = pcall(function()
+		encoded = HttpService:JSONEncode(settingsTable)
+	end)
+
+	if success then
+		if useStudio then
+			if script.Parent['get.val'] then
+				script.Parent['get.val'].Value = encoded
+			end
+		end
+		callSafely(writefile, RayfieldFolder..'/settings'..ConfigurationExtension, encoded)
+	end
+end
+
 local function updateSetting(category: string, setting: string, value: any)
 	if not settingsInitialized then
 		return
 	end
 	settingsTable[category][setting].Value = value
-	overriddenSettings[category.. ".".. setting] = nil
+	overriddenSettings[category .. "." .. setting] = nil -- If user changes an overriden setting, remove the override
 	if category == "System" and setting == "snow" then
 		snowEnabled = value
 		updateSnowState()
+	end
+	saveSettings()
+end
+
+local function createSettings(window)
+	if not (writefile and isfile and readfile and isfolder and makefolder) and not useStudio then
+		if Topbar['Settings'] then Topbar.Settings.Visible = false end
+		Topbar['Search'].Position = UDim2.new(1, -75, 0.5, 0)
+		warn('Can\'t create settings as no file-saving functionality is available.')
+		return
+	end
+
+	local newTab = window:CreateTab('Rayfield Settings', 0, true)
+
+	if TabList['Rayfield Settings'] then
+		TabList['Rayfield Settings'].LayoutOrder = 1000
+	end
+
+	if Elements['Rayfield Settings'] then
+		Elements['Rayfield Settings'].LayoutOrder = 1000
+	end
+
+	-- Create sections and elements
+	for categoryName, settingCategory in pairs(settingsTable) do
+		newTab:CreateSection(categoryName)
+
+		for settingName, setting in pairs(settingCategory) do
+			if setting.Type == 'input' then
+				setting.Element = newTab:CreateInput({
+					Name = setting.Name,
+					CurrentValue = setting.Value,
+					PlaceholderText = setting.Placeholder,
+					Ext = true,
+					RemoveTextAfterFocusLost = setting.ClearOnFocus,
+					Callback = function(Value)
+						updateSetting(categoryName, settingName, Value)
+					end,
+				})
+			elseif setting.Type == 'toggle' then
+				setting.Element = newTab:CreateToggle({
+					Name = setting.Name,
+					CurrentValue = setting.Value,
+					Ext = true,
+					Callback = function(Value)
+						updateSetting(categoryName, settingName, Value)
+					end,
+				})
+			elseif setting.Type == 'bind' then
+				setting.Element = newTab:CreateKeybind({
+					Name = setting.Name,
+					CurrentKeybind = setting.Value,
+					HoldToInteract = false,
+					Ext = true,
+					CallOnChange = true,
+					Callback = function(Value)
+						updateSetting(categoryName, settingName, Value)
+					end,
+				})
+			end
+		end
+	end
+
+	settingsCreated = true
+	loadSettings()
+	saveSettings()
+
+	local configTab = window:CreateTab('Settings', 10723344270, true)
+
+	if TabList['Settings'] then
+		TabList['Settings'].Visible = true
+		TabList['Settings'].LayoutOrder = 1001
+	end
+
+	if Elements['Settings'] then
+		Elements['Settings'].LayoutOrder = 1001
+	end
+
+	do
+		local selectedConfig = CFileName or ""
+		local pendingName = ""
+
+		local function getConfigs()
+			local configs = {}
+			if callSafely(isfolder, ConfigurationFolder) then
+				for _, file in ipairs(callSafely(listfiles, ConfigurationFolder) or {}) do
+					local name = file:match("([^/\\]+)$")
+					if name and name:sub(-#ConfigurationExtension) == ConfigurationExtension then
+						table.insert(configs, name:sub(1, -#ConfigurationExtension - 1))
+					end
+				end
+			end
+			return configs
+		end
+
+		configTab:CreateSection('Configurations')
+
+		local ConfigDropdown = configTab:CreateDropdown({
+			Name = 'Select Config',
+			Options = getConfigs(),
+			CurrentOption = {CFileName},
+			MultipleOptions = false,
+			Ext = true,
+			Callback = function(option)
+				selectedConfig = type(option) == 'table' and option[1] or option
+			end,
+		})
+
+		configTab:CreateInput({
+			Name = 'New Config Name',
+			CurrentValue = '',
+			PlaceholderText = 'Enter name...',
+			RemoveTextAfterFocusLost = false,
+			Ext = true,
+			Callback = function(text)
+				pendingName = text or ''
+			end,
+		})
+
+		configTab:CreateSection('Actions')
+
+		configTab:CreateButton({
+			Name = 'Save Config',
+			Callback = function()
+				local name = pendingName ~= '' and pendingName or selectedConfig
+				if name ~= '' then
+					ensureFolder(ConfigurationFolder)
+					CFileName = name
+					selectedConfig = name
+					SaveConfiguration()
+					RayfieldLibrary:Notify({Title = 'Config Saved', Content = "Saved as '" .. name .. "'", Duration = 3})
+					ConfigDropdown:Refresh(getConfigs())
+				end
+			end,
+		})
+
+		configTab:CreateButton({
+			Name = 'Load Config',
+			Callback = function()
+				if selectedConfig ~= '' then
+					local path = ConfigurationFolder .. '/' .. selectedConfig .. ConfigurationExtension
+					if callSafely(isfile, path) then
+						CFileName = selectedConfig
+						LoadConfiguration(callSafely(readfile, path))
+						RayfieldLibrary:Notify({Title = 'Config Loaded', Content = "Loaded '" .. selectedConfig .. "'", Duration = 3})
+					else
+						RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '" .. selectedConfig .. "' does not exist.", Duration = 3})
+					end
+				end
+			end,
+		})
+
+		configTab:CreateButton({
+			Name = 'Delete Config',
+			Callback = function()
+				if selectedConfig ~= '' then
+					local path = ConfigurationFolder .. '/' .. selectedConfig .. ConfigurationExtension
+					if callSafely(isfile, path) then
+						callSafely(delfile, path)
+						RayfieldLibrary:Notify({Title = 'Deleted', Content = "Deleted '" .. selectedConfig .. "'", Duration = 3})
+						ConfigDropdown:Refresh(getConfigs())
+						selectedConfig = ''
+					else
+						RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '" .. selectedConfig .. "' does not exist.", Duration = 3})
+					end
+				end
+			end,
+		})
 	end
 end
 
