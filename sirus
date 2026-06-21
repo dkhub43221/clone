@@ -1764,112 +1764,112 @@ local function createSettings(window)
 		end
 	end
 
-	SettingsCreated = true
-loadSettings()
-saveSettings()
+	settingsCreated = true
+	loadSettings()
+	saveSettings()
 
-local configTab = window:CreateTab('', 10723344270)
+	local configTab = window:CreateTab('Settings', 10723344270, true)
 
-if TabList['Settings'] then
-	TabList['Settings'].Visible = true
-	TabList['Settings'].LayoutOrder = 1001
-	TabList['Settings'].Size = UDim2.new(0, 40, 0, 40)
-end
-
-if Elements['Settings'] then
-	Elements['Settings'].LayoutOrder = 1001
-end
-
-do
-	local selectedConfig = CFileName or ""
-	local pendingName = ""
-
-	local function getConfigs()
-		local configs = {}
-		if callSafely(isfolder, ConfigurationFolder) then
-			for _, file in ipairs(callSafely(listfiles, ConfigurationFolder) or {}) do
-				local name = file:match("([^/\\]+)$")
-				if name and name:sub(-#ConfigurationExtension) == ConfigurationExtension then
-					table.insert(configs, name:sub(1, -#ConfigurationExtension - 1))
-				end
-			end
-		end
-		return configs
+	if TabList['Settings'] then
+		TabList['Settings'].Visible = true
+		TabList['Settings'].LayoutOrder = 1001
 	end
 
-	configTab:CreateSection('Configurations')
+	if Elements['Settings'] then
+		Elements['Settings'].LayoutOrder = 1001
+	end
 
-	local ConfigDropdown = configTab:CreateDropdown({
-		Name = 'Select Config',
-		Options = getConfigs(),
-		CurrentOption = {CFileName},
-		MultipleOptions = false,
-		Ext = true,
-		Callback = function(option)
-			selectedConfig = type(option) == 'table' and option[1] or option
-		end,
-	})
+	do
+		local selectedConfig = CFileName or ""
+		local pendingName = ""
 
-	configTab:CreateInput({
-		Name = 'New Config Name',
-		CurrentValue = '',
-		PlaceholderText = 'Enter name...',
-		RemoveTextAfterFocusLost = false,
-		Ext = true,
-		Callback = function(text)
-			pendingName = text or ''
-		end,
-	})
-
-	configTab:CreateSection('Actions')
-
-	configTab:CreateButton({
-		Name = 'Save Config',
-		Callback = function()
-			local name = pendingName ~= '' and pendingName or selectedConfig
-			if name ~= '' then
-				ensureFolder(ConfigurationFolder)
-				CFileName = name
-				selectedConfig = name
-				SaveConfiguration()
-				RayfieldLibrary:Notify({Title = 'Config Saved', Content = "Saved as '".. name.. "'", Duration = 3})
-				ConfigDropdown:Refresh(getConfigs())
-			end
-		end,
-	})
-
-	configTab:CreateButton({
-		Name = 'Load Config',
-		Callback = function()
-			if selectedConfig ~= '' then
-				local path = ConfigurationFolder.. '/'.. selectedConfig.. ConfigurationExtension
-				if callSafely(isfile, path) then
-					CFileName = selectedConfig
-					LoadConfiguration(callSafely(readfile, path))
-					RayfieldLibrary:Notify({Title = 'Config Loaded', Content = "Loaded '".. selectedConfig.. "'", Duration = 3})
-				else
-					RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '".. selectedConfig.. "' does not exist.", Duration = 3})
+		local function getConfigs()
+			local configs = {}
+			if callSafely(isfolder, ConfigurationFolder) then
+				for _, file in ipairs(callSafely(listfiles, ConfigurationFolder) or {}) do
+					local name = file:match("([^/\\]+)$")
+					if name and name:sub(-#ConfigurationExtension) == ConfigurationExtension then
+						table.insert(configs, name:sub(1, -#ConfigurationExtension - 1))
+					end
 				end
 			end
-		end,
-	})
+			return configs
+		end
 
-	configTab:CreateButton({
-		Name = 'Delete Config',
-		Callback = function()
-			if selectedConfig ~= '' then
-				local path = ConfigurationFolder.. '/'.. selectedConfig.. ConfigurationExtension
-				if callSafely(isfile, path) then
-					callSafely(delfile, path)
-					RayfieldLibrary:Notify({Title = 'Deleted', Content = "Deleted '".. selectedConfig.. "'", Duration = 3})
+		configTab:CreateSection('Configurations')
+
+		local ConfigDropdown = configTab:CreateDropdown({
+			Name = 'Select Config',
+			Options = getConfigs(),
+			CurrentOption = {CFileName},
+			MultipleOptions = false,
+			Ext = true,
+			Callback = function(option)
+				selectedConfig = type(option) == 'table' and option[1] or option
+			end,
+		})
+
+		configTab:CreateInput({
+			Name = 'New Config Name',
+			CurrentValue = '',
+			PlaceholderText = 'Enter name...',
+			RemoveTextAfterFocusLost = false,
+			Ext = true,
+			Callback = function(text)
+				pendingName = text or ''
+			end,
+		})
+
+		configTab:CreateSection('Actions')
+
+		configTab:CreateButton({
+			Name = 'Save Config',
+			Callback = function()
+				local name = pendingName ~= '' and pendingName or selectedConfig
+				if name ~= '' then
+					ensureFolder(ConfigurationFolder)
+					CFileName = name
+					selectedConfig = name
+					SaveConfiguration()
+					RayfieldLibrary:Notify({Title = 'Config Saved', Content = "Saved as '" .. name .. "'", Duration = 3})
 					ConfigDropdown:Refresh(getConfigs())
-					selectedConfig = ''
-				else
-					RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '".. selectedConfig.. "' does not exist.", Duration = 3})
 				end
-			end
-		end,
-	})
+			end,
+		})
+
+		configTab:CreateButton({
+			Name = 'Load Config',
+			Callback = function()
+				if selectedConfig ~= '' then
+					local path = ConfigurationFolder .. '/' .. selectedConfig .. ConfigurationExtension
+					if callSafely(isfile, path) then
+						CFileName = selectedConfig
+						LoadConfiguration(callSafely(readfile, path))
+						RayfieldLibrary:Notify({Title = 'Config Loaded', Content = "Loaded '" .. selectedConfig .. "'", Duration = 3})
+					else
+						RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '" .. selectedConfig .. "' does not exist.", Duration = 3})
+					end
+				end
+			end,
+		})
+
+		configTab:CreateButton({
+			Name = 'Delete Config',
+			Callback = function()
+				if selectedConfig ~= '' then
+					local path = ConfigurationFolder .. '/' .. selectedConfig .. ConfigurationExtension
+					if callSafely(isfile, path) then
+						callSafely(delfile, path)
+						RayfieldLibrary:Notify({Title = 'Deleted', Content = "Deleted '" .. selectedConfig .. "'", Duration = 3})
+						ConfigDropdown:Refresh(getConfigs())
+						selectedConfig = ''
+					else
+						RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '" .. selectedConfig .. "' does not exist.", Duration = 3})
+					end
+				end
+			end,
+		})
+	end
 end
 
 local function fadeOutKeyUI(KeyMain)
