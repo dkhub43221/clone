@@ -1768,17 +1768,13 @@ local function createSettings(window)
 	loadSettings()
 	saveSettings()
 
-	local configTab = window:CreateTab('', "settings", true)
+	local configTab = window:CreateTab('', "settings", true) -- '' = no text, just icon
 
-	if TabList['Settings'] then
-		TabList['Settings'].Visible = true
-		TabList['Settings'].LayoutOrder = 1001
-	end
-
-	if Elements['Settings'] then
-		Elements['Settings'].LayoutOrder = 1001
-	end
-
+if configTab then
+    configTab.Visible = true
+    configTab.LayoutOrder = 1001
+end
+	
 	do
 		local selectedConfig = CFileName or ""
 		local pendingName = ""
