@@ -2494,7 +2494,7 @@ function Tab:CreateToggle(ToggleSettings)
 		TooltipArrow.Parent = Tooltip
 
 		local function ShowTooltip()
-			Tooltip.Position = UDim2.new(0, Toggle.Switch.AbsolutePosition.X + Toggle.Switch.AbsoluteSize.X/2 - Toggle.AbsolutePosition.X, 0, -8)
+			Tooltip.Position = UDim2.new(0, Toggle.Title.AbsolutePosition.X + Toggle.Title.TextBounds.X/2 - Toggle.AbsolutePosition.X, 0, -8)
 			Tooltip.Visible = true
 			TweenService:Create(Tooltip, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.1}):Play()
 			TweenService:Create(TooltipStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Transparency = 0}):Play()
@@ -2512,8 +2512,9 @@ function Tab:CreateToggle(ToggleSettings)
 			Tooltip.Visible = false
 		end
 
-		Toggle.Switch.MouseEnter:Connect(ShowTooltip)
-		Toggle.Switch.MouseLeave:Connect(HideTooltip)
+		-- Changed: Now triggers on hover over the toggle text
+		Toggle.Title.MouseEnter:Connect(ShowTooltip)
+		Toggle.Title.MouseLeave:Connect(HideTooltip)
 	end
 
 	local ColorPickerDisplay, ColorPickerFrame
