@@ -129,7 +129,7 @@ local settingsTable = {
 	},
 	System = {
 		usageAnalytics = {Type = 'toggle', Value = true, Name = 'Anonymised Analytics'},
-		snow = {Type = 'toggle', Value = true, Name = 'Snow'},
+		snow = {Type = 'toggle', Value = false, Name = 'Snow'},
 	}
 }
 
