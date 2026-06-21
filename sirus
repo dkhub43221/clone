@@ -1768,7 +1768,7 @@ local function createSettings(window)
 	loadSettings()
 	saveSettings()
 
-	local configTab = window:CreateTab('', nil, true)
+	local configTab = window:CreateTab('', "settings", true)
 
 	if TabList['Settings'] then
 		TabList['Settings'].Visible = true
