@@ -129,7 +129,7 @@ local settingsTable = {
 	},
 	System = {
 		usageAnalytics = {Type = 'toggle', Value = true, Name = 'Anonymised Analytics'},
-		snow = {Type = 'toggle', Value = false, Name = 'Snow'},
+		snow = {Type = 'toggle', Value = true, Name = 'Snow'},
 	}
 }
 
@@ -1768,7 +1768,7 @@ local function createSettings(window)
 	loadSettings()
 	saveSettings()
 
-	local configTab = window:CreateTab('Settings', 10723344270, true)
+	local configTab = window:CreateTab('', nil, true)
 
 	if TabList['Settings'] then
 		TabList['Settings'].Visible = true
