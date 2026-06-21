@@ -2419,8 +2419,8 @@ function Tab:CreateToggle(ToggleSettings)
 	local PICKER_OFFSET_X = -35
 	local PICKER_OFFSET_Y = 15
 	
-	-- Changed to emoji ⚠️ and lighter standing-out yellow
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️") or ToggleSettings.Name
+	-- Changed to emoji ⚠ and lighter standing-out yellow
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠") or ToggleSettings.Name
 	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor -- Lighter yellow
 	local WarningHoverColor = Color3.fromRGB(255, 235, 120) -- Even lighter for hover
 
@@ -2438,6 +2438,82 @@ function Tab:CreateToggle(ToggleSettings)
 
 	if SelectedTheme ~= RayfieldLibrary.Theme.Default then
 		Toggle.Switch.Shadow.Visible = false
+	end
+
+	-- WARNING TOOLTIP: Matches your screenshot
+	if ToggleSettings.Warning then
+		local Tooltip = Instance.new("Frame")
+		Tooltip.Name = "WarningTooltip"
+		Tooltip.AnchorPoint = Vector2.new(0.5, 1)
+		Tooltip.Size = UDim2.new(0, 0, 0, 28)
+		Tooltip.AutomaticSize = Enum.AutomaticSize.X
+		Tooltip.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+		Tooltip.BackgroundTransparency = 1
+		Tooltip.Visible = false
+		Tooltip.ZIndex = 50
+		Tooltip.Parent = Toggle
+
+		local TooltipCorner = Instance.new("UICorner")
+		TooltipCorner.CornerRadius = UDim.new(0, 6)
+		TooltipCorner.Parent = Tooltip
+
+		local TooltipStroke = Instance.new("UIStroke")
+		TooltipStroke.Color = Color3.fromRGB(60, 60, 60)
+		TooltipStroke.Thickness = 1
+		TooltipStroke.Transparency = 1
+		TooltipStroke.Parent = Tooltip
+
+		local TooltipText = Instance.new("TextLabel")
+		TooltipText.Name = "Text"
+		TooltipText.BackgroundTransparency = 1
+		TooltipText.Size = UDim2.new(0, 0, 1, 0)
+		TooltipText.AutomaticSize = Enum.AutomaticSize.X
+		TooltipText.Text = ToggleSettings.WarningText or "This feature is risky, use with caution!"
+		TooltipText.TextColor3 = Color3.fromRGB(200, 200, 200)
+		TooltipText.Font = Enum.Font.Gotham
+		TooltipText.TextSize = 13
+		TooltipText.TextTransparency = 1
+		TooltipText.ZIndex = 51
+		TooltipText.Parent = Tooltip
+
+		local TextPadding = Instance.new("UIPadding")
+		TextPadding.PaddingLeft = UDim.new(0, 10)
+		TextPadding.PaddingRight = UDim.new(0, 10)
+		TextPadding.Parent = TooltipText
+
+		local TooltipArrow = Instance.new("ImageLabel")
+		TooltipArrow.Name = "Arrow"
+		TooltipArrow.AnchorPoint = Vector2.new(0.5, 0)
+		TooltipArrow.Position = UDim2.new(0.5, 0, 1, -1)
+		TooltipArrow.Size = UDim2.new(0, 12, 0, 6)
+		TooltipArrow.BackgroundTransparency = 1
+		TooltipArrow.Image = "rbxassetid://131604521"
+		TooltipArrow.ImageColor3 = Color3.fromRGB(22, 22, 22)
+		TooltipArrow.ImageTransparency = 1
+		TooltipArrow.ZIndex = 50
+		TooltipArrow.Parent = Tooltip
+
+		local function ShowTooltip()
+			Tooltip.Position = UDim2.new(0, Toggle.Switch.AbsolutePosition.X + Toggle.Switch.AbsoluteSize.X/2 - Toggle.AbsolutePosition.X, 0, -8)
+			Tooltip.Visible = true
+			TweenService:Create(Tooltip, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.1}):Play()
+			TweenService:Create(TooltipStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Transparency = 0}):Play()
+			TweenService:Create(TooltipText, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+			TweenService:Create(TooltipArrow, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {ImageTransparency = 0.1}):Play()
+		end
+
+		local function HideTooltip()
+			local tween = TweenService:Create(Tooltip, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
+			tween:Play()
+			TweenService:Create(TooltipStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Transparency = 1}):Play()
+			TweenService:Create(TooltipText, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+			TweenService:Create(TooltipArrow, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {ImageTransparency = 1}):Play()
+			tween.Completed:Wait()
+			Tooltip.Visible = false
+		end
+
+		Toggle.Switch.MouseEnter:Connect(ShowTooltip)
+		Toggle.Switch.MouseLeave:Connect(HideTooltip)
 	end
 
 	local ColorPickerDisplay, ColorPickerFrame
@@ -2458,12 +2534,6 @@ function Tab:CreateToggle(ToggleSettings)
 		local ColorPickerCorner = Instance.new("UICorner")
 		ColorPickerCorner.CornerRadius = UDim.new(0, 6)
 		ColorPickerCorner.Parent = ColorPickerDisplay
-
-		-- REMOVED: Green outline on colorbox
-		-- local ColorPickerStroke = Instance.new("UIStroke")
-		-- ColorPickerStroke.Color = SelectedTheme.ElementStroke
-		-- ColorPickerStroke.Thickness = 1
-		-- ColorPickerStroke.Parent = ColorPickerDisplay
 
 		local ColorPickerButton = Instance.new("TextButton")
 		ColorPickerButton.BackgroundTransparency = 1
@@ -2586,14 +2656,13 @@ function Tab:CreateToggle(ToggleSettings)
 		SliderPointCorner.CornerRadius = UDim.new(0, 3)
 		SliderPointCorner.Parent = SliderPoint
 
-		-- FIX: Rainbow toggle always visible now
 		local RainbowToggle = Instance.new("Frame")
 		RainbowToggle.Name = "RainbowToggle"
 		RainbowToggle.Size = UDim2.new(1, -20, 0, 28)
 		RainbowToggle.Position = UDim2.new(0, 10, 0, 175)
 		RainbowToggle.BackgroundTransparency = 1
 		RainbowToggle.ZIndex = 101
-		RainbowToggle.Visible = true -- FORCE VISIBLE ON MOBILE/PC
+		RainbowToggle.Visible = true
 		RainbowToggle.Parent = ColorPickerFrame
 
 		local RainbowLabel = Instance.new("TextLabel")
@@ -2755,7 +2824,6 @@ function Tab:CreateToggle(ToggleSettings)
 				ColorPickerFrame.AnchorPoint = Vector2.new(0, 0)
 				ColorPickerFrame.Position = UDim2.new(1, 10, 0, 0) 
 				ColorPickerFrame.Visible = true
-				-- Rainbow toggle always visible now
 				ColorPickerFrame.RainbowToggle.Visible = true
 				TweenService:Create(ColorPickerFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 230, 0, 211)}):Play()
 			else
