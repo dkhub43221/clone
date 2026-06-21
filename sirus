@@ -2405,7 +2405,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-        local TweenService = game:GetService("TweenService")
+       local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
@@ -2440,7 +2440,7 @@ function Tab:CreateToggle(ToggleSettings)
 		Toggle.Switch.Shadow.Visible = false
 	end
 
-	-- WARNING TOOLTIP: Matches your screenshot
+	-- WARNING TOOLTIP: Spawns at cursor/touch position, matches screenshot
 	if ToggleSettings.Warning then
 		local Tooltip = Instance.new("Frame")
 		Tooltip.Name = "WarningTooltip"
@@ -2493,28 +2493,42 @@ function Tab:CreateToggle(ToggleSettings)
 		TooltipArrow.ZIndex = 50
 		TooltipArrow.Parent = Tooltip
 
-		local function ShowTooltip()
-			Tooltip.Position = UDim2.new(0, Toggle.Title.AbsolutePosition.X + Toggle.Title.TextBounds.X/2 - Toggle.AbsolutePosition.X, 0, -8)
+		local function UpdateTooltipPosition(inputPos)
+			local relativeX = inputPos.X - Toggle.AbsolutePosition.X
+			local clampedX = math.clamp(relativeX, 20, Toggle.AbsoluteSize.X - 20)
+			Tooltip.Position = UDim2.new(0, clampedX, 0, -8)
+		end
+
+		local function ShowTooltip(inputPos)
+			UpdateTooltipPosition(inputPos)
 			Tooltip.Visible = true
-			TweenService:Create(Tooltip, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.1}):Play()
-			TweenService:Create(TooltipStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Transparency = 0}):Play()
-			TweenService:Create(TooltipText, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
-			TweenService:Create(TooltipArrow, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {ImageTransparency = 0.1}):Play()
+			TweenService:Create(Tooltip, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.1}):Play()
+			TweenService:Create(TooltipStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {Transparency = 0}):Play()
+			TweenService:Create(TooltipText, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+			TweenService:Create(TooltipArrow, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {ImageTransparency = 0.1}):Play()
 		end
 
 		local function HideTooltip()
-			local tween = TweenService:Create(Tooltip, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
+			local tween = TweenService:Create(Tooltip, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
 			tween:Play()
-			TweenService:Create(TooltipStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Transparency = 1}):Play()
-			TweenService:Create(TooltipText, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
-			TweenService:Create(TooltipArrow, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {ImageTransparency = 1}):Play()
+			TweenService:Create(TooltipStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {Transparency = 1}):Play()
+			TweenService:Create(TooltipText, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+			TweenService:Create(TooltipArrow, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {ImageTransparency = 1}):Play()
 			tween.Completed:Wait()
 			Tooltip.Visible = false
 		end
 
-		-- Changed: Now triggers on hover over the toggle text
-		Toggle.Title.MouseEnter:Connect(ShowTooltip)
-		Toggle.Title.MouseLeave:Connect(HideTooltip)
+		Toggle.Switch.MouseEnter:Connect(function(x, y)
+			ShowTooltip(Vector2.new(x, y))
+		end)
+
+		Toggle.Switch.MouseMoved:Connect(function(x, y)
+			if Tooltip.Visible then
+				UpdateTooltipPosition(Vector2.new(x, y))
+			end
+		end)
+
+		Toggle.Switch.MouseLeave:Connect(HideTooltip)
 	end
 
 	local ColorPickerDisplay, ColorPickerFrame
