@@ -2726,8 +2726,8 @@ function Tab:CreateToggle(ToggleSettings)
 	local PICKER_OFFSET_X = -35
 	local PICKER_OFFSET_Y = 15
 	
-	-- Changed to emoji â ï¸ and lighter standing-out yellow
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " â ï¸") or ToggleSettings.Name
+
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️ ") or ToggleSettings.Name
 	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor -- Lighter yellow
 	local WarningHoverColor = Color3.fromRGB(255, 235, 120) -- Even lighter for hover
 
