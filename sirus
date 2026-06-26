@@ -695,6 +695,8 @@ local RayfieldLibrary = {
 }
 
 
+
+
 -- Interface Management
 
 local RayfieldAssetId = customAssetId or 10804731440
@@ -880,6 +882,20 @@ end
 -- Object Variables
 
 local Main = Rayfield.Main
+local MainStroke = Instance.new("UIStroke")
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Color = Color3.fromRGB(0, 255, 0)
+MainStroke.Thickness = .5
+MainStroke.Parent = Main
+
+local Gradient = Instance.new("UIGradient")
+Gradient.Rotation = 90
+Gradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0.5),
+    NumberSequenceKeypoint.new(1, 1)   
+})
+Gradient.Parent = MainStroke
+
 local MPrompt = Rayfield:FindFirstChild('Prompt')
 local Topbar = Main.Topbar
 local Elements = Main.Elements
@@ -934,6 +950,7 @@ local function ChangeTheme(Theme)
 	end
 
 	Rayfield.Main.BackgroundColor3 = SelectedTheme.Background
+	MainStroke.Color = Color3.fromRGB(0, 255, 0)
 	Rayfield.Main.Topbar.BackgroundColor3 = SelectedTheme.Topbar
 	Rayfield.Main.Topbar.CornerRepair.BackgroundColor3 = SelectedTheme.Topbar
 	Rayfield.Main.Shadow.Image.ImageColor3 = SelectedTheme.Shadow
@@ -1996,58 +2013,7 @@ local function createSettings(window)
 		return
 	end
 
-	local newTab = window:CreateTab('Rayfield Settings', 0, true)
 
-	if TabList['Rayfield Settings'] then
-		TabList['Rayfield Settings'].LayoutOrder = 1000
-	end
-
-	if Elements['Rayfield Settings'] then
-		Elements['Rayfield Settings'].LayoutOrder = 1000
-	end
-
-	-- Create sections and elements
-	for categoryName, settingCategory in pairs(settingsTable) do
-		newTab:CreateSection(categoryName)
-
-		for settingName, setting in pairs(settingCategory) do
-			if categoryName == 'System' and settingName == 'snow' then
-				continue
-			end
-			if setting.Type == 'input' then
-				setting.Element = newTab:CreateInput({
-					Name = setting.Name,
-					CurrentValue = setting.Value,
-					PlaceholderText = setting.Placeholder,
-					Ext = true,
-					RemoveTextAfterFocusLost = setting.ClearOnFocus,
-					Callback = function(Value)
-						updateSetting(categoryName, settingName, Value)
-					end,
-				})
-			elseif setting.Type == 'toggle' then
-				setting.Element = newTab:CreateToggle({
-					Name = setting.Name,
-					CurrentValue = setting.Value,
-					Ext = true,
-					Callback = function(Value)
-						updateSetting(categoryName, settingName, Value)
-					end,
-				})
-			elseif setting.Type == 'bind' then
-				setting.Element = newTab:CreateKeybind({
-					Name = setting.Name,
-					CurrentKeybind = setting.Value,
-					HoldToInteract = false,
-					Ext = true,
-					CallOnChange = true,
-					Callback = function(Value)
-						updateSetting(categoryName, settingName, Value)
-					end,
-				})
-			end
-		end
-	end
 
 	local configTab = window:CreateTab('Settings', 10723344270, true)
 
@@ -2170,6 +2136,26 @@ local function createSettings(window)
 				updateSetting('System', 'snow', Value)
 			end,
 		})
+
+		settingsTable.General.rayfieldOpen.Element = configTab:CreateKeybind({
+			Name = settingsTable.General.rayfieldOpen.Name,
+			CurrentKeybind = settingsTable.General.rayfieldOpen.Value,
+			HoldToInteract = false,
+			Ext = true,
+			CallOnChange = true,
+			Callback = function(Value)
+				updateSetting('General', 'rayfieldOpen', Value)
+			end,
+		})
+
+		settingsTable.System.usageAnalytics.Element = configTab:CreateToggle({
+			Name = settingsTable.System.usageAnalytics.Name,
+			CurrentValue = settingsTable.System.usageAnalytics.Value,
+			Ext = true,
+			Callback = function(Value)
+				updateSetting('System', 'usageAnalytics', Value)
+			end,
+		})
 	end
 
 	settingsCreated = true
@@ -2244,6 +2230,13 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Topbar.Icon.Image = ""
 		end
 	end
+
+	if Topbar:FindFirstChild('Icon') then
+		Topbar.Icon.Visible = false
+	end
+	Topbar.Title.Position = UDim2.new(0, 10, 0.5, 0)
+	Topbar.Settings:Destroy()
+	Topbar.Search.Position = UDim2.new(1, -75, 0.5, 0)
 
 	if dragBar then
 		dragBar.Visible = false
@@ -2724,8 +2717,8 @@ function Tab:CreateToggle(ToggleSettings)
 	local PICKER_OFFSET_X = -35
 	local PICKER_OFFSET_Y = 15
 	
-
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️ ") or ToggleSettings.Name
+	-- Changed to emoji ⚠️ and lighter standing-out yellow
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️") or ToggleSettings.Name
 	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor -- Lighter yellow
 	local WarningHoverColor = Color3.fromRGB(255, 235, 120) -- Even lighter for hover
 
@@ -3111,7 +3104,7 @@ function Tab:CreateToggle(ToggleSettings)
 
 	-- FIX: Warning toggle hover = lighter yellow
 	Toggle.MouseEnter:Connect(function()
-		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 		if ToggleSettings.Warning then
 			TweenService:Create(Toggle.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextColor3 = WarningHoverColor}):Play()
 		end
@@ -3200,7 +3193,7 @@ end
 					if not ButtonSettings.Ext then
 						SaveConfiguration(ButtonSettings.Name..'\n')
 					end
-					TweenService:Create(Button, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+					TweenService:Create(Button, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 					TweenService:Create(Button.ElementIndicator, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
 					TweenService:Create(Button.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 					task.wait(0.2)
@@ -3211,7 +3204,7 @@ end
 			end)
 
 			Button.MouseEnter:Connect(function()
-				TweenService:Create(Button, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+				TweenService:Create(Button, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 				TweenService:Create(Button.ElementIndicator, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {TextTransparency = 0.7}):Play()
 			end)
 
@@ -3781,7 +3774,7 @@ end
 			end)
 
 			Input.MouseEnter:Connect(function()
-				TweenService:Create(Input, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+				TweenService:Create(Input, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 			end)
 
 			Input.MouseLeave:Connect(function()
@@ -3952,7 +3945,7 @@ end
 	Dropdown.Toggle.Rotation = 180
 
 	Dropdown.Interact.MouseButton1Click:Connect(function()
-		TweenService:Create(Dropdown, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+		TweenService:Create(Dropdown, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 		TweenService:Create(Dropdown.UIStroke, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 		task.wait(0.1)
 		TweenService:Create(Dropdown, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
@@ -3996,7 +3989,7 @@ end
 
 	Dropdown.MouseEnter:Connect(function()
 		if not Dropdown.List.Visible then
-			TweenService:Create(Dropdown, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			TweenService:Create(Dropdown, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 		end
 	end)
 
@@ -4268,7 +4261,7 @@ end
 			end)
 
 			Keybind.MouseEnter:Connect(function()
-				TweenService:Create(Keybind, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+				TweenService:Create(Keybind, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 			end)
 
 			Keybind.MouseLeave:Connect(function()
@@ -4399,7 +4392,7 @@ end
 			end
 
 			Slider.MouseEnter:Connect(function()
-				TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+				TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
 			end)
 
 			Slider.MouseLeave:Connect(function()
@@ -4767,7 +4760,7 @@ if Topbar:FindFirstChild('Settings') then
 				end
 			end
 
-			Elements.UIPageLayout:JumpTo(Elements['Rayfield Settings'])
+			Elements.UIPageLayout:JumpTo(Elements['Settings'])
 		end)
 	end)
 end
