@@ -2586,158 +2586,122 @@ function RayfieldLibrary:CreateWindow(Settings)
 	Elements.UIPageLayout.TouchInputEnabled = false
 	TabList.Template.Visible = false
 
+	-- Tab
 	local FirstTab = false
-local Window = {}
+	local Window = {}
+	function Window:CreateTab(Name, Image, Ext)
+		local SDone = false
+		local TabButton = TabList.Template:Clone()
+		TabButton.Name = Name
+		TabButton.Title.Text = Name
+		TabButton.Parent = TabList
+		TabButton.Title.TextWrapped = false
+		TabButton.Size = UDim2.new(0, TabButton.Title.TextBounds.X + 30, 0, 30)
 
--- Create the tab indicator once
-local TabIndicator = Instance.new("Frame")
-TabIndicator.Name = "TabIndicator"
-TabIndicator.AnchorPoint = Vector2.new(0, 1)
-TabIndicator.Position = UDim2.new(0, 0, 1, -2) -- Bottom of TabList
-TabIndicator.Size = UDim2.new(0, 0, 0, 2)
-TabIndicator.BorderSizePixel = 0
-TabIndicator.BackgroundColor3 = SelectedTheme.SelectedTabTextColor
-TabIndicator.ZIndex = 5
-TabIndicator.Parent = TabList
+		if Image and Image ~= 0 then
+			local img, rectOffset, rectSize = resolveIcon(Image)
+			TabButton.Image.Image = img
+			if rectOffset then TabButton.Image.ImageRectOffset = rectOffset end
+			if rectSize then TabButton.Image.ImageRectSize = rectSize end
 
-local indicatorCorner = Instance.new("UICorner")
-indicatorCorner.CornerRadius = UDim.new(1, 0) -- Rounded pill shape
-indicatorCorner.Parent = TabIndicator
-
-function Window:CreateTab(Name, Image, Ext)
-	local SDone = false
-	local TabButton = TabList.Template:Clone()
-	TabButton.Name = Name
-	TabButton.Title.Text = Name
-	TabButton.Parent = TabList
-	TabButton.Title.TextWrapped = false
-	TabButton.Size = UDim2.new(0, TabButton.Title.TextBounds.X + 30, 0, 30)
-
-	if Image and Image ~= 0 then
-		local img, rectOffset, rectSize = resolveIcon(Image)
-		TabButton.Image.Image = img
-		if rectOffset then TabButton.Image.ImageRectOffset = rectOffset end
-		if rectSize then TabButton.Image.ImageRectSize = rectSize end
-
-		TabButton.Title.AnchorPoint = Vector2.new(0, 0.5)
-		TabButton.Title.Position = UDim2.new(0, 37, 0.5, 0)
-		TabButton.Image.Visible = true
-		TabButton.Title.TextXAlignment = Enum.TextXAlignment.Left
-		TabButton.Size = UDim2.new(0, TabButton.Title.TextBounds.X + 52, 0, 30)
-	end
-
-	TabButton.BackgroundTransparency = 1
-	TabButton.Title.TextTransparency = 1
-	TabButton.Image.ImageTransparency = 1
-	TabButton.UIStroke.Transparency = 1
-
-	TabButton.Visible = not Ext or false
-
-	-- Create Elements Page
-	local TabPage = Elements.Template:Clone()
-	TabPage.Name = Name
-	TabPage.Visible = true
-	TabPage.LayoutOrder = Ext and 10000 or #Elements:GetChildren()
-
-	for _, TemplateElement in ipairs(TabPage:GetChildren()) do
-		if TemplateElement.ClassName == "Frame" and TemplateElement.Name ~= "Placeholder" then
-			TemplateElement:Destroy()
+			TabButton.Title.AnchorPoint = Vector2.new(0, 0.5)
+			TabButton.Title.Position = UDim2.new(0, 37, 0.5, 0)
+			TabButton.Image.Visible = true
+			TabButton.Title.TextXAlignment = Enum.TextXAlignment.Left
+			TabButton.Size = UDim2.new(0, TabButton.Title.TextBounds.X + 52, 0, 30)
 		end
-	end
 
-	TabPage.Parent = Elements
-	if not FirstTab and not Ext then
-		Elements.UIPageLayout.Animated = false
-		Elements.UIPageLayout:JumpTo(TabPage)
-		Elements.UIPageLayout.Animated = true
-	end
 
-	TabButton.UIStroke.Color = SelectedTheme.TabStroke
 
-	if Elements.UIPageLayout.CurrentPage == TabPage then
-		TabButton.BackgroundColor3 = SelectedTheme.TabBackgroundSelected
-		TabButton.Image.ImageColor3 = SelectedTheme.SelectedTabTextColor
-		TabButton.Title.TextColor3 = SelectedTheme.SelectedTabTextColor
-	else
-		TabButton.BackgroundColor3 = SelectedTheme.TabBackground
-		TabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
-		TabButton.Title.TextColor3 = SelectedTheme.TabTextColor
-	end
+		TabButton.BackgroundTransparency = 1
+		TabButton.Title.TextTransparency = 1
+		TabButton.Image.ImageTransparency = 1
+		TabButton.UIStroke.Transparency = 1
 
-	-- Function to select this tab
-	local function SelectTab()
-		if Minimised then return end
-		
-		-- Move indicator to this tab
-		local targetPos = UDim2.new(0, TabButton.AbsolutePosition.X - TabList.AbsolutePosition.X + 8, 1, -2)
-		local targetSize = UDim2.new(0, TabButton.AbsoluteSize.X - 16, 0, 2)
-		
-		TweenService:Create(TabIndicator, TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-			Position = targetPos,
-			Size = targetSize
-		}):Play()
-		
-		-- Tween this tab to selected state
-		TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-		TweenService:Create(TabButton.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
-		TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
-		TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
-		TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.TabBackgroundSelected}):Play()
-		TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextColor3 = SelectedTheme.SelectedTabTextColor}):Play()
-		TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageColor3 = SelectedTheme.SelectedTabTextColor}):Play()
+		TabButton.Visible = not Ext or false
 
-		-- Tween other tabs to deselected state
-		for _, OtherTabButton in ipairs(TabList:GetChildren()) do
-			if OtherTabButton.Name ~= "Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= TabButton and OtherTabButton.Name ~= "Placeholder" and OtherTabButton ~= TabIndicator then
-				TweenService:Create(OtherTabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.TabBackground}):Play()
-				TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextColor3 = SelectedTheme.TabTextColor}):Play()
-				TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageColor3 = SelectedTheme.TabTextColor}):Play()
-				TweenService:Create(OtherTabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
-				TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
-				TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
-				TweenService:Create(OtherTabButton.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+		-- Create Elements Page
+		local TabPage = Elements.Template:Clone()
+		TabPage.Name = Name
+		TabPage.Visible = true
+
+		TabPage.LayoutOrder = Ext and 10000 or #Elements:GetChildren()
+
+		for _, TemplateElement in ipairs(TabPage:GetChildren()) do
+			if TemplateElement.ClassName == "Frame" and TemplateElement.Name ~= "Placeholder" then
+				TemplateElement:Destroy()
 			end
 		end
 
-		if Elements.UIPageLayout.CurrentPage ~= TabPage then
+		TabPage.Parent = Elements
+		if not FirstTab and not Ext then
+			Elements.UIPageLayout.Animated = false
 			Elements.UIPageLayout:JumpTo(TabPage)
+			Elements.UIPageLayout.Animated = true
 		end
-	end
 
-	-- Animate on creation
-	task.wait(0.1)
-	if FirstTab or Ext then
-		TabButton.BackgroundColor3 = SelectedTheme.TabBackground
-		TabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
-		TabButton.Title.TextColor3 = SelectedTheme.TabTextColor
-		TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
-		TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
-		TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
-		TweenService:Create(TabButton.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
-	elseif not Ext then
-		FirstTab = Name
-		TabButton.BackgroundColor3 = SelectedTheme.TabBackgroundSelected
-		TabButton.Image.ImageColor3 = SelectedTheme.SelectedTabTextColor
-		TabButton.Title.TextColor3 = SelectedTheme.SelectedTabTextColor
-		TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
-		TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-		TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
-		
-		-- Set initial indicator position for first tab
-		task.defer(function()
-			local targetPos = UDim2.new(0, TabButton.AbsolutePosition.X - TabList.AbsolutePosition.X + 8, 1, -2)
-			local targetSize = UDim2.new(0, TabButton.AbsoluteSize.X - 16, 0, 2)
-			TabIndicator.Position = targetPos
-			TabIndicator.Size = targetSize
+		TabButton.UIStroke.Color = SelectedTheme.TabStroke
+
+		if Elements.UIPageLayout.CurrentPage == TabPage then
+			TabButton.BackgroundColor3 = SelectedTheme.TabBackgroundSelected
+			TabButton.Image.ImageColor3 = SelectedTheme.SelectedTabTextColor
+			TabButton.Title.TextColor3 = SelectedTheme.SelectedTabTextColor
+		else
+			TabButton.BackgroundColor3 = SelectedTheme.TabBackground
+			TabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
+			TabButton.Title.TextColor3 = SelectedTheme.TabTextColor
+		end
+
+
+		-- Animate
+		task.wait(0.1)
+		if FirstTab or Ext then
+			TabButton.BackgroundColor3 = SelectedTheme.TabBackground
+			TabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
+			TabButton.Title.TextColor3 = SelectedTheme.TabTextColor
+			TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+			TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+			TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+			TweenService:Create(TabButton.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+		elseif not Ext then
+			FirstTab = Name
+			TabButton.BackgroundColor3 = SelectedTheme.TabBackgroundSelected
+			TabButton.Image.ImageColor3 = SelectedTheme.SelectedTabTextColor
+			TabButton.Title.TextColor3 = SelectedTheme.SelectedTabTextColor
+			TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+			TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+		end
+
+
+		TabButton.Interact.MouseButton1Click:Connect(function()
+			if Minimised then return end
+			TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(TabButton.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+			TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.TabBackgroundSelected}):Play()
+			TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextColor3 = SelectedTheme.SelectedTabTextColor}):Play()
+			TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageColor3 = SelectedTheme.SelectedTabTextColor}):Play()
+
+			for _, OtherTabButton in ipairs(TabList:GetChildren()) do
+				if OtherTabButton.Name ~= "Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton ~= TabButton and OtherTabButton.Name ~= "Placeholder" then
+					TweenService:Create(OtherTabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.TabBackground}):Play()
+					TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextColor3 = SelectedTheme.TabTextColor}):Play()
+					TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageColor3 = SelectedTheme.TabTextColor}):Play()
+					TweenService:Create(OtherTabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+					TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+					TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+					TweenService:Create(OtherTabButton.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				end
+			end
+
+			if Elements.UIPageLayout.CurrentPage ~= TabPage then
+				Elements.UIPageLayout:JumpTo(TabPage)
+			end
 		end)
-	end
 
-	TabButton.Interact.MouseButton1Click:Connect(SelectTab)
-
-	local Tab = {}
-	
-	return Tab
-end
+		local Tab = {}
 
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
