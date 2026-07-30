@@ -2720,201 +2720,250 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-        function Tab:CreateToggle(ToggleSettings)
-	ToggleSettings.Name = ToggleSettings.Name or "Toggle"
-	ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
-	ToggleSettings.CurrentValue = ToggleSettings.CurrentValue or false
-	ToggleSettings.Callback = ToggleSettings.Callback or function() end
-	ToggleSettings.CurrentColor = ToggleSettings.CurrentColor or Color3.fromRGB(255, 255, 255)
+       function Tab:CreateToggle(ToggleSettings)
+    local TweenService = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+    local RunService = game:GetService("RunService")
 
-	local hasColor = ToggleSettings.ColorPicker == true
-	local hasKeybind = ToggleSettings.KeybindEnabled == true or ToggleSettings.UseKeybind == true
-	if typeof(ToggleSettings.Keybind) == "EnumItem" then hasKeybind = true end
+    ToggleSettings.Name = ToggleSettings.Name or "Toggle"
+    ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
+    ToggleSettings.CurrentValue = ToggleSettings.CurrentValue or false
+    ToggleSettings.Callback = ToggleSettings.Callback or function() end
+    ToggleSettings.CurrentColor = ToggleSettings.CurrentColor or Color3.fromRGB(255, 255, 255)
 
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name.." ⚠️") or ToggleSettings.Name
-	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor
-	local WarningHoverColor = Color3.fromRGB(255, 235, 120)
+    local hasColor = ToggleSettings.ColorPicker == true
+    local hasKeybind = ToggleSettings.KeybindEnabled == true or ToggleSettings.UseKeybind == true
+    if typeof(ToggleSettings.Keybind) == "EnumItem" then
+        hasKeybind = true
+    end
 
-	local Toggle = Elements.Template.Toggle:Clone()
-	Toggle.Name = ToggleSettings.Name
-	Toggle.Title.Text = ToggleTitle
-	Toggle.Title.TextColor3 = ToggleTitleColor
-	Toggle.Visible = true
-	Toggle.Parent = TabPage
-	Toggle.BackgroundTransparency = 1
-	Toggle.UIStroke.Transparency = 1
-	Toggle.Title.TextTransparency = 1
-	Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleBackground
-	Toggle.Interact.ZIndex = 1
+    local ToggleTitle = ToggleSettings.Name
+    if ToggleSettings.Warning then
+        ToggleTitle = ToggleSettings.Name.. " ⚠️"
+    end
+    local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor
+    local WarningHoverColor = Color3.fromRGB(255, 235, 120)
 
-	if SelectedTheme ~= RayfieldLibrary.Theme.Default then
-		Toggle.Switch.Shadow.Visible = false
-	end
+    local Toggle = Elements.Template.Toggle:Clone()
+    Toggle.Name = ToggleSettings.Name
+    Toggle.Title.Text = ToggleTitle
+    Toggle.Title.TextColor3 = ToggleTitleColor
+    Toggle.Visible = true
+    Toggle.Parent = TabPage
+    Toggle.BackgroundTransparency = 1
+    Toggle.UIStroke.Transparency = 1
+    Toggle.Title.TextTransparency = 1
+    Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleBackground
+    Toggle.Interact.ZIndex = 1
 
-	local Keybind, CurrentBind, Binding
-	if hasKeybind then
-		Keybind = Instance.new("TextButton")
-		Keybind.Name = "Keybind"
-		Keybind.Text = "None"
-		Keybind.Font = Enum.Font.Gotham
-		Keybind.TextSize = 13
-		Keybind.TextColor3 = Color3.fromRGB(160,160,160)
-		Keybind.TextXAlignment = Enum.TextXAlignment.Right
-		Keybind.BackgroundTransparency = 1
-		Keybind.AutoButtonColor = false
-		Keybind.Parent = Toggle
-		Keybind.ZIndex = 10
-		if hasColor then
-			Keybind.Size = UDim2.new(0, 50, 1, 0)
-			Keybind.Position = UDim2.new(1, -110, 0, 0)
-		else
-			Keybind.Size = UDim2.new(0, 60, 1, 0)
-			Keybind.Position = UDim2.new(1, -72, 0, 0)
-		end
-		if typeof(ToggleSettings.Keybind) == "EnumItem" then
-			CurrentBind = ToggleSettings.Keybind
-			Keybind.Text = CurrentBind.Name
-		end
-	end
+    if SelectedTheme ~= RayfieldLibrary.Theme.Default then
+        Toggle.Switch.Shadow.Visible = false
+    end
 
-	local ColorPickerDisplay, ColorPickerFrame
-	local h,s,v = ToggleSettings.CurrentColor:ToHSV()
-	local connections = {}
+    local Keybind = nil
+    local CurrentBind = nil
+    local Binding = false
 
-	if hasColor then
-		ColorPickerDisplay = Instance.new("Frame")
-		ColorPickerDisplay.Size = UDim2.new(0, 22, 0, 22)
-		ColorPickerDisplay.Position = UDim2.new(1, -80, 0.5, -11)
-		ColorPickerDisplay.BackgroundColor3 = ToggleSettings.CurrentColor
-		ColorPickerDisplay.ZIndex = 5
-		ColorPickerDisplay.Parent = Toggle
-		Instance.new("UICorner", ColorPickerDisplay).CornerRadius = UDim.new(0, 6)
-		local btn = Instance.new("TextButton")
-		btn.BackgroundTransparency = 1
-		btn.Size = UDim2.new(1,0,1,0)
-		btn.Text = ""
-		btn.ZIndex = 6
-		btn.Parent = ColorPickerDisplay
+    if hasKeybind then
+        Keybind = Instance.new("TextButton")
+        Keybind.Name = "Keybind"
+        Keybind.Text = "None"
+        Keybind.Font = Enum.Font.Gotham
+        Keybind.TextSize = 13
+        Keybind.TextColor3 = Color3.fromRGB(160,160,160)
+        Keybind.TextXAlignment = Enum.TextXAlignment.Right
+        Keybind.BackgroundTransparency = 1
+        Keybind.AutoButtonColor = false
+        Keybind.Parent = Toggle
+        Keybind.ZIndex = 10
 
-		ColorPickerFrame = Instance.new("Frame")
-		ColorPickerFrame.Size = UDim2.new(0,230,0,0)
-		ColorPickerFrame.BackgroundColor3 = SelectedTheme.Background
-		ColorPickerFrame.BorderSizePixel = 0
-		ColorPickerFrame.Visible = false
-		ColorPickerFrame.ZIndex = 100
-		ColorPickerFrame.ClipsDescendants = true
-		ColorPickerFrame.Parent = Rayfield.Main
+        if hasColor then
+            Keybind.Size = UDim2.new(0, 50, 1, 0)
+            Keybind.Position = UDim2.new(1, -110, 0, 0)
+        else
+            Keybind.Size = UDim2.new(0, 60, 1, 0)
+            Keybind.Position = UDim2.new(1, -72, 0, 0)
+        end
 
-		local TitleBar = Instance.new("Frame")
-		TitleBar.Size = UDim2.new(1,0,0,30)
-		TitleBar.BackgroundTransparency = 1
-		TitleBar.Parent = ColorPickerFrame
+        if typeof(ToggleSettings.Keybind) == "EnumItem" then
+            CurrentBind = ToggleSettings.Keybind
+            Keybind.Text = CurrentBind.Name
+        end
+    end
 
-		btn.MouseButton1Click:Connect(function()
-			ColorPickerFrame.Visible = not ColorPickerFrame.Visible
-			if ColorPickerFrame.Visible then
-				ColorPickerFrame.Position = UDim2.new(1, 10, 0, 0)
-				ColorPickerFrame.Size = UDim2.new(0,230,0,180)
-			end
-		end)
+    local ColorPickerDisplay = nil
+    local ColorPickerFrame = nil
+    local h, s, v = ToggleSettings.CurrentColor:ToHSV()
+    local connections = {}
 
-		function ToggleSettings:SetColor(NewColor)
-			ColorPickerDisplay.BackgroundColor3 = NewColor
-		end
-	end
+    if hasColor then
+        ColorPickerDisplay = Instance.new("Frame")
+        ColorPickerDisplay.Name = "ColorDisplay"
+        ColorPickerDisplay.Size = UDim2.new(0, 22, 0, 22)
+        ColorPickerDisplay.Position = UDim2.new(1, -80, 0.5, -11)
+        ColorPickerDisplay.BackgroundColor3 = ToggleSettings.CurrentColor
+        ColorPickerDisplay.ZIndex = 5
+        ColorPickerDisplay.Parent = Toggle
 
-	TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-	TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-	TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = ColorPickerDisplay
 
-	local function UpdateToggleVisual()
-		if ToggleSettings.CurrentValue then
-			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
-		else
-			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
-		end
-	end
-	UpdateToggleVisual()
+        local btn = Instance.new("TextButton")
+        btn.Name = "ColorButton"
+        btn.BackgroundTransparency = 1
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.Text = ""
+        btn.ZIndex = 6
+        btn.Parent = ColorPickerDisplay
 
-	Toggle.MouseEnter:Connect(function()
-		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
-		if ToggleSettings.Warning then
-			TweenService:Create(Toggle.Title, TweenInfo.new(0.3), {TextColor3 = WarningHoverColor}):Play()
-		end
-	end)
+        ColorPickerFrame = Instance.new("Frame")
+        ColorPickerFrame.Name = "ColorPickerFrame"
+        ColorPickerFrame.Size = UDim2.new(0, 230, 0, 0)
+        ColorPickerFrame.BackgroundColor3 = SelectedTheme.Background
+        ColorPickerFrame.BorderSizePixel = 0
+        ColorPickerFrame.Visible = false
+        ColorPickerFrame.ZIndex = 100
+        ColorPickerFrame.Parent = Main
 
-	Toggle.MouseLeave:Connect(function()
-		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
-		if ToggleSettings.Warning then
-			TweenService:Create(Toggle.Title, TweenInfo.new(0.3), {TextColor3 = ToggleTitleColor}):Play()
-		end
-	end)
+        local frameCorner = Instance.new("UICorner")
+        frameCorner.CornerRadius = UDim.new(0, 8)
+        frameCorner.Parent = ColorPickerFrame
 
-	local function DoToggle(NewValue)
-		ToggleSettings.CurrentValue = NewValue
-		UpdateToggleVisual()
-		pcall(function() ToggleSettings.Callback(ToggleSettings.CurrentValue) end)
-		if SaveConfiguration then SaveConfiguration() end
-	end
+        btn.MouseButton1Click:Connect(function()
+            ColorPickerFrame.Visible = not ColorPickerFrame.Visible
+            if ColorPickerFrame.Visible then
+                ColorPickerFrame.Position = UDim2.new(1, 10, 0, 0)
+                ColorPickerFrame.Size = UDim2.new(0, 230, 0, 180)
+            end
+        end)
 
-	Toggle.Interact.MouseButton1Click:Connect(function()
-		if hasKeybind and Binding then return end
-		DoToggle(not ToggleSettings.CurrentValue)
-	end)
+        function ToggleSettings:SetColor(NewColor)
+            h, s, v = NewColor:ToHSV()
+            if ColorPickerDisplay then
+                ColorPickerDisplay.BackgroundColor3 = NewColor
+            end
+        end
+    end
 
-	if hasKeybind then
-		Keybind.MouseButton1Click:Connect(function()
-			if Binding then return end
-			Binding = true
-			Keybind.Text = "..."
-			local conn
-			conn = UserInputService.InputBegan:Connect(function(input, gpe)
-				if gpe then return end
-				if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
-				task.wait(0.05)
-				if input.KeyCode == Enum.KeyCode.Backspace then
-					CurrentBind = nil
-					Keybind.Text = "None"
-					ToggleSettings.Keybind = nil
-				else
-					CurrentBind = input.KeyCode
-					Keybind.Text = input.KeyCode.Name
-					ToggleSettings.Keybind = input.KeyCode
-				end
-				Binding = false
-				conn:Disconnect()
-				if SaveConfiguration then SaveConfiguration() end
-			end)
-		end)
+    TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+    TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+    TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
-		UserInputService.InputBegan:Connect(function(input, gpe)
-			if gpe or Binding then return end
-			if not CurrentBind then return end
-			if input.KeyCode == CurrentBind then
-				DoToggle(not ToggleSettings.CurrentValue)
-			end
-		end)
+    local function UpdateToggleVisual()
+        if ToggleSettings.CurrentValue then
+            TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
+        else
+            TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
+        end
+    end
 
-		function ToggleSettings:SetKeybind(NewKey)
-			if not NewKey or NewKey == "None" then
-				CurrentBind = nil
-				Keybind.Text = "None"
-			else
-				CurrentBind = typeof(NewKey) == "string" and Enum.KeyCode[NewKey] or NewKey
-				Keybind.Text = CurrentBind.Name
-			end
-		end
-	end
+    UpdateToggleVisual()
 
-	function ToggleSettings:Set(Value)
-		DoToggle(Value)
-	end
+    Toggle.MouseEnter:Connect(function()
+        TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+        if ToggleSettings.Warning then
+            TweenService:Create(Toggle.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextColor3 = WarningHoverColor}):Play()
+        end
+    end)
 
-	if Settings.ConfigurationSaving and Settings.ConfigurationSaving.Enabled and ToggleSettings.Flag then
-		RayfieldLibrary.Flags[ToggleSettings.Flag] = ToggleSettings
-	end
+    Toggle.MouseLeave:Connect(function()
+        TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+        if ToggleSettings.Warning then
+            TweenService:Create(Toggle.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextColor3 = ToggleTitleColor}):Play()
+        end
+    end)
 
-	return ToggleSettings
+    local function DoToggle(NewValue)
+        ToggleSettings.CurrentValue = NewValue
+        UpdateToggleVisual()
+        local success, err = pcall(function()
+            ToggleSettings.Callback(ToggleSettings.CurrentValue)
+        end)
+        if not success then
+            warn("Rayfield | ".. ToggleSettings.Name.. " Callback Error ".. tostring(err))
+        end
+        if SaveConfiguration then
+            SaveConfiguration()
+        end
+    end
+
+    Toggle.Interact.MouseButton1Click:Connect(function()
+        if hasKeybind and Binding then
+            return
+        end
+        DoToggle(not ToggleSettings.CurrentValue)
+    end)
+
+    if hasKeybind then
+        Keybind.MouseButton1Click:Connect(function()
+            if Binding then
+                return
+            end
+            Binding = true
+            Keybind.Text = "..."
+            local conn
+            conn = UserInputService.InputBegan:Connect(function(input, gpe)
+                if gpe then
+                    return
+                end
+                if input.UserInputType ~= Enum.UserInputType.Keyboard then
+                    return
+                end
+                task.wait(0.05)
+                if input.KeyCode == Enum.KeyCode.Backspace then
+                    CurrentBind = nil
+                    Keybind.Text = "None"
+                    ToggleSettings.Keybind = nil
+                else
+                    CurrentBind = input.KeyCode
+                    Keybind.Text = input.KeyCode.Name
+                    ToggleSettings.Keybind = input.KeyCode
+                end
+                Binding = false
+                conn:Disconnect()
+                if SaveConfiguration then
+                    SaveConfiguration()
+                end
+            end)
+        end)
+
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if gpe or Binding then
+                return
+            end
+            if not CurrentBind then
+                return
+            end
+            if input.KeyCode == CurrentBind then
+                DoToggle(not ToggleSettings.CurrentValue)
+            end
+        end)
+
+        function ToggleSettings:SetKeybind(NewKey)
+            if not NewKey or NewKey == "None" then
+                CurrentBind = nil
+                Keybind.Text = "None"
+            else
+                if typeof(NewKey) == "string" then
+                    CurrentBind = Enum.KeyCode[NewKey]
+                else
+                    CurrentBind = NewKey
+                end
+                Keybind.Text = CurrentBind.Name
+            end
+        end
+    end
+
+    function ToggleSettings:Set(Value)
+        DoToggle(Value)
+    end
+
+    if Settings.ConfigurationSaving and Settings.ConfigurationSaving.Enabled and ToggleSettings.Flag then
+        RayfieldLibrary.Flags[ToggleSettings.Flag] = ToggleSettings
+    end
+
+    return ToggleSettings
 end
 
 		-- Section
