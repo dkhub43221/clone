@@ -2703,163 +2703,453 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-       function Tab:CreateToggle(ToggleSettings)
-    ToggleSettings.Name = ToggleSettings.Name or "Toggle"
-    ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
-    ToggleSettings.CurrentValue = ToggleSettings.CurrentValue or false
-    ToggleSettings.Callback = ToggleSettings.Callback or function() end
-    ToggleSettings.CurrentColor = ToggleSettings.CurrentColor or Color3.fromRGB(255,0,0)
-    ToggleSettings.Keybind = ToggleSettings.Keybind or "None"
+        local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
-    local hasColor = ToggleSettings.ColorPicker == true
-    local hasKeybind = false
-    if ToggleSettings.KeybindEnabled == true then hasKeybind = true end
-    if ToggleSettings.Keybind and ToggleSettings.Keybind ~= "" and ToggleSettings.Keybind ~= "None" then hasKeybind = true end
-    if typeof(ToggleSettings.Keybind) == "EnumItem" then hasKeybind = true end
+function Tab:CreateToggle(ToggleSettings)
+	ToggleSettings.Name = ToggleSettings.Name or "Toggle"
+	ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
+	ToggleSettings.CurrentValue = ToggleSettings.CurrentValue or false
+	ToggleSettings.Callback = ToggleSettings.Callback or function() end
+	ToggleSettings.CurrentColor = ToggleSettings.CurrentColor or Color3.fromRGB(255, 255, 255)
+	
+	local PICKER_OFFSET_X = -35
+	local PICKER_OFFSET_Y = 15
+	
+	-- Changed to emoji ⚠️ and lighter standing-out yellow
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️") or ToggleSettings.Name
+	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor -- Lighter yellow
+	local WarningHoverColor = Color3.fromRGB(255, 235, 120) -- Even lighter for hover
 
-    local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name.." ⚠️") or ToggleSettings.Name
-    local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor
+	local Toggle = Elements.Template.Toggle:Clone()
+	Toggle.Name = ToggleSettings.Name
+	Toggle.Title.Text = ToggleTitle
+	Toggle.Title.TextColor3 = ToggleTitleColor
+	Toggle.Visible = true
+	Toggle.Parent = TabPage
 
-    local Toggle = Elements.Template.Toggle:Clone()
-    Toggle.Name = ToggleSettings.Name
-    Toggle.Title.Text = ToggleTitle
-    Toggle.Title.TextColor3 = ToggleTitleColor
-    Toggle.Visible = true
-    Toggle.Parent = TabPage
-    Toggle.BackgroundTransparency = 1
-    Toggle.UIStroke.Transparency = 1
-    Toggle.Title.TextTransparency = 1
-    Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleBackground
-    if SelectedTheme ~= RayfieldLibrary.Theme.Default then Toggle.Switch.Shadow.Visible = false end
+	Toggle.BackgroundTransparency = 1
+	Toggle.UIStroke.Transparency = 1
+	Toggle.Title.TextTransparency = 1
+	Toggle.Switch.Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 
-    -- FIX 1: PUT TOGGLE AT FIXED RIGHT EDGE
-    Toggle.Switch.AnchorPoint = Vector2.new(1, 0.5)
-    Toggle.Switch.Position = UDim2.new(1, -12, 0.5, 0)
-    Toggle.Switch.ZIndex = 2
+	if SelectedTheme ~= RayfieldLibrary.Theme.Default then
+		Toggle.Switch.Shadow.Visible = false
+	end
 
-    -- FIX 2: MAKE INTERACT NOT BLOCK KEYBIND/COLOR
-    Toggle.Interact.ZIndex = 1
+	local ColorPickerDisplay, ColorPickerFrame
+	local ColorPickerOpen = false
+	local h, s, v = ToggleSettings.CurrentColor:ToHSV()
+	local rainbowEnabled = false
+	local connections = {}
 
-    local KeybindBtn = nil
-    local CurrentBind = nil
-    local Binding = false
+	if ToggleSettings.ColorPicker then
+		ColorPickerDisplay = Instance.new("Frame")
+		ColorPickerDisplay.Name = "ColorDisplay"
+		ColorPickerDisplay.Size = UDim2.new(0, 22, 0, 22)
+		ColorPickerDisplay.Position = UDim2.new(1, -80, 0.5, -11)
+		ColorPickerDisplay.BackgroundColor3 = ToggleSettings.CurrentColor
+		ColorPickerDisplay.ZIndex = 5
+		ColorPickerDisplay.Parent = Toggle
 
-    if hasKeybind then
-        KeybindBtn = Instance.new("TextButton")
-        KeybindBtn.Name = "Keybind"
-        KeybindBtn.Text = "None"
-        KeybindBtn.Font = Enum.Font.GothamMedium
-        KeybindBtn.TextSize = 12
-        KeybindBtn.TextColor3 = Color3.fromRGB(170,170,170)
-        KeybindBtn.TextXAlignment = Enum.TextXAlignment.Right
-        KeybindBtn.BackgroundTransparency = 1
-        KeybindBtn.AutoButtonColor = false
-        KeybindBtn.ZIndex = 10 -- FIX 3: ON TOP
-        KeybindBtn.Size = UDim2.new(0, 40, 0, 20)
-        KeybindBtn.AnchorPoint = Vector2.new(1, 0.5)
-        KeybindBtn.Parent = Toggle
+		local ColorPickerCorner = Instance.new("UICorner")
+		ColorPickerCorner.CornerRadius = UDim.new(0, 6)
+		ColorPickerCorner.Parent = ColorPickerDisplay
 
-        -- CLOSE TOGETHER, NOT FAR
-        if hasColor then
-            KeybindBtn.Position = UDim2.new(1, -88, 0.5, 0)
-        else
-            KeybindBtn.Position = UDim2.new(1, -62, 0.5, 0)
-        end
+		-- REMOVED: Green outline on colorbox
+		-- local ColorPickerStroke = Instance.new("UIStroke")
+		-- ColorPickerStroke.Color = SelectedTheme.ElementStroke
+		-- ColorPickerStroke.Thickness = 1
+		-- ColorPickerStroke.Parent = ColorPickerDisplay
 
-        if typeof(ToggleSettings.Keybind) == "EnumItem" then
-            CurrentBind = ToggleSettings.Keybind
-            KeybindBtn.Text = CurrentBind.Name
-        elseif typeof(ToggleSettings.Keybind) == "string" and ToggleSettings.Keybind ~= "None" and ToggleSettings.Keybind ~= "" then
-            local ok = pcall(function() CurrentBind = Enum.KeyCode[ToggleSettings.Keybind] end)
-            if ok and CurrentBind then KeybindBtn.Text = CurrentBind.Name else KeybindBtn.Text = ToggleSettings.Keybind end
-        else
-            KeybindBtn.Text = "None"
-        end
-    end
+		local ColorPickerButton = Instance.new("TextButton")
+		ColorPickerButton.BackgroundTransparency = 1
+		ColorPickerButton.Size = UDim2.new(1, 0, 1, 0)
+		ColorPickerButton.Text = ""
+		ColorPickerButton.ZIndex = 6
+		ColorPickerButton.Parent = ColorPickerDisplay
 
-    local ColorPickerDisplay = nil
-    if hasColor then
-        ColorPickerDisplay = Instance.new("Frame")
-        ColorPickerDisplay.Name = "Colorbox"
-        ColorPickerDisplay.Size = UDim2.new(0, 18, 0, 18)
-        ColorPickerDisplay.AnchorPoint = Vector2.new(1, 0.5)
-        ColorPickerDisplay.Position = UDim2.new(1, -62, 0.5, 0)
-        ColorPickerDisplay.BackgroundColor3 = ToggleSettings.CurrentColor
-        ColorPickerDisplay.ZIndex = 10 -- FIX 4: ON TOP
-        ColorPickerDisplay.Parent = Toggle
-        local corn = Instance.new("UICorner", ColorPickerDisplay)
-        corn.CornerRadius = UDim.new(0, 4)
-        local stroke = Instance.new("UIStroke", ColorPickerDisplay)
-        stroke.Color = Color3.fromRGB(80,80,80)
-        stroke.Thickness = 1
-        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    end
+		ColorPickerFrame = Instance.new("Frame")
+		ColorPickerFrame.Name = "ColorPickerFrame"
+		ColorPickerFrame.Size = UDim2.new(0, 230, 0, 0)
+		ColorPickerFrame.BackgroundColor3 = SelectedTheme.Background
+		ColorPickerFrame.BorderSizePixel = 0
+		ColorPickerFrame.Visible = false
+		ColorPickerFrame.ZIndex = 100
+		ColorPickerFrame.ClipsDescendants = true
+		ColorPickerFrame.Active = true
+		ColorPickerFrame.Parent = Rayfield.Main
 
-    TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-    TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-    TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+		local CPFrameCorner = Instance.new("UICorner")
+		CPFrameCorner.CornerRadius = UDim.new(0, 8)
+		CPFrameCorner.Parent = ColorPickerFrame
 
-    local function UpdateVisual()
-        if ToggleSettings.CurrentValue then
-            TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
-            TweenService:Create(Toggle.Switch, TweenInfo.new(0.5), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
-        else
-            TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
-            TweenService:Create(Toggle.Switch, TweenInfo.new(0.5), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
-        end
-    end
-    UpdateVisual()
+		local CPFrameStroke = Instance.new("UIStroke")
+		CPFrameStroke.Color = SelectedTheme.ElementStroke
+		CPFrameStroke.Thickness = 1.5
+		CPFrameStroke.Parent = ColorPickerFrame
 
-    local function DoToggle(NewValue)
-        ToggleSettings.CurrentValue = NewValue
-        UpdateVisual()
-        pcall(function() ToggleSettings.Callback(ToggleSettings.CurrentValue) end)
-        if SaveConfiguration then SaveConfiguration() end
-    end
+		local CloseButton = Instance.new("TextButton")
+		CloseButton.Name = "CloseButton"
+		CloseButton.Size = UDim2.new(0, 24, 0, 24)
+		CloseButton.Position = UDim2.new(1, -28, 0, 4)
+		CloseButton.BackgroundTransparency = 1
+		CloseButton.Text = "X"
+		CloseButton.TextColor3 = SelectedTheme.TextColor
+		CloseButton.Font = Enum.Font.GothamBold
+		CloseButton.TextSize = 16
+		CloseButton.ZIndex = 102
+		CloseButton.Parent = ColorPickerFrame
 
-    Toggle.Interact.MouseButton1Click:Connect(function()
-        if Binding then return end
-        DoToggle(not ToggleSettings.CurrentValue)
-    end)
+		local TitleBar = Instance.new("Frame")
+		TitleBar.Name = "TitleBar"
+		TitleBar.Size = UDim2.new(1, 0, 0, 30)
+		TitleBar.BackgroundTransparency = 1
+		TitleBar.ZIndex = 101
+		TitleBar.Parent = ColorPickerFrame
 
-    if hasKeybind and KeybindBtn then
-        KeybindBtn.MouseButton1Click:Connect(function()
-            if Binding then return end
-            Binding = true
-            KeybindBtn.Text = "..."
-            local conn
-            conn = UserInputService.InputBegan:Connect(function(input, gpe)
-                if gpe then return end
-                if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                task.wait(0.1)
-                if input.KeyCode == Enum.KeyCode.Backspace then
-                    CurrentBind = nil
-                    KeybindBtn.Text = "None"
-                    ToggleSettings.Keybind = "None"
-                else
-                    CurrentBind = input.KeyCode
-                    KeybindBtn.Text = input.KeyCode.Name
-                    ToggleSettings.Keybind = input.KeyCode.Name
-                end
-                Binding = false
-                conn:Disconnect()
-                if SaveConfiguration then SaveConfiguration() end
-            end)
-        end)
-        UserInputService.InputBegan:Connect(function(input, gpe)
-            if gpe or Binding then return end
-            if not CurrentBind then return end
-            if input.KeyCode == CurrentBind then
-                DoToggle(not ToggleSettings.CurrentValue)
-            end
-        end)
-    end
+		local TitleLabel = Instance.new("TextLabel")
+		TitleLabel.Size = UDim2.new(1, -35, 1, 0)
+		TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+		TitleLabel.BackgroundTransparency = 1
+		TitleLabel.Text = "Color Picker"
+		TitleLabel.TextColor3 = SelectedTheme.TextColor
+		TitleLabel.Font = Enum.Font.GothamBold
+		TitleLabel.TextSize = 13
+		TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+		TitleLabel.ZIndex = 101
+		TitleLabel.Parent = TitleBar
 
-    function ToggleSettings:Set(Value) DoToggle(Value) end
-    if Settings.ConfigurationSaving and Settings.ConfigurationSaving.Enabled and ToggleSettings.Flag then
-        RayfieldLibrary.Flags[ToggleSettings.Flag] = ToggleSettings
-    end
-    return ToggleSettings
+        local MainCP = Instance.new("ImageLabel")
+        MainCP.Name = "MainCP"
+        MainCP.Size = UDim2.new(1, -20, 0, 110)
+        MainCP.Position = UDim2.new(0, 10, 0, 35)
+		MainCP.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+		MainCP.BorderSizePixel = 0
+		MainCP.Image = "rbxassetid://11970108040"
+		MainCP.ZIndex = 101
+		MainCP.Parent = ColorPickerFrame
+
+		local MainCPCorner = Instance.new("UICorner")
+		MainCPCorner.CornerRadius = UDim.new(0, 6)
+		MainCPCorner.Parent = MainCP
+
+		local MainPoint = Instance.new("ImageLabel")
+		MainPoint.Name = "Point"
+		MainPoint.Size = UDim2.new(0, 10, 0, 10)
+		MainPoint.AnchorPoint = Vector2.new(0.5, 0.5)
+		MainPoint.BackgroundTransparency = 1
+		MainPoint.Image = "rbxassetid://3678860011"
+		MainPoint.ImageColor3 = ToggleSettings.CurrentColor
+		MainPoint.ZIndex = 102
+		MainPoint.Parent = MainCP
+
+		local HueSlider = Instance.new("Frame")
+		HueSlider.Name = "HueSlider"
+		HueSlider.Size = UDim2.new(1, -20, 0, 12)
+		HueSlider.Position = UDim2.new(0, 10, 0, 155)
+		HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		HueSlider.BorderSizePixel = 0
+		HueSlider.ZIndex = 101
+		HueSlider.Parent = ColorPickerFrame
+
+		local HueGradient = Instance.new("UIGradient")
+		HueGradient.Color = ColorSequence.new{
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+			ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
+			ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+			ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+			ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+		}
+		HueGradient.Parent = HueSlider
+
+		local HueSliderCorner = Instance.new("UICorner")
+		HueSliderCorner.CornerRadius = UDim.new(0, 6)
+		HueSliderCorner.Parent = HueSlider
+
+		local SliderPoint = Instance.new("Frame")
+		SliderPoint.Name = "SliderPoint"
+		SliderPoint.Size = UDim2.new(0, 6, 1, 6)
+		SliderPoint.AnchorPoint = Vector2.new(0.5, 0.5)
+		SliderPoint.Position = UDim2.new(h, 0, 0.5, 0)
+		SliderPoint.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		SliderPoint.BorderSizePixel = 0
+		SliderPoint.ZIndex = 102
+		SliderPoint.Parent = HueSlider
+
+		local SliderPointCorner = Instance.new("UICorner")
+		SliderPointCorner.CornerRadius = UDim.new(0, 3)
+		SliderPointCorner.Parent = SliderPoint
+
+		-- FIX: Rainbow toggle always visible now
+		local RainbowToggle = Instance.new("Frame")
+		RainbowToggle.Name = "RainbowToggle"
+		RainbowToggle.Size = UDim2.new(1, -20, 0, 28)
+		RainbowToggle.Position = UDim2.new(0, 10, 0, 175)
+		RainbowToggle.BackgroundTransparency = 1
+		RainbowToggle.ZIndex = 101
+		RainbowToggle.Visible = true -- FORCE VISIBLE ON MOBILE/PC
+		RainbowToggle.Parent = ColorPickerFrame
+
+		local RainbowLabel = Instance.new("TextLabel")
+		RainbowLabel.Size = UDim2.new(1, -50, 1, 0)
+		RainbowLabel.BackgroundTransparency = 1
+		RainbowLabel.Text = "Rainbow Mode"
+		RainbowLabel.TextColor3 = SelectedTheme.TextColor
+		RainbowLabel.Font = Enum.Font.Gotham
+		RainbowLabel.TextSize = 13
+		RainbowLabel.TextXAlignment = Enum.TextXAlignment.Left
+		RainbowLabel.ZIndex = 102
+		RainbowLabel.Parent = RainbowToggle
+
+		local RainbowSwitch = Instance.new("Frame")
+		RainbowSwitch.Name = "Switch"
+		RainbowSwitch.Size = UDim2.new(0, 36, 0, 18)
+		RainbowSwitch.Position = UDim2.new(1, -36, 0.5, -9)
+		RainbowSwitch.BackgroundColor3 = SelectedTheme.ToggleDisabled
+		RainbowSwitch.ZIndex = 102
+		RainbowSwitch.Parent = RainbowToggle
+
+		local RainbowSwitchCorner = Instance.new("UICorner")
+		RainbowSwitchCorner.CornerRadius = UDim.new(1, 0)
+		RainbowSwitchCorner.Parent = RainbowSwitch
+
+		local RainbowSwitchStroke = Instance.new("UIStroke")
+		RainbowSwitchStroke.Color = SelectedTheme.ToggleDisabledOuterStroke
+		RainbowSwitchStroke.Thickness = 1
+		RainbowSwitchStroke.Parent = RainbowSwitch
+
+		local RainbowIndicator = Instance.new("Frame")
+		RainbowIndicator.Name = "Indicator"
+		RainbowIndicator.Size = UDim2.new(0, 14, 0, 14)
+		RainbowIndicator.Position = UDim2.new(0, 2, 0.5, -7)
+		RainbowIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		RainbowIndicator.ZIndex = 103
+		RainbowIndicator.Parent = RainbowSwitch
+
+		local RainbowIndicatorCorner = Instance.new("UICorner")
+		RainbowIndicatorCorner.CornerRadius = UDim.new(1, 0)
+		RainbowIndicatorCorner.Parent = RainbowIndicator
+
+		local RainbowButton = Instance.new("TextButton")
+		RainbowButton.Size = UDim2.new(1, 0, 1, 0)
+		RainbowButton.BackgroundTransparency = 1
+		RainbowButton.Text = ""
+		RainbowButton.ZIndex = 103
+		RainbowButton.Parent = RainbowToggle
+
+		local function UpdateRainbowVisual()
+			if rainbowEnabled then
+				TweenService:Create(RainbowIndicator, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -16, 0.5, -7)}):Play()
+				TweenService:Create(RainbowSwitch, TweenInfo.new(0.3), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+			else
+				TweenService:Create(RainbowIndicator, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Position = UDim2.new(0, 2, 0.5, -7)}):Play()
+				TweenService:Create(RainbowSwitch, TweenInfo.new(0.3), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+			end
+		end
+
+		local function UpdateColor(noCallback)
+			local color = Color3.fromHSV(h, s, v)
+			ColorPickerDisplay.BackgroundColor3 = color
+			MainCP.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+			MainPoint.Position = UDim2.new(s, 0, 1 - v, 0)
+			MainPoint.ImageColor3 = color
+			SliderPoint.Position = UDim2.new(h, 0, 0.5, 0)
+			SliderPoint.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+			
+			ToggleSettings.CurrentColor = color
+			if not noCallback and ToggleSettings.ColorCallback then
+				pcall(ToggleSettings.ColorCallback, color)
+			end
+		end
+
+		UpdateColor(true)
+		UpdateRainbowVisual()
+
+		local mainDragging, sliderDragging, frameDragging = false, false, false
+		local dragStart, startPos
+
+		MainCP.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				mainDragging = true
+				rainbowEnabled = false
+				UpdateRainbowVisual()
+			end
+		end)
+
+		HueSlider.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				sliderDragging = true
+				rainbowEnabled = false
+				UpdateRainbowVisual()
+			end
+		end)
+
+		TitleBar.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				frameDragging = true
+				dragStart = input.Position
+				startPos = ColorPickerFrame.Position
+			end
+		end)
+
+		RainbowButton.MouseButton1Click:Connect(function()
+			rainbowEnabled = not rainbowEnabled
+			UpdateRainbowVisual()
+		end)
+
+		table.insert(connections, UserInputService.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				if frameDragging then
+					local delta = input.Position - dragStart
+					ColorPickerFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+				end
+			end
+		end))
+
+		table.insert(connections, UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				mainDragging = false
+				sliderDragging = false
+				frameDragging = false
+			end
+		end))
+
+		table.insert(connections, RunService.RenderStepped:Connect(function()
+			if mainDragging then
+				local mouse = UserInputService:GetMouseLocation()
+				local relative = Vector2.new(mouse.X, mouse.Y - 36) - MainCP.AbsolutePosition
+				s = math.clamp(relative.X / MainCP.AbsoluteSize.X, 0, 1)
+				v = 1 - math.clamp(relative.Y / MainCP.AbsoluteSize.Y, 0, 1)
+				UpdateColor()
+			end
+			if sliderDragging then
+				local mouse = UserInputService:GetMouseLocation()
+				local relative = mouse.X - HueSlider.AbsolutePosition.X
+				h = math.clamp(relative / HueSlider.AbsoluteSize.X, 0, 1)
+				UpdateColor()
+			end
+			if rainbowEnabled then
+				h = (h + 0.005) % 1
+				UpdateColor()
+			end
+		end))
+
+		local function ClosePicker()
+			ColorPickerOpen = false
+			TweenService:Create(ColorPickerFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 230, 0, 0)}):Play()
+			task.delay(0.3, function()
+				if not ColorPickerOpen then ColorPickerFrame.Visible = false end
+			end)
+		end
+
+		ColorPickerButton.MouseButton1Click:Connect(function()
+			ColorPickerOpen = not ColorPickerOpen
+			if ColorPickerOpen then
+				ColorPickerFrame.Parent = Main
+				ColorPickerFrame.AnchorPoint = Vector2.new(0, 0)
+				ColorPickerFrame.Position = UDim2.new(1, 10, 0, 0) 
+				ColorPickerFrame.Visible = true
+				-- Rainbow toggle always visible now
+				ColorPickerFrame.RainbowToggle.Visible = true
+				TweenService:Create(ColorPickerFrame, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 230, 0, 211)}):Play()
+			else
+				ClosePicker()
+			end
+		end)
+
+		CloseButton.MouseButton1Click:Connect(ClosePicker)
+
+		ColorPickerButton.MouseButton1Down:Connect(function()
+			Toggle.Interact.Active = false
+		end)
+		ColorPickerButton.MouseButton1Up:Connect(function()
+			Toggle.Interact.Active = true
+		end)
+
+		function ToggleSettings:SetColor(NewColor)
+			h, s, v = NewColor:ToHSV()
+			UpdateColor()
+		end
+
+		Toggle.AncestryChanged:Connect(function(_, parent)
+			if not parent then
+				for _, conn in ipairs(connections) do conn:Disconnect() end
+				if ColorPickerFrame then ColorPickerFrame:Destroy() end
+			end
+		end)
+	end
+
+	TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+	TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
+
+	local function UpdateToggleVisual(instant)
+		local tweenInfo = instant and TweenInfo.new(0) or TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		local colorTween = instant and TweenInfo.new(0) or TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+		
+		if ToggleSettings.CurrentValue then
+			TweenService:Create(Toggle.Switch.Indicator, tweenInfo, {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch, colorTween, {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+		else
+			TweenService:Create(Toggle.Switch.Indicator, tweenInfo, {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch, colorTween, {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+		end
+	end
+
+	UpdateToggleVisual(true)
+
+	-- FIX: Warning toggle hover = lighter yellow
+	Toggle.MouseEnter:Connect(function()
+		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+		if ToggleSettings.Warning then
+			TweenService:Create(Toggle.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextColor3 = WarningHoverColor}):Play()
+		end
+	end)
+
+	Toggle.MouseLeave:Connect(function()
+		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+		if ToggleSettings.Warning then
+			TweenService:Create(Toggle.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextColor3 = ToggleTitleColor}):Play()
+		end
+	end)
+
+	Toggle.Interact.MouseButton1Click:Connect(function()
+		ToggleSettings.CurrentValue = not ToggleSettings.CurrentValue
+		UpdateToggleVisual()
+
+		local Success, Response = pcall(ToggleSettings.Callback, ToggleSettings.CurrentValue)
+		if not Success then
+			warn("Rayfield | "..ToggleSettings.Name.." Callback Error " ..tostring(Response))
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
+			task.wait(0.5)
+			TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+		end
+
+		if not ToggleSettings.Ext and SaveConfiguration then
+			SaveConfiguration()
+		end
+	end)
+
+	function ToggleSettings:Set(Value)
+		ToggleSettings.CurrentValue = Value
+		UpdateToggleVisual()
+		pcall(ToggleSettings.Callback, ToggleSettings.CurrentValue)
+		if not ToggleSettings.Ext and SaveConfiguration then
+			SaveConfiguration()
+		end
+	end
+
+	if not ToggleSettings.Ext then
+		if Settings.ConfigurationSaving and Settings.ConfigurationSaving.Enabled and ToggleSettings.Flag then
+			RayfieldLibrary.Flags[ToggleSettings.Flag] = ToggleSettings
+		end
+	end
+
+	return ToggleSettings
 end
 		
 		-- Button
