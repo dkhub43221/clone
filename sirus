@@ -3168,7 +3168,149 @@ function Tab:CreateToggle(ToggleSettings)
 
 	return ToggleSettings
 end
-		
+
+function Tab:CreateToggle(ToggleSettings)
+	local ToggleValue = {}
+
+	local Toggle = Elements.Template.Toggle:Clone()
+	Toggle.Name = ToggleSettings.Name
+	Toggle.Title.Text = ToggleSettings.Name
+	Toggle.Visible = true
+	Toggle.Parent = TabPage
+
+	Toggle.BackgroundTransparency = 1
+	Toggle.UIStroke.Transparency = 1
+	Toggle.Title.TextTransparency = 1
+	Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleBackground
+
+	if SelectedTheme ~= RayfieldLibrary.Theme.Default then
+		Toggle.Switch.Shadow.Visible = false
+	end
+
+	-- KEYBIND BOX - says None when empty like your screenshot
+	local Keybind = Instance.new("TextButton")
+	Keybind.Name = "Keybind"
+	Keybind.Text = "None"
+	Keybind.Font = Enum.Font.GothamMedium
+	Keybind.TextSize = 13
+	Keybind.TextColor3 = Color3.fromRGB(180, 180, 180)
+	Keybind.TextXAlignment = Enum.TextXAlignment.Right
+	Keybind.BackgroundTransparency = 1
+	Keybind.AutoButtonColor = false
+	Keybind.Size = UDim2.new(0, 50, 1, 0)
+	Keybind.Position = UDim2.new(1, -65, 0, 0)
+	Keybind.Parent = Toggle
+	Keybind.ZIndex = 5
+
+	local CurrentBind = nil
+	local IsBinding = false
+
+	if ToggleSettings.Keybind and ToggleSettings.Keybind ~= "None" then
+		CurrentBind = ToggleSettings.Keybind
+		Keybind.Text = typeof(CurrentBind) == "EnumItem" and CurrentBind.Name or tostring(CurrentBind)
+	end
+
+	TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Toggle.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Transparency = 0}):Play()
+	TweenService:Create(Toggle.Title, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()	
+
+	if not ToggleSettings.CurrentValue then
+		Toggle.Switch.Indicator.Position = UDim2.new(1, -40, 0.5, 0)
+		Toggle.Switch.Indicator.UIStroke.Color = SelectedTheme.ToggleDisabledStroke
+		Toggle.Switch.Indicator.BackgroundColor3 = SelectedTheme.ToggleDisabled
+		Toggle.Switch.UIStroke.Color = SelectedTheme.ToggleDisabledOuterStroke
+	else
+		Toggle.Switch.Indicator.Position = UDim2.new(1, -20, 0.5, 0)
+		Toggle.Switch.Indicator.UIStroke.Color = SelectedTheme.ToggleEnabledStroke
+		Toggle.Switch.Indicator.BackgroundColor3 = SelectedTheme.ToggleEnabled
+		Toggle.Switch.UIStroke.Color = SelectedTheme.ToggleEnabledOuterStroke
+	end
+
+	Toggle.MouseEnter:Connect(function()
+		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+	end)
+	Toggle.MouseLeave:Connect(function()
+		TweenService:Create(Toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+	end)
+
+	local function DoToggle(NewValue)
+		ToggleSettings.CurrentValue = NewValue
+		if not NewValue then
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -40, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch.Indicator.UIStroke, TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = SelectedTheme.ToggleDisabledStroke}):Play()
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.8, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+			TweenService:Create(Toggle.Switch.UIStroke, TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = SelectedTheme.ToggleDisabledOuterStroke}):Play()
+		else
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
+			TweenService:Create(Toggle.Switch.Indicator.UIStroke, TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = SelectedTheme.ToggleEnabledStroke}):Play()
+			TweenService:Create(Toggle.Switch.Indicator, TweenInfo.new(0.8, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+			TweenService:Create(Toggle.Switch.UIStroke, TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = SelectedTheme.ToggleEnabledOuterStroke}):Play()
+		end
+		pcall(function() ToggleSettings.Callback(ToggleSettings.CurrentValue) end)
+		SaveConfiguration()
+	end
+
+	Toggle.Interact.MouseButton1Click:Connect(function()
+		DoToggle(not ToggleSettings.CurrentValue)
+	end)
+
+	-- Set keybind logic
+	Keybind.MouseButton1Click:Connect(function()
+		if IsBinding then return end
+		IsBinding = true
+		Keybind.Text = "..."
+		local bindConn
+		bindConn = UserInputService.InputBegan:Connect(function(input, gpe)
+			if gpe then return end
+			if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+			task.wait()
+			if input.KeyCode == Enum.KeyCode.Backspace or input.KeyCode == Enum.KeyCode.Delete then
+				CurrentBind = nil
+				Keybind.Text = "None"
+				ToggleSettings.Keybind = nil
+			else
+				CurrentBind = input.KeyCode
+				Keybind.Text = input.KeyCode.Name
+				ToggleSettings.Keybind = input.KeyCode
+			end
+			IsBinding = false
+			bindConn:Disconnect()
+			SaveConfiguration()
+		end)
+	end)
+
+	-- Press keybind to toggle feature
+	UserInputService.InputBegan:Connect(function(input, gpe)
+		if gpe or IsBinding then return end
+		if not CurrentBind then return end
+		if input.KeyCode == CurrentBind then
+			DoToggle(not ToggleSettings.CurrentValue)
+		end
+	end)
+
+	function ToggleSettings:Set(NewToggleValue)
+		DoToggle(NewToggleValue and true or false)
+	end
+
+	function ToggleSettings:SetKeybind(NewKey)
+		if not NewKey or NewKey == "None" then
+			CurrentBind = nil
+			Keybind.Text = "None"
+		else
+			CurrentBind = typeof(NewKey) == "string" and Enum.KeyCode[NewKey] or NewKey
+			Keybind.Text = CurrentBind.Name
+		end
+	end
+
+	if Settings.ConfigurationSaving then
+		if Settings.ConfigurationSaving.Enabled and ToggleSettings.Flag then
+			RayfieldLibrary.Flags[ToggleSettings.Flag] = ToggleSettings
+		end
+	end
+
+	return ToggleSettings
+end
+
 		-- Button
 		function Tab:CreateButton(ButtonSettings)
 			local ButtonValue = {}
