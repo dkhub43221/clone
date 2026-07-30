@@ -2703,12 +2703,12 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-        function Tab:CreateToggle(ToggleSettings)
+       function Tab:CreateToggle(ToggleSettings)
     ToggleSettings.Name = ToggleSettings.Name or "Toggle"
     ToggleSettings.Flag = ToggleSettings.Flag or ToggleSettings.Name
     ToggleSettings.CurrentValue = ToggleSettings.CurrentValue or false
     ToggleSettings.Callback = ToggleSettings.Callback or function() end
-    ToggleSettings.CurrentColor = ToggleSettings.CurrentColor or Color3.fromRGB(255,255,255)
+    ToggleSettings.CurrentColor = ToggleSettings.CurrentColor or Color3.fromRGB(255,0,0)
     ToggleSettings.Keybind = ToggleSettings.Keybind or "None"
 
     local hasColor = ToggleSettings.ColorPicker == true
@@ -2731,7 +2731,14 @@ function RayfieldLibrary:CreateWindow(Settings)
     Toggle.Title.TextTransparency = 1
     Toggle.Switch.BackgroundColor3 = SelectedTheme.ToggleBackground
     if SelectedTheme ~= RayfieldLibrary.Theme.Default then Toggle.Switch.Shadow.Visible = false end
-    Toggle.Switch.Position = UDim2.new(1, -44, 0.5, -12)
+
+    -- FIX 1: PUT TOGGLE AT FIXED RIGHT EDGE
+    Toggle.Switch.AnchorPoint = Vector2.new(1, 0.5)
+    Toggle.Switch.Position = UDim2.new(1, -12, 0.5, 0)
+    Toggle.Switch.ZIndex = 2
+
+    -- FIX 2: MAKE INTERACT NOT BLOCK KEYBIND/COLOR
+    Toggle.Interact.ZIndex = 1
 
     local KeybindBtn = nil
     local CurrentBind = nil
@@ -2740,31 +2747,31 @@ function RayfieldLibrary:CreateWindow(Settings)
     if hasKeybind then
         KeybindBtn = Instance.new("TextButton")
         KeybindBtn.Name = "Keybind"
-        -- IF NO KEYBINDED = NONE, IF KEYBINDED = KEY NAME
         KeybindBtn.Text = "None"
-        KeybindBtn.Font = Enum.Font.Gotham
-        KeybindBtn.TextSize = 13
+        KeybindBtn.Font = Enum.Font.GothamMedium
+        KeybindBtn.TextSize = 12
         KeybindBtn.TextColor3 = Color3.fromRGB(170,170,170)
         KeybindBtn.TextXAlignment = Enum.TextXAlignment.Right
         KeybindBtn.BackgroundTransparency = 1
         KeybindBtn.AutoButtonColor = false
-        KeybindBtn.ZIndex = 5
-        KeybindBtn.Size = UDim2.new(0, 50, 1, 0)
-        KeybindBtn.AnchorPoint = Vector2.new(1,0.5)
+        KeybindBtn.ZIndex = 10 -- FIX 3: ON TOP
+        KeybindBtn.Size = UDim2.new(0, 40, 0, 20)
+        KeybindBtn.AnchorPoint = Vector2.new(1, 0.5)
         KeybindBtn.Parent = Toggle
-        KeybindBtn.Position = hasColor and UDim2.new(1, -80, 0.5, 0) or UDim2.new(1, -52, 0.5, 0)
 
-        -- check initial keybind
+        -- CLOSE TOGETHER, NOT FAR
+        if hasColor then
+            KeybindBtn.Position = UDim2.new(1, -88, 0.5, 0)
+        else
+            KeybindBtn.Position = UDim2.new(1, -62, 0.5, 0)
+        end
+
         if typeof(ToggleSettings.Keybind) == "EnumItem" then
             CurrentBind = ToggleSettings.Keybind
             KeybindBtn.Text = CurrentBind.Name
         elseif typeof(ToggleSettings.Keybind) == "string" and ToggleSettings.Keybind ~= "None" and ToggleSettings.Keybind ~= "" then
             local ok = pcall(function() CurrentBind = Enum.KeyCode[ToggleSettings.Keybind] end)
-            if ok and CurrentBind then
-                KeybindBtn.Text = CurrentBind.Name
-            else
-                KeybindBtn.Text = ToggleSettings.Keybind
-            end
+            if ok and CurrentBind then KeybindBtn.Text = CurrentBind.Name else KeybindBtn.Text = ToggleSettings.Keybind end
         else
             KeybindBtn.Text = "None"
         end
@@ -2774,16 +2781,18 @@ function RayfieldLibrary:CreateWindow(Settings)
     if hasColor then
         ColorPickerDisplay = Instance.new("Frame")
         ColorPickerDisplay.Name = "Colorbox"
-        ColorPickerDisplay.Size = UDim2.new(0, 20, 0, 20)
-        ColorPickerDisplay.AnchorPoint = Vector2.new(1,0.5)
-        ColorPickerDisplay.Position = UDim2.new(1, -52, 0.5, 0)
+        ColorPickerDisplay.Size = UDim2.new(0, 18, 0, 18)
+        ColorPickerDisplay.AnchorPoint = Vector2.new(1, 0.5)
+        ColorPickerDisplay.Position = UDim2.new(1, -62, 0.5, 0)
         ColorPickerDisplay.BackgroundColor3 = ToggleSettings.CurrentColor
-        ColorPickerDisplay.ZIndex = 5
+        ColorPickerDisplay.ZIndex = 10 -- FIX 4: ON TOP
         ColorPickerDisplay.Parent = Toggle
-        Instance.new("UICorner", ColorPickerDisplay).CornerRadius = UDim.new(0, 5)
+        local corn = Instance.new("UICorner", ColorPickerDisplay)
+        corn.CornerRadius = UDim.new(0, 4)
         local stroke = Instance.new("UIStroke", ColorPickerDisplay)
         stroke.Color = Color3.fromRGB(80,80,80)
         stroke.Thickness = 1
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     end
 
     TweenService:Create(Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
