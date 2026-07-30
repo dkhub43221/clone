@@ -3574,70 +3574,33 @@ end)
 	return ColorPickerSettings
 end
 
-		
-	function Tab:CreateSection(SectionName, IconId)
-	local SectionValue = {}
+		-- Section
+		function Tab:CreateSection(SectionName)
 
-	if SDone then
-		local SectionSpace = Elements.Template.SectionSpacing:Clone()
-		SectionSpace.Visible = true
-		SectionSpace.Parent = TabPage
-	end
+			local SectionValue = {}
 
-	local Section = Elements.Template.SectionTitle:Clone()
-	Section.Title.Text = SectionName
-	Section.Visible = true
-	Section.Parent = TabPage
-
-	local IconLabel = Section:FindFirstChild("Icon")
-	if not IconLabel then
-		IconLabel = Instance.new("ImageLabel")
-		IconLabel.Name = "Icon"
-		IconLabel.Size = UDim2.new(0, 18, 0, 18)
-		IconLabel.Position = UDim2.new(0, 0, 0.5, 0)
-		IconLabel.AnchorPoint = Vector2.new(0, 0.5)
-		IconLabel.BackgroundTransparency = 1
-		IconLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
-		IconLabel.Parent = Section
-	end
-
-	if IconId then
-		if typeof(IconId) == "number" then
-			IconId = "rbxassetid://"..tostring(IconId)
-		end
-		if not string.find(IconId, "rbxassetid://") and not string.find(IconId, "rbxasset://") then
-			IconId = "rbxassetid://"..IconId
-		end
-		
-		IconLabel.Image = IconId
-		IconLabel.Visible = true
-		Section.Title.Position = UDim2.new(0, 26, 0, 0)
-		
-		IconLabel.ImageTransparency = 1
-		TweenService:Create(IconLabel, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.3}):Play()
-	else
-		IconLabel.Visible = false
-		Section.Title.Position = UDim2.new(0, 0, 0, 0)
-	end
-
-	Section.Title.TextTransparency = 1
-	TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
-
-	function SectionValue:Set(NewSection, NewIconId)
-		Section.Title.Text = NewSection
-		if NewIconId then
-			if typeof(NewIconId) == "number" then
-				NewIconId = "rbxassetid://"..tostring(NewIconId)
+			if SDone then
+				local SectionSpace = Elements.Template.SectionSpacing:Clone()
+				SectionSpace.Visible = true
+				SectionSpace.Parent = TabPage
 			end
-			IconLabel.Image = NewIconId
-			IconLabel.Visible = true
-			Section.Title.Position = UDim2.new(0, 26, 0, 0)
-		end
-	end
 
-	SDone = true
-	return SectionValue
-end
+			local Section = Elements.Template.SectionTitle:Clone()
+			Section.Title.Text = SectionName
+			Section.Visible = true
+			Section.Parent = TabPage
+
+			Section.Title.TextTransparency = 1
+			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+
+			function SectionValue:Set(NewSection)
+				Section.Title.Text = NewSection
+			end
+
+			SDone = true
+
+			return SectionValue
+		end
 
 		-- Divider
 		function Tab:CreateDivider()
