@@ -1221,6 +1221,38 @@ local function SaveConfiguration()
 	callSafely(writefile, ConfigurationFolder .. "/" .. CFileName .. ConfigurationExtension, tostring(HttpService:JSONEncode(Data)))
 end
 
+ensureFolder(RayfieldFolder)
+
+local Passthrough = false
+-- TYPE & DELETE EFFECT FOR TITLE
+local titleLabel = Topbar.Title
+local fullTitle = Settings.Name or "Your Hub Name"
+local typeSpeed = 0.08
+local deleteSpeed = 0.05
+local pauseTime = 2
+
+titleLabel.Text = ""
+
+task.spawn(function()
+    while true do
+        for i = 1, #fullTitle do
+            if rayfieldDestroyed then return end
+            titleLabel.Text = string.sub(fullTitle, 1, i) .. "|"
+            task.wait(typeSpeed)
+        end
+        titleLabel.Text = fullTitle
+        task.wait(pauseTime)
+        for i = #fullTitle, 0, -1 do
+            if rayfieldDestroyed then return end
+            titleLabel.Text = string.sub(fullTitle, 1, i) .. "|"
+            task.wait(deleteSpeed)
+        end
+        task.wait(0.5)
+    end
+end)
+
+Main.Size = useMobileSizing and UDim2.new(0, 500, 0, 275) or UDim2.new(0, 500, 0, 475)
+
 function RayfieldLibrary:Notify(data) -- action e.g open messages
 	task.spawn(function()
 
