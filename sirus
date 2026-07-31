@@ -4366,15 +4366,11 @@ end
 
     local Slider = Instance.new("Frame")
     Slider.Name = SliderSettings.Name
-    Slider.Size = UDim2.new(1, 0, 0, 50)
-    Slider.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Slider.Size = UDim2.new(1, 0, 0, 45) -- less height since no box
+    Slider.BackgroundTransparency = 1 -- FIX: NO GREY BOX
     Slider.BorderSizePixel = 0
     Slider.Parent = TabPage
-    Slider.ClipsDescendants = true
-    Instance.new("UICorner", Slider).CornerRadius = UDim.new(0, 6)
-    local stroke = Instance.new("UIStroke", Slider)
-    stroke.Color = Color3.fromRGB(50,50,50)
-    stroke.Thickness = 1
+    Slider.ClipsDescendants = false
 
     local Title = Instance.new("TextLabel", Slider)
     Title.Text = SliderSettings.Name
@@ -4383,26 +4379,24 @@ end
     Title.TextColor3 = Color3.fromRGB(220,220,220)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 10, 0, 5)
+    Title.Position = UDim2.new(0, 0, 0, 0)
     Title.Size = UDim2.new(0.5, 0, 0, 18)
 
-    -- Typable box - looks like label but editable
     local ValueBox = Instance.new("TextBox", Slider)
     ValueBox.Font = Enum.Font.GothamBold
     ValueBox.TextSize = 13
     ValueBox.TextColor3 = Color3.fromRGB(200,200,200)
     ValueBox.TextXAlignment = Enum.TextXAlignment.Right
     ValueBox.BackgroundTransparency = 1
-    ValueBox.Position = UDim2.new(0.5, 0, 0, 5)
-    ValueBox.Size = UDim2.new(0.5, -10, 0, 18)
+    ValueBox.Position = UDim2.new(0.5, 0, 0, 0)
+    ValueBox.Size = UDim2.new(0.5, 0, 0, 18)
     ValueBox.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
     ValueBox.ClearTextOnFocus = true
-    ValueBox.ClipsDescendants = true
 
     local Track = Instance.new("Frame", Slider)
     Track.Name = "Track"
-    Track.Size = UDim2.new(1, -20, 0, 6)
-    Track.Position = UDim2.new(0, 10, 0, 30)
+    Track.Size = UDim2.new(1, 0, 0, 6)
+    Track.Position = UDim2.new(0, 0, 0, 28) -- more padding, not jammed
     Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Track.BorderSizePixel = 0
     Track.ClipsDescendants = false
@@ -4411,12 +4405,11 @@ end
     local Progress = Instance.new("Frame", Track)
     Progress.Name = "Progress"
     Progress.Size = UDim2.new(0, 0, 1, 0)
-    Progress.BackgroundColor3 = Color3.fromRGB(46, 255, 87)
+    Progress.BackgroundColor3 = Color3.fromRGB(77, 251, 16) -- DK GREEN
     Progress.BorderSizePixel = 0
     Progress.ZIndex = 1
     Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
 
-    -- White dot like in your image
     local Dot = Instance.new("Frame", Track)
     Dot.Name = "Dot"
     Dot.Size = UDim2.new(0, 14, 0, 14)
@@ -4428,7 +4421,7 @@ end
     Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
 
     local Interact = Instance.new("TextButton", Track)
-    Interact.Size = UDim2.new(1, 0, 1, 20) -- bigger hitbox for easier drag
+    Interact.Size = UDim2.new(1, 0, 1, 20)
     Interact.Position = UDim2.new(0,0,0,-7)
     Interact.BackgroundTransparency = 1
     Interact.Text = ""
@@ -4464,7 +4457,6 @@ end
 
     Update(SliderSettings.CurrentValue, false)
 
-    -- SMOOTH DRAG LOGIC
     Interact.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             SLDragging = true
@@ -4484,23 +4476,19 @@ end
         end
     end)
 
-    -- NUMBERS ONLY + LIVE UPDATE WHEN TYPING
     ValueBox:GetPropertyChangedSignal("Text"):Connect(function()
         if ValueBox:IsFocused() then
-            -- allow only numbers and minus
             local filtered = ValueBox.Text:gsub("[^%d%-]", "")
             if ValueBox.Text ~= filtered then
                 ValueBox.Text = filtered
                 ValueBox.CursorPosition = #filtered + 1
             end
-
-            -- live update slider while typing
             if filtered ~= "" and filtered ~= "-" then
                 local num = tonumber(filtered)
                 if num then
                     num = math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2])
                     num = math.floor(num / SliderSettings.Increment + 0.5) * SliderSettings.Increment
-                    UpdateVisual(num) -- visual only while typing
+                    UpdateVisual(num)
                     SliderSettings.CurrentValue = num
                     pcall(SliderSettings.Callback, num)
                 end
@@ -4508,7 +4496,7 @@ end
         end
     end)
 
-    ValueBox.FocusLost:Connect(function(enterPressed)
+    ValueBox.FocusLost:Connect(function()
         local raw = ValueBox.Text:gsub(SliderSettings.Suffix, ""):gsub("%s+", "")
         local num = tonumber(raw)
         if num then
