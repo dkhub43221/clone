@@ -2720,35 +2720,25 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-Tab.CreatePlayerList = function(self)
+function Tab:CreatePlayerList()
     local Players = game:GetService("Players")
     local TweenService = game:GetService("TweenService")
     local CoreGui = game:GetService("CoreGui")
     local RunService = game:GetService("RunService")
     local LP = Players.LocalPlayer
-
     local Main = Instance.new("Frame", self.Page)
     Main.Size = UDim2.new(1,-4,0,335)
     Main.BackgroundColor3=Color3.fromRGB(22,22,24)
     Instance.new("UICorner", Main).CornerRadius=UDim.new(0,8)
     Instance.new("UIStroke", Main).Color=Color3.fromRGB(38,38,42)
-
     local SearchHolder = Instance.new("Frame", Main)
     SearchHolder.Size=UDim2.new(1,-16,0,30)
     SearchHolder.Position=UDim2.new(0,8,0,8)
     SearchHolder.BackgroundColor3=Color3.fromRGB(28,28,31)
     Instance.new("UICorner", SearchHolder).CornerRadius=UDim.new(0,7)
-
-    local SearchIcon = Instance.new("ImageLabel", SearchHolder)
-    SearchIcon.Size=UDim2.new(0,14,0,14)
-    SearchIcon.Position=UDim2.new(0,10,0.5,-7)
-    SearchIcon.BackgroundTransparency=1
-    SearchIcon.Image="rbxassetid://6031154871"
-    SearchIcon.ImageColor3=Color3.fromRGB(120,120,120)
-
     local Search = Instance.new("TextBox", SearchHolder)
-    Search.Size=UDim2.new(1,-32,1,0)
-    Search.Position=UDim2.new(0,32,0,0)
+    Search.Size=UDim2.new(1,-16,1,0)
+    Search.Position=UDim2.new(0,8,0,0)
     Search.BackgroundTransparency=1
     Search.Text=""
     Search.PlaceholderText="Search..."
@@ -2758,7 +2748,6 @@ Tab.CreatePlayerList = function(self)
     Search.TextSize=12
     Search.TextXAlignment=Enum.TextXAlignment.Left
     Search.ClearTextOnFocus=false
-
     local Header=Instance.new("Frame",Main)
     Header.Size=UDim2.new(1,-16,0,14)
     Header.Position=UDim2.new(0,12,0,44)
@@ -2774,7 +2763,6 @@ Tab.CreatePlayerList = function(self)
         l.TextSize=10
         l.TextXAlignment=Enum.TextXAlignment.Left
     end
-
     local List=Instance.new("ScrollingFrame",Main)
     List.Size=UDim2.new(1,-16,0,165)
     List.Position=UDim2.new(0,8,0,60)
@@ -2782,7 +2770,6 @@ Tab.CreatePlayerList = function(self)
     List.CanvasSize=UDim2.new(0,0,0,0)
     List.ScrollBarThickness=0
     Instance.new("UIListLayout",List).Padding=UDim.new(0,2)
-
     local Bottom=Instance.new("Frame",Main)
     Bottom.Size=UDim2.new(1,-16,0,60)
     Bottom.Position=UDim2.new(0,8,0,233)
@@ -2802,7 +2789,6 @@ Tab.CreatePlayerList = function(self)
     NameLabel.Font=Enum.Font.GothamBold
     NameLabel.TextSize=11
     NameLabel.TextXAlignment=Enum.TextXAlignment.Left
-    NameLabel.TextTruncate=Enum.TextTruncate.AtEnd
     local IDLabel=Instance.new("TextLabel",Bottom)
     IDLabel.Position=UDim2.new(0,52,0,18)
     IDLabel.Size=UDim2.new(1,-60,0,10)
@@ -2821,15 +2807,12 @@ Tab.CreatePlayerList = function(self)
     AgeLabel.Font=Enum.Font.Gotham
     AgeLabel.TextSize=9
     AgeLabel.TextXAlignment=Enum.TextXAlignment.Left
-
-    local selected,selectedRow,ExternalGui,loopTPConn,loopBringConn=nil,nil,nil,nil,nil
-
+    local selected,selectedRow,ExternalGui,loopTPConn,loopBringConn=nil,nil,nil
     local function createToolsGui()
         if ExternalGui then ExternalGui:Destroy() end
         local sg=Instance.new("ScreenGui")
         sg.Name="DKToolsFinal"
         sg.ResetOnSpawn=false
-        sg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
         sg.Parent=CoreGui
         ExternalGui=sg
         local Popup=Instance.new("Frame",sg)
@@ -2840,15 +2823,6 @@ Tab.CreatePlayerList = function(self)
         Popup.Draggable=true
         Instance.new("UICorner",Popup).CornerRadius=UDim.new(0,8)
         Instance.new("UIStroke",Popup).Color=Color3.fromRGB(45,45,50)
-        local Title=Instance.new("TextLabel",Popup)
-        Title.Size=UDim2.new(1,-24,0,18)
-        Title.Position=UDim2.new(0,8,0,4)
-        Title.BackgroundTransparency=1
-        Title.Text="DK's HUB"
-        Title.TextColor3=Color3.fromRGB(220,220,225)
-        Title.Font=Enum.Font.GothamBold
-        Title.TextSize=11
-        Title.TextXAlignment=Enum.TextXAlignment.Left
         local Close=Instance.new("TextButton",Popup)
         Close.Size=UDim2.new(0,16,0,16)
         Close.Position=UDim2.new(1,-20,0,4)
@@ -2911,7 +2885,6 @@ Tab.CreatePlayerList = function(self)
         tp.MouseButton1Click:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame end end)
         Close.MouseButton1Click:Connect(function() if loopTPConn then loopTPConn:Disconnect() end if loopBringConn then loopBringConn:Disconnect() end if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end sg:Destroy() ExternalGui=nil end)
     end
-
     local function refresh()
         local st=Search.Text:lower():gsub("%s+","")
         for _,c in pairs(List:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
@@ -2931,7 +2904,6 @@ Tab.CreatePlayerList = function(self)
                 n.Font=Enum.Font.Gotham
                 n.TextSize=11
                 n.TextXAlignment=Enum.TextXAlignment.Left
-                n.TextTruncate=Enum.TextTruncate.AtEnd
                 local t=Instance.new("TextLabel",row)
                 t.Position=UDim2.new(0.38,0,0,0)
                 t.Size=UDim2.new(0.34,0,1,0)
