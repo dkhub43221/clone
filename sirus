@@ -3557,33 +3557,62 @@ end)
 	return ColorPickerSettings
 end
 
-		-- Section
-		function Tab:CreateSection(SectionName)
+		function Tab:CreateSection(SectionName, IconId)
 
-			local SectionValue = {}
+	local SectionValue = {}
 
-			if SDone then
-				local SectionSpace = Elements.Template.SectionSpacing:Clone()
-				SectionSpace.Visible = true
-				SectionSpace.Parent = TabPage
-			end
+	if SDone then
+		local SectionSpace = Elements.Template.SectionSpacing:Clone()
+		SectionSpace.Visible = true
+		SectionSpace.Parent = TabPage
+	end
 
-			local Section = Elements.Template.SectionTitle:Clone()
-			Section.Title.Text = SectionName
-			Section.Visible = true
-			Section.Parent = TabPage
+	local Section = Elements.Template.SectionTitle:Clone()
+	Section.Title.Text = SectionName
+	Section.Visible = true
+	Section.Parent = TabPage
 
-			Section.Title.TextTransparency = 1
-			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+	-- // ICON SETUP [Neon Green] \\
+	local Icon = Section:FindFirstChild("Icon")
+	if not Icon then
+		Icon = Instance.new("ImageLabel")
+		Icon.Name = "Icon"
+		Icon.BackgroundTransparency = 1
+		Icon.Size = UDim2.new(0, 18, 0, 18)
+		Icon.Position = UDim2.new(0, 0, 0.5, -9)
+		Icon.Parent = Section
+		-- push title over to make room for icon
+		Section.Title.Position = UDim2.new(0, 28, 0, 0)
+	end
 
-			function SectionValue:Set(NewSection)
-				Section.Title.Text = NewSection
-			end
+	Icon.Image = IconId or ""
+	Icon.ImageColor3 = Color3.fromRGB(57, 255, 20) -- Neon Green
+	Icon.ImageTransparency = 1
+	Icon.Visible = IconId ~= nil and IconId ~= ""
 
-			SDone = true
+	-- Animate in
+	Section.Title.TextTransparency = 1
+	TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+	TweenService:Create(Icon, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
 
-			return SectionValue
+	function SectionValue:Set(NewSection, NewIconId)
+		Section.Title.Text = NewSection
+		if NewIconId then
+			Icon.Image = NewIconId
+			Icon.Visible = true
 		end
+	end
+	
+	function SectionValue:SetIcon(NewIconId)
+		Icon.Image = NewIconId
+		Icon.Visible = true
+		Icon.ImageTransparency = 0
+	end
+
+	SDone = true
+
+	return SectionValue
+end
 
 		-- Divider
 		function Tab:CreateDivider()
