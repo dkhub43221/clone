@@ -3579,32 +3579,34 @@ end
 function Tab:CreateHomeTab()
     local Players = game:GetService("Players")
     local LP = Players.LocalPlayer
-    local RunService = game:GetService("RunService")
+    local CoreGui = game:GetService("CoreGui")
     local Stats = game:GetService("Stats")
+    
+    task.wait(0.3)
+    local Page
+    for _,v in pairs(CoreGui:GetDescendants()) do 
+        if v.Name=="Page" and v.Parent and v.Parent.Name=="Home" then 
+            Page=v 
+            break 
+        end 
+    end
+    if not Page then Page = self.Page end
 
-    local Main = Instance.new("Frame", self.Page)
-    Main.Size = UDim2.new(1,0,0,520)
+    local Main = Instance.new("Frame", Page)
+    Main.Name = "HomeCustom"
+    Main.Size = UDim2.new(1,-4,0,500)
     Main.BackgroundTransparency = 1
 
     local function createCard(parent, h)
         local f = Instance.new("Frame", parent)
-        f.Size = UDim2.new(1,-8,0,h)
+        f.Size = UDim2.new(1,0,0,h)
         f.BackgroundColor3 = Color3.fromRGB(28,28,31)
-        f.BorderSizePixel = 0
         Instance.new("UICorner", f).CornerRadius = UDim.new(0,10)
         return f
     end
 
-    -- 1. DISCORD CARD
     local Discord = createCard(Main, 72)
     Discord.Position = UDim2.new(0,0,0,0)
-    
-    local DiscIcon = Instance.new("ImageLabel", Discord)
-    DiscIcon.Size = UDim2.new(0,42,0,42)
-    DiscIcon.Position = UDim2.new(0,12,0,14)
-    DiscIcon.BackgroundTransparency = 1
-    DiscIcon.Image = "rbxassetid://13695260082" -- discord icon
-    
     local DTitle = Instance.new("TextLabel", Discord)
     DTitle.Text = "Not in our discord server yet?"
     DTitle.Position = UDim2.new(0,62,0,14)
@@ -3614,9 +3616,8 @@ function Tab:CreateHomeTab()
     DTitle.Font = Enum.Font.GothamBold
     DTitle.TextSize = 12
     DTitle.TextXAlignment = Enum.TextXAlignment.Left
-    
     local DSub = Instance.new("TextLabel", Discord)
-    DSub.Text = "Join to suggest\nfeatures, report bugs,"
+    DSub.Text = "Join to suggest features, report bugs,"
     DSub.Position = UDim2.new(0,62,0,28)
     DSub.Size = UDim2.new(1,-170,0,28)
     DSub.BackgroundTransparency = 1
@@ -3624,7 +3625,6 @@ function Tab:CreateHomeTab()
     DSub.Font = Enum.Font.Gotham
     DSub.TextSize = 10
     DSub.TextXAlignment = Enum.TextXAlignment.Left
-    
     local JoinBtn = Instance.new("TextButton", Discord)
     JoinBtn.Size = UDim2.new(0,94,0,30)
     JoinBtn.Position = UDim2.new(1,-106,0.5,-15)
@@ -3634,15 +3634,9 @@ function Tab:CreateHomeTab()
     JoinBtn.Font = Enum.Font.GothamBold
     JoinBtn.TextSize = 11
     Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0,8)
-    JoinBtn.MouseButton1Click:Connect(function()
-        setclipboard("https://discord.gg/yourinvite")
-        -- game:GetService("StarterGui"):SetCore("SendNotification",{Title="Copied", Text="Discord invite copied"})
-    end)
 
-    -- 2. EXECUTOR CARD
     local Exec = createCard(Main, 68)
     Exec.Position = UDim2.new(0,0,0,80)
-    
     local ETitle = Instance.new("TextLabel", Exec)
     ETitle.Text = "Executor: Delta"
     ETitle.Position = UDim2.new(0,12,0,12)
@@ -3652,169 +3646,64 @@ function Tab:CreateHomeTab()
     ETitle.Font = Enum.Font.GothamBold
     ETitle.TextSize = 12
     ETitle.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local Dot = Instance.new("Frame", Exec)
-    Dot.Size = UDim2.new(0,8,0,8)
-    Dot.Position = UDim2.new(0,12,0,36)
-    Dot.BackgroundColor3 = Color3.fromRGB(60,220,120)
-    Instance.new("UICorner", Dot).CornerRadius = UDim.new(1,0)
-    
     local ESub = Instance.new("TextLabel", Exec)
-    ESub.Text = "Fully supported executor."
-    ESub.Position = UDim2.new(0,26,0,32)
-    ESub.Size = UDim2.new(1,-38,0,14)
+    ESub.Text = "● Fully supported executor."
+    ESub.Position = UDim2.new(0,12,0,32)
+    ESub.Size = UDim2.new(1,-24,0,14)
     ESub.BackgroundTransparency = 1
     ESub.TextColor3 = Color3.fromRGB(90,200,120)
     ESub.Font = Enum.Font.Gotham
     ESub.TextSize = 11
     ESub.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- 3. PERFORMANCE TITLE
-    local PerfTitle = Instance.new("TextLabel", Main)
-    PerfTitle.Text = "PERFORMANCE"
-    PerfTitle.Position = UDim2.new(0,4,0,156)
-    PerfTitle.Size = UDim2.new(1,0,0,14)
-    PerfTitle.BackgroundTransparency = 1
-    PerfTitle.TextColor3 = Color3.fromRGB(150,150,155)
-    PerfTitle.Font = Enum.Font.GothamMedium
-    PerfTitle.TextSize = 10
-    PerfTitle.TextXAlignment = Enum.TextXAlignment.Left
-
     local PerfCard = createCard(Main, 62)
-    PerfCard.Position = UDim2.new(0,0,0,174)
-
-    local FPSFrame = Instance.new("Frame", PerfCard)
-    FPSFrame.Size = UDim2.new(0.5,-10,1,-12)
-    FPSFrame.Position = UDim2.new(0,6,0,6)
-    FPSFrame.BackgroundColor3 = Color3.fromRGB(22,22,24)
-    Instance.new("UICorner", FPSFrame).CornerRadius = UDim.new(0,8)
-    local FPSLine = Instance.new("Frame", FPSFrame)
-    FPSLine.Size = UDim2.new(0,2,1,-12)
-    FPSLine.Position = UDim2.new(0,0,0,6)
-    FPSLine.BackgroundColor3 = Color3.fromRGB(200,90,255)
-    FPSLine.BorderSizePixel = 0
-
-    local FPSText = Instance.new("TextLabel", FPSFrame)
-    FPSText.Text = "FPS: 59"
+    PerfCard.Position = UDim2.new(0,0,0,158)
+    local FPSText = Instance.new("TextLabel", PerfCard)
     FPSText.Position = UDim2.new(0,12,0,8)
-    FPSText.Size = UDim2.new(1,-12,0,14)
+    FPSText.Size = UDim2.new(0.5,0,0,14)
     FPSText.BackgroundTransparency = 1
+    FPSText.Text = "FPS: 60"
     FPSText.TextColor3 = Color3.fromRGB(235,235,235)
     FPSText.Font = Enum.Font.GothamBold
     FPSText.TextSize = 12
     FPSText.TextXAlignment = Enum.TextXAlignment.Left
-
-    local FPSSub = Instance.new("TextLabel", FPSFrame)
-    FPSSub.Text = "frames per second"
-    FPSSub.Position = UDim2.new(0,12,0,24)
-    FPSSub.Size = UDim2.new(1,-12,0,12)
-    FPSSub.BackgroundTransparency = 1
-    FPSSub.TextColor3 = Color3.fromRGB(130,130,135)
-    FPSSub.Font = Enum.Font.Gotham
-    FPSSub.TextSize = 10
-    FPSSub.TextXAlignment = Enum.TextXAlignment.Left
-
-    local PingFrame = Instance.new("Frame", PerfCard)
-    PingFrame.Size = UDim2.new(0.5,-10,1,-12)
-    PingFrame.Position = UDim2.new(0.5,4,0,6)
-    PingFrame.BackgroundColor3 = Color3.fromRGB(22,22,24)
-    Instance.new("UICorner", PingFrame).CornerRadius = UDim.new(0,8)
-    local PingLine = Instance.new("Frame", PingFrame)
-    PingLine.Size = UDim2.new(0,2,1,-12)
-    PingLine.Position = UDim2.new(0,0,0,6)
-    PingLine.BackgroundColor3 = Color3.fromRGB(80,120,255)
-    PingLine.BorderSizePixel = 0
-
-    local PingText = Instance.new("TextLabel", PingFrame)
-    PingText.Text = "Ping: -- ms"
-    PingText.Position = UDim2.new(0,12,0,8)
-    PingText.Size = UDim2.new(1,-12,0,14)
+    local PingText = Instance.new("TextLabel", PerfCard)
+    PingText.Position = UDim2.new(0.5,12,0,8)
+    PingText.Size = UDim2.new(0.5,0,0,14)
     PingText.BackgroundTransparency = 1
+    PingText.Text = "Ping: 100 ms"
     PingText.TextColor3 = Color3.fromRGB(235,235,235)
     PingText.Font = Enum.Font.GothamBold
     PingText.TextSize = 12
     PingText.TextXAlignment = Enum.TextXAlignment.Left
 
-    local PingSub = Instance.new("TextLabel", PingFrame)
-    PingSub.Text = "network latency"
-    PingSub.Position = UDim2.new(0,12,0,24)
-    PingSub.Size = UDim2.new(1,-12,0,12)
-    PingSub.BackgroundTransparency = 1
-    PingSub.TextColor3 = Color3.fromRGB(130,130,135)
-    PingSub.Font = Enum.Font.Gotham
-    PingSub.TextSize = 10
-    PingSub.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- FPS + PING LOOP
     task.spawn(function()
-        local last = tick()
         while Main.Parent do
-            local now = tick()
-            local fps = math.floor(1/(now-last))
-            last = now
-            FPSText.Text = "FPS: "..fps
-            local ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
-            PingText.Text = "Ping: "..math.floor(ping).." ms"
+            pcall(function()
+                FPSText.Text = "FPS: "..math.floor(1/game:GetService("RunService").RenderStepped:Wait())
+            end)
+            pcall(function()
+                PingText.Text = "Ping: "..math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()).." ms"
+            end)
             task.wait(0.5)
         end
     end)
 
-    -- 4. SESSION INFORMATION
-    local SessTitle = Instance.new("TextLabel", Main)
-    SessTitle.Text = "SESSION INFORMATION"
-    SessTitle.Position = UDim2.new(0,4,0,248)
-    SessTitle.Size = UDim2.new(1,0,0,14)
-    SessTitle.BackgroundTransparency = 1
-    SessTitle.TextColor3 = Color3.fromRGB(150,150,155)
-    SessTitle.Font = Enum.Font.GothamMedium
-    SessTitle.TextSize = 10
-    SessTitle.TextXAlignment = Enum.TextXAlignment.Left
-
     local PlayersCard = createCard(Main, 56)
-    PlayersCard.Position = UDim2.new(0,0,0,268)
+    PlayersCard.Position = UDim2.new(0,0,0,228)
     local PTitle = Instance.new("TextLabel", PlayersCard)
-    PTitle.Text = "Players"
+    PTitle.Text = "Players - "..#Players:GetPlayers().." players currently online"
     PTitle.Position = UDim2.new(0,12,0,10)
-    PTitle.Size = UDim2.new(1,-24,0,14)
+    PTitle.Size = UDim2.new(1,-24,0,30)
     PTitle.BackgroundTransparency = 1
     PTitle.TextColor3 = Color3.fromRGB(235,235,235)
     PTitle.Font = Enum.Font.GothamBold
     PTitle.TextSize = 12
     PTitle.TextXAlignment = Enum.TextXAlignment.Left
-    local PSub = Instance.new("TextLabel", PlayersCard)
-    PSub.Text = #Players:GetPlayers().." players currently online"
-    PSub.Position = UDim2.new(0,12,0,26)
-    PSub.Size = UDim2.new(1,-24,0,14)
-    PSub.BackgroundTransparency = 1
-    PSub.TextColor3 = Color3.fromRGB(130,130,135)
-    PSub.Font = Enum.Font.Gotham
-    PSub.TextSize = 11
-    PSub.TextXAlignment = Enum.TextXAlignment.Left
+    PTitle.TextWrapped = true
 
-    local MaxCard = createCard(Main, 56)
-    MaxCard.Position = UDim2.new(0,0,0,332)
-    local MTitle = Instance.new("TextLabel", MaxCard)
-    MTitle.Text = "Max players"
-    MTitle.Position = UDim2.new(0,12,0,10)
-    MTitle.Size = UDim2.new(1,-24,0,14)
-    MTitle.BackgroundTransparency = 1
-    MTitle.TextColor3 = Color3.fromRGB(235,235,235)
-    MTitle.Font = Enum.Font.GothamBold
-    MTitle.TextSize = 12
-    MTitle.TextXAlignment = Enum.TextXAlignment.Left
-    local MSub = Instance.new("TextLabel", MaxCard)
-    MSub.Text = "Maximum of "..Players.MaxPlayers.." people can join this experience."
-    MSub.Position = UDim2.new(0,12,0,26)
-    MSub.Size = UDim2.new(1,-24,0,14)
-    MSub.BackgroundTransparency = 1
-    MSub.TextColor3 = Color3.fromRGB(130,130,135)
-    MSub.Font = Enum.Font.Gotham
-    MSub.TextSize = 11
-    MSub.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- 5. USER CARD (like in your 2nd/3rd pic)
     local UserCard = createCard(Main, 66)
-    UserCard.Position = UDim2.new(0,0,0,396)
+    UserCard.Position = UDim2.new(0,0,0,292)
     local UAvatar = Instance.new("ImageLabel", UserCard)
     UAvatar.Size = UDim2.new(0,40,0,40)
     UAvatar.Position = UDim2.new(0,12,0,12)
@@ -3822,33 +3711,17 @@ function Tab:CreateHomeTab()
     UAvatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..LP.UserId.."&width=150&height=150&format=png"
     Instance.new("UICorner", UAvatar).CornerRadius = UDim.new(0,8)
     local UName = Instance.new("TextLabel", UserCard)
-    UName.Text = LP.DisplayName
+    UName.Text = LP.DisplayName.." (@"..LP.Name..") Age: "..LP.AccountAge.." days"
     UName.Position = UDim2.new(0,62,0,10)
-    UName.Size = UDim2.new(1,-74,0,14)
+    UName.Size = UDim2.new(1,-74,0,40)
     UName.BackgroundTransparency = 1
     UName.TextColor3 = Color3.fromRGB(235,235,235)
-    UName.Font = Enum.Font.GothamBold
-    UName.TextSize = 12
+    UName.Font = Enum.Font.Gotham
+    UName.TextSize = 11
     UName.TextXAlignment = Enum.TextXAlignment.Left
-    local UUser = Instance.new("TextLabel", UserCard)
-    UUser.Text = "@"..LP.Name
-    UUser.Position = UDim2.new(0,62,0,24)
-    UUser.Size = UDim2.new(1,-74,0,12)
-    UUser.BackgroundTransparency = 1
-    UUser.TextColor3 = Color3.fromRGB(130,130,135)
-    UUser.Font = Enum.Font.Gotham
-    UUser.TextSize = 11
-    UUser.TextXAlignment = Enum.TextXAlignment.Left
-    local UAge = Instance.new("TextLabel", UserCard)
-    UAge.Text = "Age: "..LP.AccountAge.." days | Joined: "..os.date("%b %d, %Y", os.time() - LP.AccountAge*86400)
-    UAge.Position = UDim2.new(0,62,0,38)
-    UAge.Size = UDim2.new(1,-74,0,12)
-    UAge.BackgroundTransparency = 1
-    UAge.TextColor3 = Color3.fromRGB(120,120,125)
-    UAge.Font = Enum.Font.Gotham
-    UAge.TextSize = 10
-    UAge.TextXAlignment = Enum.TextXAlignment.Left
+    UName.TextWrapped = true
 
+    Page.CanvasSize = UDim2.new(0,0,380)
     return Main
 end
 
