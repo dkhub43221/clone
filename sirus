@@ -4364,13 +4364,25 @@ end
     SliderSettings.CurrentValue = SliderSettings.CurrentValue or 50
     SliderSettings.Callback = SliderSettings.Callback or function() end
 
+    -- MAIN BOX - same as your toggle
+    local MainBox = Instance.new("Frame")
+    MainBox.Name = SliderSettings.Name.."_Container"
+    MainBox.Size = UDim2.new(1, 0, 0, 52)
+    MainBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainBox.BorderSizePixel = 0
+    MainBox.Parent = TabPage
+    MainBox.ClipsDescendants = true
+    Instance.new("UICorner", MainBox).CornerRadius = UDim.new(0, 6)
+    local stroke = Instance.new("UIStroke", MainBox)
+    stroke.Color = Color3.fromRGB(77, 251, 16) -- green outline same as toggle
+    stroke.Thickness = 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
     local Slider = Instance.new("Frame")
-    Slider.Name = SliderSettings.Name
-    Slider.Size = UDim2.new(1, 0, 0, 45) -- less height since no box
-    Slider.BackgroundTransparency = 1 -- FIX: NO GREY BOX
-    Slider.BorderSizePixel = 0
-    Slider.Parent = TabPage
-    Slider.ClipsDescendants = false
+    Slider.Name = "SliderInner"
+    Slider.Size = UDim2.new(1, 0, 1, 0)
+    Slider.BackgroundTransparency = 1
+    Slider.Parent = MainBox
 
     local Title = Instance.new("TextLabel", Slider)
     Title.Text = SliderSettings.Name
@@ -4379,7 +4391,7 @@ end
     Title.TextColor3 = Color3.fromRGB(220,220,220)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 0, 0, 0)
+    Title.Position = UDim2.new(0, 10, 0, 5)
     Title.Size = UDim2.new(0.5, 0, 0, 18)
 
     local ValueBox = Instance.new("TextBox", Slider)
@@ -4388,15 +4400,16 @@ end
     ValueBox.TextColor3 = Color3.fromRGB(200,200,200)
     ValueBox.TextXAlignment = Enum.TextXAlignment.Right
     ValueBox.BackgroundTransparency = 1
-    ValueBox.Position = UDim2.new(0.5, 0, 0, 0)
-    ValueBox.Size = UDim2.new(0.5, 0, 0, 18)
+    ValueBox.Position = UDim2.new(0.5, 0, 0, 5)
+    ValueBox.Size = UDim2.new(0.5, -10, 0, 18)
     ValueBox.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
     ValueBox.ClearTextOnFocus = true
 
+    -- SMALLER NICE LINE
     local Track = Instance.new("Frame", Slider)
     Track.Name = "Track"
-    Track.Size = UDim2.new(1, 0, 0, 6)
-    Track.Position = UDim2.new(0, 0, 0, 28) -- more padding, not jammed
+    Track.Size = UDim2.new(1, -20, 0, 4) -- smaller 4px
+    Track.Position = UDim2.new(0, 10, 0, 32)
     Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Track.BorderSizePixel = 0
     Track.ClipsDescendants = false
@@ -4405,14 +4418,14 @@ end
     local Progress = Instance.new("Frame", Track)
     Progress.Name = "Progress"
     Progress.Size = UDim2.new(0, 0, 1, 0)
-    Progress.BackgroundColor3 = Color3.fromRGB(77, 251, 16) -- DK GREEN
+    Progress.BackgroundColor3 = Color3.fromRGB(77, 251, 16)
     Progress.BorderSizePixel = 0
     Progress.ZIndex = 1
     Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
 
     local Dot = Instance.new("Frame", Track)
     Dot.Name = "Dot"
-    Dot.Size = UDim2.new(0, 14, 0, 14)
+    Dot.Size = UDim2.new(0, 10, 0, 10) -- smaller dot
     Dot.AnchorPoint = Vector2.new(0.5, 0.5)
     Dot.Position = UDim2.new(0, 0, 0.5, 0)
     Dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -4421,25 +4434,25 @@ end
     Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
 
     local Interact = Instance.new("TextButton", Track)
-    Interact.Size = UDim2.new(1, 0, 1, 20)
-    Interact.Position = UDim2.new(0,0,0,-7)
+    Interact.Size = UDim2.new(1, 0, 1, 12)
+    Interact.Position = UDim2.new(0,0,0,-4)
     Interact.BackgroundTransparency = 1
     Interact.Text = ""
     Interact.ZIndex = 3
 
     local function GetValue(x)
-        local absPos = Track.AbsolutePosition.X
-        local absSize = Track.AbsoluteSize.X
-        if absSize == 0 then return SliderSettings.CurrentValue end
-        local pos = math.clamp(x - absPos, 0, absSize)
-        local p = pos / absSize
+        if not Track or not Track.Parent then return SliderSettings.CurrentValue end
+        if Track.AbsoluteSize.X <= 5 then return SliderSettings.CurrentValue end -- FIX CLOSE BUG
+        local pos = math.clamp(x - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
+        local p = pos / Track.AbsoluteSize.X
         local val = SliderSettings.Range[1] + p * (SliderSettings.Range[2] - SliderSettings.Range[1])
         val = math.floor(val / SliderSettings.Increment + 0.5) * SliderSettings.Increment
         return math.clamp(val, SliderSettings.Range[1], SliderSettings.Range[2])
     end
 
     local function UpdateVisual(val)
-        local p = (val - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])
+        if not Track or not Track.Parent or Track.AbsoluteSize.X <= 0 then return end
+        local p = math.clamp((val - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1]), 0, 1)
         Progress.Size = UDim2.new(p, 0, 1, 0)
         Dot.Position = UDim2.new(p, 0, 0.5, 0)
         if not ValueBox:IsFocused() then
@@ -4457,22 +4470,34 @@ end
 
     Update(SliderSettings.CurrentValue, false)
 
-    Interact.InputBegan:Connect(function(Input)
+    -- Connections with cleanup
+    local conns = {}
+    conns[#conns+1] = Interact.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             SLDragging = true
             Update(GetValue(Input.Position.X), true)
         end
     end)
 
-    UserInputService.InputChanged:Connect(function(Input)
+    conns[#conns+1] = UserInputService.InputChanged:Connect(function(Input)
         if SLDragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
             Update(GetValue(Input.Position.X), true)
         end
     end)
 
-    UserInputService.InputEnded:Connect(function(Input)
+    conns[#conns+1] = UserInputService.InputEnded:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             SLDragging = false
+        end
+    end)
+
+    -- FIX: Disconnect when UI closes / destroyed
+    MainBox.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            SLDragging = false
+            for _, c in ipairs(conns) do
+                if c.Connected then c:Disconnect() end
+            end
         end
     end)
 
