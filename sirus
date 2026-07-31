@@ -4364,93 +4364,82 @@ end
     SliderSettings.CurrentValue = SliderSettings.CurrentValue or 50
     SliderSettings.Callback = SliderSettings.Callback or function() end
 
-    -- Build fresh frame, don't use broken template
-    local Slider = Instance.new("Frame")
+    local Slider = Elements.Template.Slider:Clone()
     Slider.Name = SliderSettings.Name
-    Slider.Size = UDim2.new(1, 0, 0, 50)
-    Slider.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    Slider.BackgroundTransparency = 0
-    Slider.BorderSizePixel = 0
+    Slider.Title.Text = SliderSettings.Name
+    Slider.Visible = true
     Slider.Parent = TabPage
-    Slider.ClipsDescendants = true
-    Instance.new("UICorner", Slider).CornerRadius = UDim.new(0, 6)
-    local stroke = Instance.new("UIStroke", Slider)
-    stroke.Color = Color3.fromRGB(50,50,50)
-    stroke.Thickness = 1
+    Slider.BackgroundColor3 = SelectedTheme.ElementBackground
+    Slider.UIStroke.Color = SelectedTheme.ElementStroke
 
-    local Title = Instance.new("TextLabel", Slider)
-    Title.Text = SliderSettings.Name
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 13
-    Title.TextColor3 = Color3.fromRGB(220,220,220)
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 10, 0, 5)
-    Title.Size = UDim2.new(0.6, 0, 0, 18)
+    if SelectedTheme ~= RayfieldLibrary.Theme.Default then
+        Slider.Main.Shadow.Visible = false
+    end
 
-    local ValueLabel = Instance.new("TextLabel", Slider)
-    ValueLabel.Font = Enum.Font.GothamBold
-    ValueLabel.TextSize = 13
-    ValueLabel.TextColor3 = Color3.fromRGB(200,200,200)
-    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    ValueLabel.BackgroundTransparency = 1
-    ValueLabel.Position = UDim2.new(0, 0, 0, 5)
-    ValueLabel.Size = UDim2.new(1, -10, 0, 18)
-    ValueLabel.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
+    -- RAYFIELD LOOK BUT THIN + GREEN
+    Slider.Main.Size = UDim2.new(1, -10, 0, 6)
+    Slider.Main.Position = UDim2.new(0, 5, 0, 32)
+    Slider.Main.BackgroundColor3 = SelectedTheme.SliderBackground
+    Slider.Main.UIStroke.Color = SelectedTheme.SliderStroke
+    Slider.Main.ClipsDescendants = true
+    Instance.new("UICorner", Slider.Main).CornerRadius = UDim.new(1, 0)
+    Instance.new("UICorner", Slider.Main.Progress).CornerRadius = UDim.new(1, 0)
 
-    local Track = Instance.new("Frame", Slider)
-    Track.Name = "Track"
-    Track.Size = UDim2.new(1, -20, 0, 6)
-    Track.Position = UDim2.new(0, 10, 0, 30)
-    Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
-    Track.BorderSizePixel = 0
-    Track.ClipsDescendants = true
-    Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
+    Slider.Main.Progress.BackgroundColor3 = Color3.fromRGB(0, 255, 94) -- GREEN
+    Slider.Main.Progress.UIStroke.Color = Color3.fromRGB(0, 255, 94)
+    Slider.Main.Progress.UIStroke.Transparency = 0.5
 
-    local Progress = Instance.new("Frame", Track)
-    Progress.Name = "Progress"
-    Progress.Size = UDim2.new(0, 0, 1, 0)
-    Progress.BackgroundColor3 = Color3.fromRGB(225, 0, 0) -- valry red, change to white if you want old style
-    Progress.BorderSizePixel = 0
-    Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
+    -- Make value clickable TextBox
+    local OldInfo = Slider.Main.Information
+    local ValueBox = Instance.new("TextBox", Slider.Main)
+    ValueBox.Name = "InformationBox"
+    ValueBox.Size = OldInfo.Size
+    ValueBox.Position = OldInfo.Position
+    ValueBox.BackgroundTransparency = 1
+    ValueBox.Text = OldInfo.Text
+    ValueBox.Font = OldInfo.Font
+    ValueBox.TextSize = OldInfo.TextSize
+    ValueBox.TextColor3 = Color3.fromRGB(0, 255, 94)
+    ValueBox.TextXAlignment = Enum.TextXAlignment.Right
+    ValueBox.ClearTextOnFocus = true
+    OldInfo:Destroy()
 
-    local Interact = Instance.new("TextButton", Track)
-    Interact.Size = UDim2.new(1, 0, 1, 0)
-    Interact.BackgroundTransparency = 1
-    Interact.Text = ""
-
-    local function GetValue(x)
-        local pos = math.clamp(x - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
-        local p = pos / Track.AbsoluteSize.X
+    local function GetValueFromX(x)
+        local pos = math.clamp(x - Slider.Main.AbsolutePosition.X, 0, Slider.Main.AbsoluteSize.X)
+        local p = pos / Slider.Main.AbsoluteSize.X
         local val = SliderSettings.Range[1] + p * (SliderSettings.Range[2] - SliderSettings.Range[1])
         val = math.floor(val / SliderSettings.Increment + 0.5) * SliderSettings.Increment
         return math.clamp(val, SliderSettings.Range[1], SliderSettings.Range[2])
     end
 
-    local function Update(val, fromInput)
+    local function UpdateVisual(val)
         local p = (val - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])
-        Progress.Size = UDim2.new(p, 0, 1, 0)
-        ValueLabel.Text = tostring(val)..SliderSettings.Suffix
-        if fromInput then
-            pcall(SliderSettings.Callback, val)
-            SliderSettings.CurrentValue = val
+        TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(p, 0, 1, 0)}):Play()
+        if not ValueBox:IsFocused() then
+            ValueBox.Text = tostring(val).. " ".. SliderSettings.Suffix
         end
     end
 
-    Update(SliderSettings.CurrentValue, false)
+    UpdateVisual(SliderSettings.CurrentValue)
 
-    Interact.InputBegan:Connect(function(Input)
+    -- Drag (PC + Mobile)
+    Slider.Main.Interact.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             SLDragging = true
-            local v = GetValue(Input.Position.X)
-            Update(v, true)
+            local v = GetValueFromX(Input.Position.X)
+            UpdateVisual(v)
+            pcall(SliderSettings.Callback, v)
+            SliderSettings.CurrentValue = v
         end
     end)
 
-    Interact.InputChanged:Connect(function(Input)
+    Slider.Main.Interact.InputChanged:Connect(function(Input)
         if SLDragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-            local v = GetValue(Input.Position.X)
-            Update(v, true)
+            local v = GetValueFromX(Input.Position.X)
+            UpdateVisual(v)
+            pcall(SliderSettings.Callback, v)
+            SliderSettings.CurrentValue = v
+            if SaveConfiguration then SaveConfiguration() end
         end
     end)
 
@@ -4460,9 +4449,35 @@ end
         end
     end)
 
-    function SliderSettings:Set(v)
-        v = math.clamp(v, SliderSettings.Range[1], SliderSettings.Range[2])
-        Update(v, true)
+    -- Type value
+    ValueBox.FocusLost:Connect(function(enter)
+        if enter then
+            local num = tonumber(ValueBox.Text:gsub("%%",""):gsub("[^%d.-]",""))
+            if num then
+                num = math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2])
+                num = math.floor(num / SliderSettings.Increment + 0.5) * SliderSettings.Increment
+                UpdateVisual(num)
+                SliderSettings.CurrentValue = num
+                pcall(SliderSettings.Callback, num)
+                if SaveConfiguration then SaveConfiguration() end
+            else
+                UpdateVisual(SliderSettings.CurrentValue)
+            end
+        else
+            UpdateVisual(SliderSettings.CurrentValue)
+        end
+    end)
+
+    function SliderSettings:Set(NewVal)
+        NewVal = math.clamp(NewVal, SliderSettings.Range[1], SliderSettings.Range[2])
+        UpdateVisual(NewVal)
+        SliderSettings.CurrentValue = NewVal
+        pcall(SliderSettings.Callback, NewVal)
+        if SaveConfiguration then SaveConfiguration() end
+    end
+
+    if Settings.ConfigurationSaving and Settings.ConfigurationSaving.Enabled and SliderSettings.Flag then
+        RayfieldLibrary.Flags[SliderSettings.Flag] = SliderSettings
     end
 
     return SliderSettings
