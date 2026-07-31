@@ -2720,377 +2720,271 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-       function Tab:CreatePlayerList(Settings)
-    Settings = Settings or {}
-    local PlayerList = {}
+       function Tab:CreatePlayerList()
     local Players = game:GetService("Players")
     local TweenService = game:GetService("TweenService")
     local CoreGui = game:GetService("CoreGui")
-    local UserInputService = game:GetService("UserInputService")
+    local RunService = game:GetService("RunService")
+    local LP = Players.LocalPlayer
 
-    local Main = Instance.new("Frame")
-    Main.Name = "PlayersMain"
-    Main.Size = UDim2.new(1, -2, 0, 360)
-    Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    Main.BorderSizePixel = 0
-    Main.Parent = TabPage
-    Main.ClipsDescendants = false
-    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 6)
-    Instance.new("UIStroke", Main).Color = Color3.fromRGB(45,45,45)
+    local Main = Instance.new("Frame", self.Page)
+    Main.Size = UDim2.new(1,-4,0,335)
+    Main.BackgroundColor3=Color3.fromRGB(22,22,24)
+    Main.ClipsDescendants=false
+    Instance.new("UICorner", Main).CornerRadius=UDim.new(0,8)
+    Instance.new("UIStroke", Main).Color=Color3.fromRGB(38,38,42)
 
     local SearchHolder = Instance.new("Frame", Main)
-    SearchHolder.Size = UDim2.new(1, -16, 0, 28)
-    SearchHolder.Position = UDim2.new(0, 8, 0, 8)
-    SearchHolder.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    Instance.new("UICorner", SearchHolder).CornerRadius = UDim.new(0, 6)
-    local SearchIcon = Instance.new("ImageLabel", SearchHolder)
-    SearchIcon.Size = UDim2.new(0, 16, 0, 16)
-    SearchIcon.Position = UDim2.new(0, 10, 0.5, -8)
-    SearchIcon.BackgroundTransparency = 1
-    SearchIcon.Image = "rbxassetid://6031090997"
-    SearchIcon.ImageColor3 = Color3.fromRGB(120,120,120)
-    local Search = Instance.new("TextBox", SearchHolder)
-    Search.Size = UDim2.new(1, -32, 1, 0)
-    Search.Position = UDim2.new(0, 32, 0, 0)
-    Search.BackgroundTransparency = 1
-    Search.Text = ""
-    Search.TextColor3 = Color3.fromRGB(200,200,200)
-    Search.Font = Enum.Font.Gotham
-    Search.TextSize = 13
-    Search.TextXAlignment = Enum.TextXAlignment.Left
+    SearchHolder.Size=UDim2.new(1,-16,0,30)
+    SearchHolder.Position=UDim2.new(0,8,0,8)
+    SearchHolder.BackgroundColor3=Color3.fromRGB(28,28,31)
+    Instance.new("UICorner", SearchHolder).CornerRadius=UDim.new(0,7)
 
-    local Headers = Instance.new("Frame", Main)
-    Headers.Size = UDim2.new(1, -16, 0, 16)
-    Headers.Position = UDim2.new(0, 12, 0, 44)
-    Headers.BackgroundTransparency = 1
+    local SearchIcon = Instance.new("ImageLabel", SearchHolder)
+    SearchIcon.Size=UDim2.new(0,14,0,14)
+    SearchIcon.Position=UDim2.new(0,10,0.5,-7)
+    SearchIcon.BackgroundTransparency=1
+    SearchIcon.Image="rbxassetid://6031154871"
+    SearchIcon.ImageColor3=Color3.fromRGB(120,120,120)
+
+    local Search = Instance.new("TextBox", SearchHolder)
+    Search.Size=UDim2.new(1,-32,1,0)
+    Search.Position=UDim2.new(0,32,0,0)
+    Search.BackgroundTransparency=1
+    Search.Text=""
+    Search.PlaceholderText="Search..."
+    Search.TextColor3=Color3.fromRGB(230,230,230)
+    Search.PlaceholderColor3=Color3.fromRGB(90,90,95)
+    Search.Font=Enum.Font.Gotham
+    Search.TextSize=12
+    Search.TextXAlignment=Enum.TextXAlignment.Left
+    Search.ClearTextOnFocus=false
+
+    local Header=Instance.new("Frame",Main)
+    Header.Size=UDim2.new(1,-16,0,14)
+    Header.Position=UDim2.new(0,12,0,44)
+    Header.BackgroundTransparency=1
     for i,txt in ipairs({"Username","Team","Health"}) do
-        local l=Instance.new("TextLabel", Headers)
+        local l=Instance.new("TextLabel",Header)
         l.Text=txt
-        l.Position=UDim2.new(i==1 and 0 or i==2 and 0.4 or 0.7,0,0,0)
+        l.Position=UDim2.new(i==1 and 0 or i==2 and 0.38 or 0.72,0,0,0)
         l.Size=UDim2.new(0.3,0,1,0)
         l.BackgroundTransparency=1
-        l.TextColor3=Color3.fromRGB(140,140,140)
-        l.Font=Enum.Font.Gotham
-        l.TextSize=12
+        l.TextColor3=Color3.fromRGB(110,110,115)
+        l.Font=Enum.Font.GothamMedium
+        l.TextSize=10
         l.TextXAlignment=Enum.TextXAlignment.Left
     end
 
-    local List = Instance.new("ScrollingFrame", Main)
-    List.Size = UDim2.new(1, -16, 0, 170)
-    List.Position = UDim2.new(0, 8, 0, 64)
-    List.BackgroundTransparency = 1
-    List.CanvasSize = UDim2.new(0,0,0,0)
-    List.ScrollBarThickness = 2
-    Instance.new("UIListLayout", List).Padding = UDim.new(0, 2)
+    local List=Instance.new("ScrollingFrame",Main)
+    List.Size=UDim2.new(1,-16,0,165)
+    List.Position=UDim2.new(0,8,0,60)
+    List.BackgroundTransparency=1
+    List.CanvasSize=UDim2.new(0,0,0,0)
+    List.ScrollBarThickness=0
+    Instance.new("UIListLayout",List).Padding=UDim.new(0,2)
 
-    local Bottom = Instance.new("Frame", Main)
-    Bottom.Size = UDim2.new(1, -16, 0, 86)
-    Bottom.Position = UDim2.new(0, 8, 0, 242)
-    Bottom.BackgroundColor3 = Color3.fromRGB(32,32,32)
-    Instance.new("UICorner", Bottom).CornerRadius = UDim.new(0, 6)
-    local Avatar = Instance.new("ImageLabel", Bottom)
-    Avatar.Size = UDim2.new(0, 42, 0, 42)
-    Avatar.Position = UDim2.new(0, 10, 0, 10)
-    Avatar.BackgroundColor3 = Color3.fromRGB(20,20,20)
-    Instance.new("UICorner", Avatar).CornerRadius = UDim.new(0, 6)
-    local NameLabel = Instance.new("TextLabel", Bottom)
-    NameLabel.Position = UDim2.new(0, 62, 0, 8)
-    NameLabel.Size = UDim2.new(0.5,0,0,16)
+    local Bottom=Instance.new("Frame",Main)
+    Bottom.Size=UDim2.new(1,-16,0,60)
+    Bottom.Position=UDim2.new(0,8,0,233)
+    Bottom.BackgroundColor3=Color3.fromRGB(28,28,31)
+    Instance.new("UICorner",Bottom).CornerRadius=UDim.new(0,7)
+    local Avatar=Instance.new("ImageLabel",Bottom)
+    Avatar.Size=UDim2.new(0,36,0,36)
+    Avatar.Position=UDim2.new(0,8,0,8)
+    Avatar.BackgroundColor3=Color3.fromRGB(20,20,20)
+    Instance.new("UICorner",Avatar).CornerRadius=UDim.new(0,6)
+    local NameLabel=Instance.new("TextLabel",Bottom)
+    NameLabel.Position=UDim2.new(0,52,0,4)
+    NameLabel.Size=UDim2.new(1,-60,0,12)
     NameLabel.BackgroundTransparency=1
     NameLabel.Text="Select a player"
-    NameLabel.TextColor3=Color3.fromRGB(220,220,220)
+    NameLabel.TextColor3=Color3.fromRGB(230,230,230)
     NameLabel.Font=Enum.Font.GothamBold
-    NameLabel.TextSize=12
+    NameLabel.TextSize=11
     NameLabel.TextXAlignment=Enum.TextXAlignment.Left
-    NameLabel.TextTruncate = Enum.TextTruncate.AtEnd
-    local IDLabel=Instance.new("TextLabel", Bottom)
-    IDLabel.Position=UDim2.new(0,62,0,26)
-    IDLabel.Size=UDim2.new(0.5,0,0,14)
+    NameLabel.TextTruncate=Enum.TextTruncate.AtEnd
+    local IDLabel=Instance.new("TextLabel",Bottom)
+    IDLabel.Position=UDim2.new(0,52,0,18)
+    IDLabel.Size=UDim2.new(1,-60,0,10)
     IDLabel.BackgroundTransparency=1
-    IDLabel.Text="User ID: -"
-    IDLabel.TextColor3=Color3.fromRGB(160,160,160)
+    IDLabel.Text="ID: -"
+    IDLabel.TextColor3=Color3.fromRGB(115,115,120)
     IDLabel.Font=Enum.Font.Gotham
-    IDLabel.TextSize=11
+    IDLabel.TextSize=9
     IDLabel.TextXAlignment=Enum.TextXAlignment.Left
-    local DistLabel=Instance.new("TextLabel", Bottom)
-    DistLabel.Position=UDim2.new(0,62,0,42)
-    DistLabel.Size=UDim2.new(0.5,0,0,14)
-    DistLabel.BackgroundTransparency=1
-    DistLabel.Text="Distance: -"
-    DistLabel.TextColor3=Color3.fromRGB(160,160,160)
-    DistLabel.Font=Enum.Font.Gotham
-    DistLabel.TextSize=11
-    DistLabel.TextXAlignment=Enum.TextXAlignment.Left
+    local AgeLabel=Instance.new("TextLabel",Bottom)
+    AgeLabel.Position=UDim2.new(0,52,0,30)
+    AgeLabel.Size=UDim2.new(1,-60,0,10)
+    AgeLabel.BackgroundTransparency=1
+    AgeLabel.Text="Account Age: -"
+    AgeLabel.TextColor3=Color3.fromRGB(115,115,120)
+    AgeLabel.Font=Enum.Font.Gotham
+    AgeLabel.TextSize=9
+    AgeLabel.TextXAlignment=Enum.TextXAlignment.Left
 
-    local ToolsLabel=Instance.new("TextLabel", Bottom)
-    ToolsLabel.Position=UDim2.new(1,-125,0,36)
-    ToolsLabel.Size=UDim2.new(0,75,0,14)
-    ToolsLabel.BackgroundTransparency=1
-    ToolsLabel.Text="Player Tools"
-    ToolsLabel.TextColor3=Color3.fromRGB(180,180,180)
-    ToolsLabel.Font=Enum.Font.Gotham
-    ToolsLabel.TextSize=11
-    ToolsLabel.TextXAlignment=Enum.TextXAlignment.Right
-    local ToggleBack=Instance.new("Frame", Bottom)
-    ToggleBack.Size=UDim2.new(0,32,0,18)
-    ToggleBack.Position=UDim2.new(1,-38,0,34)
-    ToggleBack.BackgroundColor3=Color3.fromRGB(60,60,60)
-    Instance.new("UICorner", ToggleBack).CornerRadius=UDim.new(1,0)
-    local ToggleDot=Instance.new("Frame", ToggleBack)
-    ToggleDot.Size=UDim2.new(0,14,0,14)
-    ToggleDot.Position=UDim2.new(0,2,0,2)
-    ToggleDot.BackgroundColor3=Color3.fromRGB(255,255,255)
-    Instance.new("UICorner", ToggleDot).CornerRadius=UDim.new(1,0)
-    local ToggleBtn=Instance.new("TextButton", Bottom)
-    ToggleBtn.Size=UDim2.new(0,130,0,40)
-    ToggleBtn.Position=UDim2.new(1,-130,0,24)
-    ToggleBtn.BackgroundTransparency=1
-    ToggleBtn.Text=""
-    ToggleBtn.ZIndex=5
+    local selected,selectedRow,ExternalGui,loopTPConn,loopBringConn=nil,nil,nil
 
-    -- EXTERNAL GUI - OUTSIDE RAYFIELD LIKE REAL IY
-    local ExternalGui = nil
-    local function createExternalGui()
+    local function createToolsGui()
         if ExternalGui then ExternalGui:Destroy() end
-        
-        local screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "IYPlayerTools"
-        screenGui.ResetOnSpawn = false
-        screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        screenGui.Parent = CoreGui
-        ExternalGui = screenGui
-
-        local Popup = Instance.new("Frame")
-        Popup.Name = "PlayerToolsPopup"
-        Popup.Size = UDim2.new(0, 240, 0, 340)
-        Popup.Position = UDim2.new(0.5, 200, 0.5, -170)
-        Popup.BackgroundColor3 = Color3.fromRGB(22,22,22)
-        Popup.BorderSizePixel = 0
-        Popup.Parent = screenGui
-        Popup.Active = true
-        Popup.Draggable = true
-        Instance.new("UICorner", Popup).CornerRadius = UDim.new(0, 8)
-        local pStroke = Instance.new("UIStroke", Popup)
-        pStroke.Color = Color3.fromRGB(55,55,55)
-        pStroke.Thickness = 1
-        local pAccent = Instance.new("Frame", Popup)
-        pAccent.Size = UDim2.new(0, 3, 1, 0)
-        pAccent.Position = UDim2.new(1, -3, 0, 0)
-        pAccent.BackgroundColor3 = Color3.fromRGB(200, 0, 255)
-        pAccent.BorderSizePixel = 0
-        Instance.new("UICorner", pAccent).CornerRadius = UDim.new(0, 2)
-
-        local CloseBtn = Instance.new("TextButton", Popup)
-        CloseBtn.Size = UDim2.new(0, 24, 0, 24)
-        CloseBtn.Position = UDim2.new(1, -28, 0, 4)
-        CloseBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-        CloseBtn.Text = "X"
-        CloseBtn.TextColor3 = Color3.fromRGB(200,200,200)
-        CloseBtn.Font = Enum.Font.GothamBold
-        CloseBtn.TextSize = 12
-        Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 4)
-
-        CloseBtn.MouseButton1Click:Connect(function()
-            screenGui:Destroy()
-            ExternalGui = nil
-            TweenService:Create(ToggleBack,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(60,60,60)}):Play()
-            TweenService:Create(ToggleDot,TweenInfo.new(0.15),{Position=UDim2.new(0,2,0,2)}):Play()
-        end)
-
-        local Scroll = Instance.new("ScrollingFrame", Popup)
-        Scroll.Size = UDim2.new(1, -8, 1, -32)
-        Scroll.Position = UDim2.new(0, 4, 0, 28)
-        Scroll.BackgroundTransparency = 1
-        Scroll.CanvasSize = UDim2.new(0,0,0,450)
-        Scroll.ScrollBarThickness = 2
-        local sLayout = Instance.new("UIListLayout", Scroll)
-        sLayout.Padding = UDim.new(0, 4)
-
-        local function createSection(name)
-            local sec = Instance.new("TextLabel", Scroll)
-            sec.Text = name
-            sec.Size = UDim2.new(1, 0, 0, 20)
-            sec.BackgroundColor3 = Color3.fromRGB(35,35,35)
-            sec.TextColor3 = Color3.fromRGB(220,220,220)
-            sec.Font = Enum.Font.GothamBold
-            sec.TextSize = 11
-            Instance.new("UICorner", sec).CornerRadius = UDim.new(0, 4)
-        end
-
-        local function createToggleRow(name)
-            local row = Instance.new("Frame", Scroll)
-            row.Size = UDim2.new(1, 0, 0, 24)
-            row.BackgroundTransparency = 1
-            local l = Instance.new("TextLabel", row)
-            l.Text = name
-            l.Size = UDim2.new(0.7,0,1,0)
+        local sg=Instance.new("ScreenGui",CoreGui)
+        sg.Name="DKToolsFinal"
+        sg.ResetOnSpawn=false
+        sg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+        ExternalGui=sg
+        local Popup=Instance.new("Frame",sg)
+        Popup.Size=UDim2.new(0,170,0,125)
+        Popup.Position=UDim2.new(0.5,120,0.5,-80)
+        Popup.BackgroundColor3=Color3.fromRGB(20,20,22)
+        Popup.Active=true
+        Popup.Draggable=true
+        Instance.new("UICorner",Popup).CornerRadius=UDim.new(0,8)
+        Instance.new("UIStroke",Popup).Color=Color3.fromRGB(45,45,50)
+        local Title=Instance.new("TextLabel",Popup)
+        Title.Size=UDim2.new(1,-24,0,18)
+        Title.Position=UDim2.new(0,8,0,4)
+        Title.BackgroundTransparency=1
+        Title.Text="DK's HUB"
+        Title.TextColor3=Color3.fromRGB(220,220,225)
+        Title.Font=Enum.Font.GothamBold
+        Title.TextSize=11
+        Title.TextXAlignment=Enum.TextXAlignment.Left
+        local Close=Instance.new("TextButton",Popup)
+        Close.Size=UDim2.new(0,16,0,16)
+        Close.Position=UDim2.new(1,-20,0,4)
+        Close.BackgroundColor3=Color3.fromRGB(32,32,36)
+        Close.Text="x"
+        Close.TextColor3=Color3.fromRGB(160,160,160)
+        Close.Font=Enum.Font.GothamBold
+        Close.TextSize=9
+        Instance.new("UICorner",Close).CornerRadius=UDim.new(0,3)
+        local function addToggle(name,y)
+            local r=Instance.new("Frame",Popup)
+            r.Size=UDim2.new(1,-8,0,18)
+            r.Position=UDim2.new(0,4,0,y)
+            r.BackgroundTransparency=1
+            local l=Instance.new("TextLabel",r)
+            l.Text=name
+            l.Size=UDim2.new(1,-24,1,0)
             l.BackgroundTransparency=1
-            l.TextColor3=Color3.fromRGB(200,200,200)
+            l.TextColor3=Color3.fromRGB(170,170,175)
             l.Font=Enum.Font.Gotham
-            l.TextSize=11
+            l.TextSize=10
             l.TextXAlignment=Enum.TextXAlignment.Left
-            local tBack = Instance.new("Frame", row)
-            tBack.Size=UDim2.new(0,28,0,16)
-            tBack.Position=UDim2.new(1,-30,0.5,-8)
-            tBack.BackgroundColor3=Color3.fromRGB(50,50,50)
-            Instance.new("UICorner", tBack).CornerRadius=UDim.new(1,0)
-            local tDot=Instance.new("Frame", tBack)
-            tDot.Size=UDim2.new(0,12,0,12)
-            tDot.Position=UDim2.new(0,2,0,2)
-            tDot.BackgroundColor3=Color3.fromRGB(255,255,255)
-            Instance.new("UICorner", tDot).CornerRadius=UDim.new(1,0)
-            local b=Instance.new("TextButton", tBack)
-            b.Size=UDim2.new(1,0,1,0)
-            b.BackgroundTransparency=1
-            b.Text=""
+            local b=Instance.new("Frame",r)
+            b.Size=UDim2.new(0,22,0,11)
+            b.Position=UDim2.new(1,-22,0.5,-5)
+            b.BackgroundColor3=Color3.fromRGB(50,50,55)
+            Instance.new("UICorner",b).CornerRadius=UDim.new(1,0)
+            local d=Instance.new("Frame",b)
+            d.Size=UDim2.new(0,7,0,7)
+            d.Position=UDim2.new(0,2,0,2)
+            d.BackgroundColor3=Color3.new(1,1,1)
+            Instance.new("UICorner",d).CornerRadius=UDim.new(1,0)
+            local btn=Instance.new("TextButton",b)
+            btn.Size=UDim2.new(1,0,1,0)
+            btn.BackgroundTransparency=1
+            btn.Text=""
             local on=false
-            b.MouseButton1Click:Connect(function()
+            btn.MouseButton1Click:Connect(function()
                 on=not on
                 if on then
-                    TweenService:Create(tBack,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(80,80,80)}):Play()
-                    TweenService:Create(tDot,TweenInfo.new(0.15),{Position=UDim2.new(1,-14,0,2)}):Play()
+                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(220,220,220)}):Play()
+                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(1,-9,0,2)}):Play()
                 else
-                    TweenService:Create(tBack,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(50,50,50)}):Play()
-                    TweenService:Create(tDot,TweenInfo.new(0.15),{Position=UDim2.new(0,2,0,2)}):Play()
+                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(50,50,55)}):Play()
+                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(0,2,0,2)}):Play()
                 end
             end)
-            return {btn=b, get=function() return on end}
+            return {btn=btn, get=function() return on end}
         end
-
-        local function createButton(name)
-            local b=Instance.new("TextButton", Scroll)
-            b.Size=UDim2.new(1,0,0,26)
-            b.BackgroundColor3=Color3.fromRGB(40,40,40)
-            b.Text=name
-            b.TextColor3=Color3.fromRGB(220,220,220)
+        local function addBtn(txt,y)
+            local b=Instance.new("TextButton",Popup)
+            b.Size=UDim2.new(1,-8,0,20)
+            b.Position=UDim2.new(0,4,0,y)
+            b.BackgroundColor3=Color3.fromRGB(32,32,36)
+            b.Text=txt
+            b.TextColor3=Color3.fromRGB(200,200,205)
             b.Font=Enum.Font.Gotham
-            b.TextSize=11
-            Instance.new("UICorner", b).CornerRadius=UDim.new(0,4)
+            b.TextSize=10
+            Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
             return b
         end
-
-        createSection("Trolling")
-        local spec = createToggleRow("Spectate")
-        local loopTP = createToggleRow("Loop TP to Player")
-        local loopBring = createToggleRow("Loop Bring Player to you")
-        local tpBtn = createButton("Teleport to Selected Player")
-        createSection("Spies")
-        createSection("Player Info")
-        local backpackBtn = createButton("Backpack  ▼")
-        local viewBtn = createButton("View")
-        createSection("Money Sending")
-
-        tpBtn.MouseButton1Click:Connect(function()
-            if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selected.Character.HumanoidRootPart.CFrame
-            end
-        end)
-
-        return screenGui
+        local spec=addToggle("Spectate",24)
+        local ltp=addToggle("Loop TP to Player",44)
+        local lbring=addToggle("Loop Bring to you",64)
+        local tp=addBtn("Teleport to Player",86)
+        spec.btn.MouseButton1Click:Connect(function() task.wait(0.11) if spec.get() then if selected and selected.Character and selected.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=selected.Character.Humanoid end else if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end end end)
+        ltp.btn.MouseButton1Click:Connect(function() task.wait(0.11) if ltp.get() then loopTPConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,2) end end) else if loopTPConn then loopTPConn:Disconnect() end end end)
+        lbring.btn.MouseButton1Click:Connect(function() task.wait(0.11) if lbring.get() then loopBringConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then selected.Character.HumanoidRootPart.CFrame=LP.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,3) end end) else if loopBringConn then loopBringConn:Disconnect() end end end)
+        tp.MouseButton1Click:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame end end)
+        Close.MouseButton1Click:Connect(function() if loopTPConn then loopTPConn:Disconnect() end if loopBringConn then loopBringConn:Disconnect() end if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end sg:Destroy() ExternalGui=nil end)
     end
 
-    local selected = nil
-    local selectedRow = nil
-
-    ToggleBtn.MouseButton1Click:Connect(function()
-        if ExternalGui then
-            ExternalGui:Destroy()
-            ExternalGui = nil
-            TweenService:Create(ToggleBack,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(60,60,60)}):Play()
-            TweenService:Create(ToggleDot,TweenInfo.new(0.15),{Position=UDim2.new(0,2,0,2)}):Play()
-        else
-            createExternalGui()
-            TweenService:Create(ToggleBack,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(80,80,80)}):Play()
-            TweenService:Create(ToggleDot,TweenInfo.new(0.15),{Position=UDim2.new(1,-16,0,2)}):Play()
-        end
-    end)
-
     local function refresh()
-        for _,c in pairs(List:GetChildren()) do if c:IsA("Frame") and c.Name=="Row" then if c ~= selectedRow then c:Destroy() end end end
+        local st=Search.Text:lower():gsub("%s+","")
+        for _,c in pairs(List:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
         local y=0
         for _,plr in pairs(Players:GetPlayers()) do
-            if Search.Text=="" or plr.Name:lower():find(Search.Text:lower()) then
-                local isSelected = selected and selected == plr
-                local row
-                if isSelected and selectedRow and selectedRow.Parent == List then
-                    row = selectedRow
-                else
-                    if not isSelected then
-                        row=Instance.new("Frame", List)
-                        row.Name="Row"
-                        row.Size=UDim2.new(1,0,0,24)
-                        row.BorderSizePixel=0
-                        Instance.new("UICorner", row).CornerRadius=UDim.new(0,4)
-                        local n=Instance.new("TextLabel", row)
-                        n.Name="UsernameLabel"
-                        n.Text=plr.Name
-                        n.Position=UDim2.new(0,6,0,0)
-                        n.Size=UDim2.new(0.4,0,1,0)
-                        n.BackgroundTransparency=1
-                        n.TextColor3=Color3.fromRGB(210,210,210)
-                        n.Font=Enum.Font.Gotham
-                        n.TextSize=12
-                        n.TextXAlignment=Enum.TextXAlignment.Left
-                        local t=Instance.new("TextLabel", row)
-                        t.Text="None"
-                        t.Position=UDim2.new(0.4,0,0,0)
-                        t.Size=UDim2.new(0.3,0,1,0)
-                        t.BackgroundTransparency=1
-                        t.TextColor3=Color3.fromRGB(210,210,210)
-                        t.Font=Enum.Font.Gotham
-                        t.TextSize=12
-                        t.TextXAlignment=Enum.TextXAlignment.Left
-                        local h=Instance.new("TextLabel", row)
-                        h.Text="100"
-                        h.Position=UDim2.new(0.7,0,0,0)
-                        h.Size=UDim2.new(0.3,0,1,0)
-                        h.BackgroundTransparency=1
-                        h.TextColor3=Color3.fromRGB(210,210,210)
-                        h.Font=Enum.Font.Gotham
-                        h.TextSize=12
-                        h.TextXAlignment=Enum.TextXAlignment.Left
-                        local btn=Instance.new("TextButton", row)
-                        btn.Size=UDim2.new(1,0,1,0)
-                        btn.BackgroundTransparency=1
-                        btn.Text=""
-                        btn.MouseButton1Click:Connect(function()
-                            if selectedRow then
-                                TweenService:Create(selectedRow, TweenInfo.new(0.15), {BackgroundColor3=Color3.fromRGB(25,25,25)}):Play()
-                            end
-                            selectedRow = row
-                            TweenService:Create(row, TweenInfo.new(0.15), {BackgroundColor3=Color3.fromRGB(65,65,65)}):Play()
-                            selected=plr
-                            NameLabel.Text=plr.Name.." (@"..plr.DisplayName..")"
-                            IDLabel.Text="User ID: "..plr.UserId
-                            Avatar.Image="https://www.roblox.com/headshot-thumbnail/image?userId="..plr.UserId.."&width=150&height=150&format=png"
-                        end)
-                    else
-                        row = selectedRow
-                    end
-                end
-                if row then
-                    row.BackgroundColor3 = isSelected and Color3.fromRGB(65,65,65) or Color3.fromRGB(25,25,25)
-                end
-                y+=26
+            if st=="" or plr.Name:lower():find(st,1,true) or plr.DisplayName:lower():find(st,1,true) then
+                local row=Instance.new("Frame",List)
+                row.Size=UDim2.new(1,0,0,22)
+                row.BackgroundColor3= (selected and selected==plr) and Color3.fromRGB(55,55,60) or Color3.fromRGB(22,22,24)
+                Instance.new("UICorner",row).CornerRadius=UDim.new(0,4)
+                local n=Instance.new("TextLabel",row)
+                n.Position=UDim2.new(0,8,0,0)
+                n.Size=UDim2.new(0.38,0,1,0)
+                n.BackgroundTransparency=1
+                n.Text=plr.Name
+                n.TextColor3=Color3.fromRGB(210,210,215)
+                n.Font=Enum.Font.Gotham
+                n.TextSize=11
+                n.TextXAlignment=Enum.TextXAlignment.Left
+                n.TextTruncate=Enum.TextTruncate.AtEnd
+                local t=Instance.new("TextLabel",row)
+                t.Position=UDim2.new(0.38,0,0,0)
+                t.Size=UDim2.new(0.34,0,1,0)
+                t.BackgroundTransparency=1
+                t.Text=plr.Team and plr.Team.Name or "None"
+                t.TextColor3=Color3.fromRGB(150,150,155)
+                t.Font=Enum.Font.Gotham
+                t.TextSize=11
+                local h=Instance.new("TextLabel",row)
+                h.Position=UDim2.new(0.72,0,0,0)
+                h.Size=UDim2.new(0.28,0,1,0)
+                h.BackgroundTransparency=1
+                local hum=plr.Character and plr.Character:FindFirstChild("Humanoid")
+                h.Text= hum and tostring(math.floor(hum.Health)) or "100"
+                h.TextColor3=Color3.fromRGB(150,150,155)
+                h.Font=Enum.Font.Gotham
+                h.TextSize=11
+                local b=Instance.new("TextButton",row)
+                b.Size=UDim2.new(1,0,1,0)
+                b.BackgroundTransparency=1
+                b.Text=""
+                b.MouseButton1Click:Connect(function()
+                    if selectedRow then TweenService:Create(selectedRow,TweenInfo.new(0.1),{BackgroundColor3=Color3.fromRGB(22,22,24)}):Play() end
+                    selectedRow=row
+                    selected=plr
+                    TweenService:Create(row,TweenInfo.new(0.1),{BackgroundColor3=Color3.fromRGB(55,55,60)}):Play()
+                    NameLabel.Text=plr.Name.." (@"..plr.DisplayName..")"
+                    IDLabel.Text="ID: "..plr.UserId
+                    AgeLabel.Text="Account Age: "..plr.AccountAge.." days"
+                    Avatar.Image="https://www.roblox.com/headshot-thumbnail/image?userId="..plr.UserId.."&width=150&height=150&format=png"
+                    createToolsGui()
+                end)
+                y+=24
             end
         end
         List.CanvasSize=UDim2.new(0,0,0,y)
     end
-
-    task.spawn(function()
-        while Main.Parent do
-            pcall(refresh)
-            if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                DistLabel.Text="Distance: "..math.floor((selected.Character.HumanoidRootPart.Position - Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude).." studs"
-            end
-            task.wait(0.5)
-        end
-        if ExternalGui then ExternalGui:Destroy() end
-    end)
     Search:GetPropertyChangedSignal("Text"):Connect(refresh)
+    Players.PlayerAdded:Connect(refresh)
+    Players.PlayerRemoving:Connect(refresh)
+    task.spawn(function() while Main.Parent do pcall(refresh) task.wait(1) end if ExternalGui then ExternalGui:Destroy() end end)
     refresh()
-    return PlayerList
-end
+    return Main
+end,
                 
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
