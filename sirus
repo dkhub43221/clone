@@ -4368,7 +4368,6 @@ end
     Slider.Name = SliderSettings.Name
     Slider.Size = UDim2.new(1, 0, 0, 50)
     Slider.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    Slider.BackgroundTransparency = 0
     Slider.BorderSizePixel = 0
     Slider.Parent = TabPage
     Slider.ClipsDescendants = true
@@ -4385,19 +4384,19 @@ end
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.BackgroundTransparency = 1
     Title.Position = UDim2.new(0, 10, 0, 5)
-    Title.Size = UDim2.new(0.6, 0, 0, 18)
+    Title.Size = UDim2.new(0.5, 0, 0, 18)
 
-    -- Typable Value Box
+    -- Typable box - looks like label but editable
     local ValueBox = Instance.new("TextBox", Slider)
     ValueBox.Font = Enum.Font.GothamBold
     ValueBox.TextSize = 13
     ValueBox.TextColor3 = Color3.fromRGB(200,200,200)
     ValueBox.TextXAlignment = Enum.TextXAlignment.Right
     ValueBox.BackgroundTransparency = 1
-    ValueBox.Position = UDim2.new(0, 0, 0, 5)
-    ValueBox.Size = UDim2.new(1, -10, 0, 18)
-    ValueBox.Text = tostring(SliderSettings.CurrentValue)
-    ValueBox.ClearTextOnFocus = false
+    ValueBox.Position = UDim2.new(0.5, 0, 0, 5)
+    ValueBox.Size = UDim2.new(0.5, -10, 0, 18)
+    ValueBox.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
+    ValueBox.ClearTextOnFocus = true
     ValueBox.ClipsDescendants = true
 
     local Track = Instance.new("Frame", Slider)
@@ -4406,7 +4405,7 @@ end
     Track.Position = UDim2.new(0, 10, 0, 30)
     Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Track.BorderSizePixel = 0
-    Track.ClipsDescendants = false -- IMPORTANT for dot
+    Track.ClipsDescendants = false
     Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
 
     local Progress = Instance.new("Frame", Track)
@@ -4417,7 +4416,7 @@ end
     Progress.ZIndex = 1
     Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
 
-    -- White Dot / Knob
+    -- White dot like in your image
     local Dot = Instance.new("Frame", Track)
     Dot.Name = "Dot"
     Dot.Size = UDim2.new(0, 14, 0, 14)
@@ -4427,43 +4426,88 @@ end
     Dot.BorderSizePixel = 0
     Dot.ZIndex = 2
     Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
-    local dotStroke = Instance.new("UIStroke", Dot)
-    dotStroke.Color = Color3.fromRGB(0,0,0)
-    dotStroke.Thickness = 1
-    dotStroke.Transparency = 0.7
 
     local Interact = Instance.new("TextButton", Track)
-    Interact.Size = UDim2.new(1, 0, 1, 0)
+    Interact.Size = UDim2.new(1, 0, 1, 20) -- bigger hitbox for easier drag
+    Interact.Position = UDim2.new(0,0,0,-7)
     Interact.BackgroundTransparency = 1
     Interact.Text = ""
     Interact.ZIndex = 3
 
     local function GetValue(x)
-        local pos = math.clamp(x - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
-        local p = pos / Track.AbsoluteSize.X
+        local absPos = Track.AbsolutePosition.X
+        local absSize = Track.AbsoluteSize.X
+        if absSize == 0 then return SliderSettings.CurrentValue end
+        local pos = math.clamp(x - absPos, 0, absSize)
+        local p = pos / absSize
         local val = SliderSettings.Range[1] + p * (SliderSettings.Range[2] - SliderSettings.Range[1])
         val = math.floor(val / SliderSettings.Increment + 0.5) * SliderSettings.Increment
         return math.clamp(val, SliderSettings.Range[1], SliderSettings.Range[2])
     end
 
-    local function Update(val, fromInput)
-        val = math.clamp(val, SliderSettings.Range[1], SliderSettings.Range[2])
+    local function UpdateVisual(val)
         local p = (val - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])
         Progress.Size = UDim2.new(p, 0, 1, 0)
         Dot.Position = UDim2.new(p, 0, 0.5, 0)
-        -- Don't overwrite TextBox while user is typing
         if not ValueBox:IsFocused() then
             ValueBox.Text = tostring(val)..SliderSettings.Suffix
         end
-        if fromInput then
+    end
+
+    local function Update(val, fireCallback)
+        SliderSettings.CurrentValue = val
+        UpdateVisual(val)
+        if fireCallback then
             pcall(SliderSettings.Callback, val)
-            SliderSettings.CurrentValue = val
-        else
-            SliderSettings.CurrentValue = val
         end
     end
 
-    -- Typing logic
+    Update(SliderSettings.CurrentValue, false)
+
+    -- SMOOTH DRAG LOGIC
+    Interact.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+            SLDragging = true
+            Update(GetValue(Input.Position.X), true)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(Input)
+        if SLDragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
+            Update(GetValue(Input.Position.X), true)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+            SLDragging = false
+        end
+    end)
+
+    -- NUMBERS ONLY + LIVE UPDATE WHEN TYPING
+    ValueBox:GetPropertyChangedSignal("Text"):Connect(function()
+        if ValueBox:IsFocused() then
+            -- allow only numbers and minus
+            local filtered = ValueBox.Text:gsub("[^%d%-]", "")
+            if ValueBox.Text ~= filtered then
+                ValueBox.Text = filtered
+                ValueBox.CursorPosition = #filtered + 1
+            end
+
+            -- live update slider while typing
+            if filtered ~= "" and filtered ~= "-" then
+                local num = tonumber(filtered)
+                if num then
+                    num = math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2])
+                    num = math.floor(num / SliderSettings.Increment + 0.5) * SliderSettings.Increment
+                    UpdateVisual(num) -- visual only while typing
+                    SliderSettings.CurrentValue = num
+                    pcall(SliderSettings.Callback, num)
+                end
+            end
+        end
+    end)
+
     ValueBox.FocusLost:Connect(function(enterPressed)
         local raw = ValueBox.Text:gsub(SliderSettings.Suffix, ""):gsub("%s+", "")
         local num = tonumber(raw)
@@ -4471,36 +4515,7 @@ end
             num = math.floor(num / SliderSettings.Increment + 0.5) * SliderSettings.Increment
             Update(math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2]), true)
         else
-            -- reset if invalid
-            ValueBox.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
-        end
-    end)
-
-    ValueBox.Focused:Connect(function()
-        -- show just number for editing
-        ValueBox.Text = tostring(SliderSettings.CurrentValue)
-    end)
-
-    Update(SliderSettings.CurrentValue, false)
-
-    Interact.InputBegan:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-            SLDragging = true
-            local v = GetValue(Input.Position.X)
-            Update(v, true)
-        end
-    end)
-
-    Interact.InputChanged:Connect(function(Input)
-        if SLDragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-            local v = GetValue(Input.Position.X)
-            Update(v, true)
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-            SLDragging = false
+            UpdateVisual(SliderSettings.CurrentValue)
         end
     end)
 
