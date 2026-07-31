@@ -4366,14 +4366,14 @@ function Tab:CreateSlider(SliderSettings)
 
     local Slider = Instance.new("Frame")
     Slider.Name = SliderSettings.Name
-    Slider.Size = UDim2.new(1, 0, 0, 40) -- SAME SIZE AS TOGGLE
-    Slider.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Slider.Size = UDim2.new(1, 0, 0, 40) -- SAME AS TOGGLE
+    Slider.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- FULL BLACK
     Slider.BorderSizePixel = 0
     Slider.Parent = TabPage
     Slider.ClipsDescendants = true
     Instance.new("UICorner", Slider).CornerRadius = UDim.new(0, 6)
     local stroke = Instance.new("UIStroke", Slider)
-    stroke.Color = Color3.fromRGB(35, 95, 45) -- same green outline as your Speed Boost toggle
+    stroke.Color = Color3.fromRGB(77, 251, 16) -- green outline like toggle
     stroke.Thickness = 1
 
     local Title = Instance.new("TextLabel", Slider)
@@ -4399,8 +4399,8 @@ function Tab:CreateSlider(SliderSettings)
 
     local Track = Instance.new("Frame", Slider)
     Track.Name = "Track"
-    Track.Size = UDim2.new(1, -24, 0, 4) -- nice thin line
-    Track.Position = UDim2.new(0, 12, 0, 26) -- centered in box like toggle
+    Track.Size = UDim2.new(1, -24, 0, 4) -- same padding as toggle
+    Track.Position = UDim2.new(0, 12, 0, 26)
     Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Track.BorderSizePixel = 0
     Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
@@ -4408,13 +4408,13 @@ function Tab:CreateSlider(SliderSettings)
     local Progress = Instance.new("Frame", Track)
     Progress.Name = "Progress"
     Progress.Size = UDim2.new(0, 0, 1, 0)
-    Progress.BackgroundColor3 = Color3.fromRGB(77, 251, 16) -- DK GREEN not red
+    Progress.BackgroundColor3 = Color3.fromRGB(77, 251, 16)
     Progress.BorderSizePixel = 0
     Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
 
     local Dot = Instance.new("Frame", Track)
     Dot.Name = "Dot"
-    Dot.Size = UDim2.new(0, 10, 0, 10) -- smaller nice dot
+    Dot.Size = UDim2.new(0, 10, 0, 10)
     Dot.AnchorPoint = Vector2.new(0.5, 0.5)
     Dot.Position = UDim2.new(0, 0, 0.5, 0)
     Dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -4428,7 +4428,7 @@ function Tab:CreateSlider(SliderSettings)
     Interact.Text = ""
 
     local function GetValue(x)
-        if Track.AbsoluteSize.X <= 5 then return SliderSettings.CurrentValue end -- fix close bug
+        if Track.AbsoluteSize.X <= 5 then return SliderSettings.CurrentValue end
         local pos = math.clamp(x - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
         local p = pos / Track.AbsoluteSize.X
         local val = SliderSettings.Range[1] + p * (SliderSettings.Range[2] - SliderSettings.Range[1])
@@ -4472,7 +4472,6 @@ function Tab:CreateSlider(SliderSettings)
         end
     end)
 
-    -- fix bug when closing DK's HUB
     Slider.AncestryChanged:Connect(function(_, parent)
         if not parent then
             SLDragging = false
@@ -4518,7 +4517,6 @@ function Tab:CreateSlider(SliderSettings)
 
     return SliderSettings
 end
-
 		Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
 			TabButton.UIStroke.Color = SelectedTheme.TabStroke
 
