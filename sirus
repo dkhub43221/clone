@@ -2975,7 +2975,7 @@ Tab.CreatePlayerList = function(self)
     task.spawn(function() while Main.Parent do pcall(refresh) task.wait(1) end if ExternalGui then ExternalGui:Destroy() end end)
     refresh()
     return Main
-end,
+end
 
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
