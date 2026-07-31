@@ -2651,529 +2651,6 @@ function RayfieldLibrary:CreateWindow(Settings)
 		end
 
 		TabPage.Parent = Elements
-
- -- ===== DK HUB CUSTOM TABS - FINAL CLEAN =====
- if Name == "Home" then
-    -- Clear default template children
-    for _,v in pairs(TabPage:GetChildren()) do 
-        if v.ClassName == "Frame" and v.Name ~= "Placeholder" then 
-            v:Destroy() 
-        end 
-    end
-    TabPage.ScrollingEnabled = true
-    TabPage.ScrollBarThickness = 4
-    TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    TabPage.CanvasSize = UDim2.new(0,0,0,0)
-    TabPage.ScrollBarImageColor3 = Color3.fromRGB(85,85,90)
-    TabPage.ScrollBarImageTransparency = 0.2
-    TabPage.BackgroundTransparency = 1
-
-    task.spawn(function()
-        task.wait(0.15)
-        if not TabPage.Parent then return end
-        local ExecName = "Unknown"
-        pcall(function()
-            if identifyexecutor then 
-                local ok,res = pcall(identifyexecutor) 
-                if ok and res and type(res) == "string" then ExecName = res end 
-            end
-        end)
-
-        local Layout = Instance.new("UIListLayout", TabPage)
-        Layout.Padding = UDim.new(0,18)
-        Layout.SortOrder = Enum.SortOrder.LayoutOrder
-
-        local function card(h)
-            local f = Instance.new("Frame", TabPage)
-            f.Name = "DKCard"
-            f.Size = UDim2.new(1,-12,0,h)
-            f.BackgroundColor3 = Color3.fromRGB(21,21,23)
-            f.BorderSizePixel = 0
-            f.LayoutOrder = #TabPage:GetChildren()
-            Instance.new("UICorner", f).CornerRadius = UDim.new(0,14)
-            return f
-        end
-
-        local function icard(p,h)
-            local f = Instance.new("Frame", p)
-            f.Size = UDim2.new(1,0,0,h)
-            f.BackgroundColor3 = Color3.fromRGB(16,16,18)
-            f.BorderSizePixel = 0
-            Instance.new("UICorner", f).CornerRadius = UDim.new(0,12)
-            return f
-        end
-
-        -- DISCORD CARD
-        local Discord = card(92)
-        local DIcon = Instance.new("ImageLabel", Discord)
-        DIcon.Name = "DIcon"
-        DIcon.Size = UDim2.new(0,48,0,48)
-        DIcon.Position = UDim2.new(0,16,0,22)
-        DIcon.BackgroundTransparency = 1
-        DIcon.Image = "rbxassetid://6031071053"
-        DIcon.ImageColor3 = Color3.fromRGB(88,101,242)
-        local DTitle = Instance.new("TextLabel", Discord)
-        DTitle.Text = "Not in our discord server yet?"
-        DTitle.Position = UDim2.new(0,76,0,18)
-        DTitle.Size = UDim2.new(1,-180,0,16)
-        DTitle.BackgroundTransparency = 1
-        DTitle.TextColor3 = Color3.fromRGB(235,235,235)
-        DTitle.Font = Enum.Font.GothamBold
-        DTitle.TextSize = 13
-        DTitle.TextXAlignment = Enum.TextXAlignment.Left
-        local DSub = Instance.new("TextLabel", Discord)
-        DSub.Text = "Join to suggest\nfeatures, report bugs,"
-        DSub.Position = UDim2.new(0,76,0,36)
-        DSub.Size = UDim2.new(1,-180,0,32)
-        DSub.BackgroundTransparency = 1
-        DSub.TextColor3 = Color3.fromRGB(130,130,135)
-        DSub.Font = Enum.Font.Gotham
-        DSub.TextSize = 11
-        DSub.TextXAlignment = Enum.TextXAlignment.Left
-        local JoinBtn = Instance.new("TextButton", Discord)
-        JoinBtn.Size = UDim2.new(0,104,0,36)
-        JoinBtn.Position = UDim2.new(1,-116,0.5,-18)
-        JoinBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
-        JoinBtn.BorderSizePixel = 0
-        JoinBtn.Text = "Join discord"
-        JoinBtn.TextColor3 = Color3.new(1,1,1)
-        JoinBtn.Font = Enum.Font.GothamBold
-        JoinBtn.TextSize = 12
-        Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0,12)
-        JoinBtn.MouseButton1Click:Connect(function()
-            if setclipboard then setclipboard("https://discord.gg/xpress") end
-        end)
-
-        -- EXECUTOR CARD
-        local ExecF = card(84)
-        local ETitle = Instance.new("TextLabel", ExecF)
-        ETitle.Text = "Executor: "..ExecName
-        ETitle.Position = UDim2.new(0,18,0,18)
-        ETitle.Size = UDim2.new(1,-20,0,16)
-        ETitle.BackgroundTransparency = 1
-        ETitle.TextColor3 = Color3.fromRGB(235,235,235)
-        ETitle.Font = Enum.Font.GothamBold
-        ETitle.TextSize = 13
-        ETitle.TextXAlignment = Enum.TextXAlignment.Left
-        local Dot = Instance.new("Frame", ExecF)
-        Dot.Size = UDim2.new(0,10,0,10)
-        Dot.Position = UDim2.new(0,18,0,46)
-        Dot.BackgroundColor3 = Color3.fromRGB(60,220,120)
-        Dot.BorderSizePixel = 0
-        Instance.new("UICorner", Dot).CornerRadius = UDim.new(1,0)
-        local ESub = Instance.new("TextLabel", ExecF)
-        ESub.Text = "Fully supported executor."
-        ESub.Position = UDim2.new(0,34,0,42)
-        ESub.Size = UDim2.new(1,-40,0,16)
-        ESub.BackgroundTransparency = 1
-        ESub.TextColor3 = Color3.fromRGB(60,220,120)
-        ESub.Font = Enum.Font.GothamMedium
-        ESub.TextSize = 12
-        ESub.TextXAlignment = Enum.TextXAlignment.Left
-
-        -- PERFORMANCE LABEL
-        local PerfLabel = Instance.new("TextLabel", TabPage)
-        PerfLabel.Name = "PerfLabel"
-        PerfLabel.Text = "PERFORMANCE"
-        PerfLabel.Size = UDim2.new(1,-12,0,14)
-        PerfLabel.BackgroundTransparency = 1
-        PerfLabel.TextColor3 = Color3.fromRGB(180,180,185)
-        PerfLabel.Font = Enum.Font.GothamBold
-        PerfLabel.TextSize = 11
-        PerfLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-        local PerfOuter = card(88)
-        local FPSCard = icard(PerfOuter, 68)
-        FPSCard.Size = UDim2.new(0.5,-18,0,68)
-        FPSCard.Position = UDim2.new(0,10,0,10)
-        local FPSLine = Instance.new("Frame", FPSCard)
-        FPSLine.Size = UDim2.new(0,3,1,-24)
-        FPSLine.Position = UDim2.new(0,10,0,12)
-        FPSLine.BackgroundColor3 = Color3.fromRGB(210,50,255)
-        FPSLine.BorderSizePixel = 0
-        Instance.new("UICorner", FPSLine).CornerRadius = UDim.new(1,0)
-        local FPST = Instance.new("TextLabel", FPSCard)
-        FPST.Text = "FPS: 60"
-        FPST.Position = UDim2.new(0,24,0,14)
-        FPST.Size = UDim2.new(1,-30,0,16)
-        FPST.BackgroundTransparency = 1
-        FPST.TextColor3 = Color3.fromRGB(240,240,240)
-        FPST.Font = Enum.Font.GothamBold
-        FPST.TextSize = 13
-        FPST.TextXAlignment = Enum.TextXAlignment.Left
-        local PingCard = icard(PerfOuter, 68)
-        PingCard.Size = UDim2.new(0.5,-18,0,68)
-        PingCard.Position = UDim2.new(0.5,8,0,10)
-        local PingLine = Instance.new("Frame", PingCard)
-        PingLine.Size = UDim2.new(0,3,1,-24)
-        PingLine.Position = UDim2.new(0,10,0,12)
-        PingLine.BackgroundColor3 = Color3.fromRGB(80,110,255)
-        PingLine.BorderSizePixel = 0
-        Instance.new("UICorner", PingLine).CornerRadius = UDim.new(1,0)
-        local PingT = Instance.new("TextLabel", PingCard)
-        PingT.Text = "Ping: 0 ms"
-        PingT.Position = UDim2.new(0,24,0,14)
-        PingT.Size = UDim2.new(1,-30,0,16)
-        PingT.BackgroundTransparency = 1
-        PingT.TextColor3 = Color3.fromRGB(240,240,240)
-        PingT.Font = Enum.Font.GothamBold
-        PingT.TextSize = 13
-        PingT.TextXAlignment = Enum.TextXAlignment.Left
-
-        task.spawn(function()
-            while PerfOuter.Parent do
-                pcall(function()
-                    local fps = math.floor(1/game:GetService("RunService").RenderStepped:Wait())
-                    FPST.Text = "FPS: "..tostring(math.clamp(fps,0,999))
-                    PingT.Text = "Ping: "..tostring(math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())).." ms"
-                end)
-                task.wait(0.5)
-            end
-        end)
-    end)
- end
-
- if Name == "Players" then
-    for _,v in pairs(TabPage:GetChildren()) do 
-        if v.ClassName == "Frame" and v.Name ~= "Placeholder" then 
-            v:Destroy() 
-        end 
-    end
-    TabPage.ScrollingEnabled = false
-    TabPage.CanvasSize = UDim2.new(0,0,0,0)
-    TabPage.BackgroundTransparency = 1
-    task.spawn(function()
-        task.wait(0.2)
-        if not TabPage.Parent then return end
-        local PlayersService = game:GetService("Players")
-        local LP = PlayersService.LocalPlayer
-        local TweenService = game:GetService("TweenService")
-        local RunService = game:GetService("RunService")
-
-        local Main = Instance.new("Frame", TabPage)
-        Main.Name = "PlayersMain"
-        Main.Size = UDim2.new(1,-4,0,335)
-        Main.BackgroundColor3 = Color3.fromRGB(22,22,24)
-        Main.BorderSizePixel = 0
-        Instance.new("UICorner", Main).CornerRadius = UDim.new(0,8)
-
-        local SearchHolder = Instance.new("Frame", Main)
-        SearchHolder.Size = UDim2.new(1,-16,0,30)
-        SearchHolder.Position = UDim2.new(0,8,0,8)
-        SearchHolder.BackgroundColor3 = Color3.fromRGB(28,28,31)
-        SearchHolder.BorderSizePixel = 0
-        Instance.new("UICorner", SearchHolder).CornerRadius = UDim.new(0,7)
-
-        local Search = Instance.new("TextBox", SearchHolder)
-        Search.Size = UDim2.new(1,-32,1,0)
-        Search.Position = UDim2.new(0,32,0,0)
-        Search.BackgroundTransparency = 1
-        Search.Text = ""
-        Search.PlaceholderText = "Search..."
-        Search.TextColor3 = Color3.fromRGB(230,230,230)
-        Search.PlaceholderColor3 = Color3.fromRGB(90,90,95)
-        Search.Font = Enum.Font.Gotham
-        Search.TextSize = 12
-        Search.TextXAlignment = Enum.TextXAlignment.Left
-        Search.ClearTextOnFocus = false
-
-        local Header = Instance.new("Frame", Main)
-        Header.Size = UDim2.new(1,-16,0,14)
-        Header.Position = UDim2.new(0,12,0,44)
-        Header.BackgroundTransparency = 1
-        for i,txt in ipairs({"Username","Team","Health"}) do
-            local l = Instance.new("TextLabel", Header)
-            l.Text = txt
-            l.Position = UDim2.new(i==1 and 0 or i==2 and 0.38 or 0.72,0,0,0)
-            l.Size = UDim2.new(0.3,0,1,0)
-            l.BackgroundTransparency = 1
-            l.TextColor3 = Color3.fromRGB(110,110,115)
-            l.Font = Enum.Font.GothamMedium
-            l.TextSize = 10
-            l.TextXAlignment = Enum.TextXAlignment.Left
-        end
-
-        local List = Instance.new("ScrollingFrame", Main)
-        List.Name = "PlayerList"
-        List.Size = UDim2.new(1,-16,0,165)
-        List.Position = UDim2.new(0,8,0,60)
-        List.BackgroundTransparency = 1
-        List.CanvasSize = UDim2.new(0,0,0,0)
-        List.ScrollBarThickness = 2
-        List.ScrollBarImageColor3 = Color3.fromRGB(60,60,60)
-        local ll = Instance.new("UIListLayout", List)
-        ll.Padding = UDim.new(0,2)
-
-        local Bottom = Instance.new("Frame", Main)
-        Bottom.Size = UDim2.new(1,-16,0,60)
-        Bottom.Position = UDim2.new(0,8,0,233)
-        Bottom.BackgroundColor3 = Color3.fromRGB(28,28,31)
-        Bottom.BorderSizePixel = 0
-        Instance.new("UICorner", Bottom).CornerRadius = UDim.new(0,7)
-
-        local Avatar = Instance.new("ImageLabel", Bottom)
-        Avatar.Size = UDim2.new(0,36,0,36)
-        Avatar.Position = UDim2.new(0,8,0,8)
-        Avatar.BackgroundColor3 = Color3.fromRGB(20,20,20)
-        Avatar.BorderSizePixel = 0
-        Instance.new("UICorner", Avatar).CornerRadius = UDim.new(0,6)
-
-        local NameLabel = Instance.new("TextLabel", Bottom)
-        NameLabel.Position = UDim2.new(0,52,0,4)
-        NameLabel.Size = UDim2.new(1,-60,0,12)
-        NameLabel.BackgroundTransparency = 1
-        NameLabel.Text = "Select a player"
-        NameLabel.TextColor3 = Color3.fromRGB(230,230,230)
-        NameLabel.Font = Enum.Font.GothamBold
-        NameLabel.TextSize = 11
-        NameLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-        local IDLabel = Instance.new("TextLabel", Bottom)
-        IDLabel.Position = UDim2.new(0,52,0,18)
-        IDLabel.Size = UDim2.new(1,-60,0,10)
-        IDLabel.BackgroundTransparency = 1
-        IDLabel.Text = "ID: -"
-        IDLabel.TextColor3 = Color3.fromRGB(115,115,120)
-        IDLabel.Font = Enum.Font.Gotham
-        IDLabel.TextSize = 9
-        IDLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-        local AgeLabel = Instance.new("TextLabel", Bottom)
-        AgeLabel.Position = UDim2.new(0,52,0,30)
-        AgeLabel.Size = UDim2.new(1,-60,0,10)
-        AgeLabel.BackgroundTransparency = 1
-        AgeLabel.Text = "Account Age: -"
-        AgeLabel.TextColor3 = Color3.fromRGB(115,115,120)
-        AgeLabel.Font = Enum.Font.Gotham
-        AgeLabel.TextSize = 9
-        AgeLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-        local selected = nil
-        local selectedRow = nil
-        local ExternalGui = nil
-        local loopTPConn = nil
-        local loopBringConn = nil
-
-        local function createToolsGui()
-            if ExternalGui then ExternalGui:Destroy() end
-            local sg = Instance.new("ScreenGui")
-            sg.Name = "DKToolsFinal"
-            sg.ResetOnSpawn = false
-            sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-            sg.Parent = (gethui and gethui() or game:GetService("CoreGui"))
-            ExternalGui = sg
-            local Popup = Instance.new("Frame", sg)
-            Popup.Size = UDim2.new(0,170,0,125)
-            Popup.Position = UDim2.new(0.5,120,0.5,-80)
-            Popup.BackgroundColor3 = Color3.fromRGB(20,20,22)
-            Popup.BorderSizePixel = 0
-            Popup.Active = true
-            Popup.Draggable = true
-            Instance.new("UICorner", Popup).CornerRadius = UDim.new(0,8)
-            local Title = Instance.new("TextLabel", Popup)
-            Title.Size = UDim2.new(1,-24,0,18)
-            Title.Position = UDim2.new(0,8,0,4)
-            Title.BackgroundTransparency = 1
-            Title.Text = "DK's HUB"
-            Title.TextColor3 = Color3.fromRGB(220,220,225)
-            Title.Font = Enum.Font.GothamBold
-            Title.TextSize = 11
-            Title.TextXAlignment = Enum.TextXAlignment.Left
-            local Close = Instance.new("TextButton", Popup)
-            Close.Size = UDim2.new(0,16,0,16)
-            Close.Position = UDim2.new(1,-20,0,4)
-            Close.BackgroundColor3 = Color3.fromRGB(32,32,36)
-            Close.BorderSizePixel = 0
-            Close.Text = "x"
-            Close.TextColor3 = Color3.fromRGB(160,160,160)
-            Close.Font = Enum.Font.GothamBold
-            Close.TextSize = 9
-            Instance.new("UICorner", Close).CornerRadius = UDim.new(0,3)
-            local function addToggle(name,y)
-                local r = Instance.new("Frame", Popup)
-                r.Size = UDim2.new(1,-8,0,18)
-                r.Position = UDim2.new(0,4,0,y)
-                r.BackgroundTransparency = 1
-                local l = Instance.new("TextLabel", r)
-                l.Text = name
-                l.Size = UDim2.new(1,-24,1,0)
-                l.BackgroundTransparency = 1
-                l.TextColor3 = Color3.fromRGB(170,170,175)
-                l.Font = Enum.Font.Gotham
-                l.TextSize = 10
-                l.TextXAlignment = Enum.TextXAlignment.Left
-                local b = Instance.new("Frame", r)
-                b.Size = UDim2.new(0,22,0,11)
-                b.Position = UDim2.new(1,-22,0.5,-5)
-                b.BackgroundColor3 = Color3.fromRGB(50,50,55)
-                b.BorderSizePixel = 0
-                Instance.new("UICorner", b).CornerRadius = UDim.new(1,0)
-                local d = Instance.new("Frame", b)
-                d.Size = UDim2.new(0,7,0,7)
-                d.Position = UDim2.new(0,2,0,2)
-                d.BackgroundColor3 = Color3.new(1,1,1)
-                d.BorderSizePixel = 0
-                Instance.new("UICorner", d).CornerRadius = UDim.new(1,0)
-                local btn = Instance.new("TextButton", b)
-                btn.Size = UDim2.new(1,0,1,0)
-                btn.BackgroundTransparency = 1
-                btn.Text = ""
-                local on = false
-                btn.MouseButton1Click:Connect(function()
-                    on = not on
-                    TweenService:Create(b, TweenInfo.new(0.12), {BackgroundColor3 = on and Color3.fromRGB(220,220,220) or Color3.fromRGB(50,50,55)}):Play()
-                    TweenService:Create(d, TweenInfo.new(0.12), {Position = on and UDim2.new(1,-9,0,2) or UDim2.new(0,2,0,2)}):Play()
-                end)
-                return {btn=btn, get=function() return on end}
-            end
-            local spec = addToggle("Spectate",24)
-            local ltp = addToggle("Loop TP to Player",44)
-            local lbring = addToggle("Loop Bring to you",64)
-            local tp = Instance.new("TextButton", Popup)
-            tp.Size = UDim2.new(1,-8,0,20)
-            tp.Position = UDim2.new(0,4,0,86)
-            tp.BackgroundColor3 = Color3.fromRGB(32,32,36)
-            tp.BorderSizePixel = 0
-            tp.Text = "Teleport to Player"
-            tp.TextColor3 = Color3.fromRGB(200,200,205)
-            tp.Font = Enum.Font.Gotham
-            tp.TextSize = 10
-            Instance.new("UICorner", tp).CornerRadius = UDim.new(0,5)
-            spec.btn.MouseButton1Click:Connect(function()
-                task.wait(0.11)
-                if spec.get() then
-                    if selected and selected.Character and selected.Character:FindFirstChild("Humanoid") then
-                        workspace.CurrentCamera.CameraSubject = selected.Character.Humanoid
-                    end
-                else
-                    if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-                        workspace.CurrentCamera.CameraSubject = LP.Character.Humanoid
-                    end
-                end
-            end)
-            ltp.btn.MouseButton1Click:Connect(function()
-                task.wait(0.11)
-                if ltp.get() then
-                    loopTPConn = RunService.Heartbeat:Connect(function()
-                        if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-                            LP.Character.HumanoidRootPart.CFrame = selected.Character.HumanoidRootPart.CFrame + Vector3.new(0,0,2)
-                        end
-                    end)
-                else
-                    if loopTPConn then loopTPConn:Disconnect() loopTPConn = nil end
-                end
-            end)
-            lbring.btn.MouseButton1Click:Connect(function()
-                task.wait(0.11)
-                if lbring.get() then
-                    loopBringConn = RunService.Heartbeat:Connect(function()
-                        if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-                            selected.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame + Vector3.new(0,0,3)
-                        end
-                    end)
-                else
-                    if loopBringConn then loopBringConn:Disconnect() loopBringConn = nil end
-                end
-            end)
-            tp.MouseButton1Click:Connect(function()
-                if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-                    LP.Character.HumanoidRootPart.CFrame = selected.Character.HumanoidRootPart.CFrame
-                end
-            end)
-            Close.MouseButton1Click:Connect(function()
-                if loopTPConn then loopTPConn:Disconnect() end
-                if loopBringConn then loopBringConn:Disconnect() end
-                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-                    workspace.CurrentCamera.CameraSubject = LP.Character.Humanoid
-                end
-                sg:Destroy()
-                ExternalGui = nil
-            end)
-        end
-
-        local function refresh()
-            local st = Search.Text:lower():gsub("%s+","")
-            for _,c in pairs(List:GetChildren()) do
-                if c:IsA("Frame") then c:Destroy() end
-            end
-            local y = 0
-            for _,plr in pairs(PlayersService:GetPlayers()) do
-                if st=="" or plr.Name:lower():find(st,1,true) or plr.DisplayName:lower():find(st,1,true) then
-                    local row = Instance.new("Frame", List)
-                    row.Size = UDim2.new(1,0,0,22)
-                    row.BackgroundColor3 = (selected and selected==plr) and Color3.fromRGB(55,55,60) or Color3.fromRGB(22,22,24)
-                    row.BorderSizePixel = 0
-                    Instance.new("UICorner", row).CornerRadius = UDim.new(0,4)
-                    local n = Instance.new("TextLabel", row)
-                    n.Position = UDim2.new(0,8,0,0)
-                    n.Size = UDim2.new(0.38,0,1,0)
-                    n.BackgroundTransparency = 1
-                    n.Text = plr.Name
-                    n.TextColor3 = Color3.fromRGB(210,210,215)
-                    n.Font = Enum.Font.Gotham
-                    n.TextSize = 11
-                    n.TextXAlignment = Enum.TextXAlignment.Left
-                    n.TextTruncate = Enum.TextTruncate.AtEnd
-                    local t = Instance.new("TextLabel", row)
-                    t.Position = UDim2.new(0.38,0,0,0)
-                    t.Size = UDim2.new(0.34,0,1,0)
-                    t.BackgroundTransparency = 1
-                    t.Text = plr.Team and plr.Team.Name or "None"
-                    t.TextColor3 = Color3.fromRGB(150,150,155)
-                    t.Font = Enum.Font.Gotham
-                    t.TextSize = 11
-                    t.TextXAlignment = Enum.TextXAlignment.Left
-                    local hum = plr.Character and plr.Character:FindFirstChild("Humanoid")
-                    local h = Instance.new("TextLabel", row)
-                    h.Position = UDim2.new(0.72,0,0,0)
-                    h.Size = UDim2.new(0.28,0,1,0)
-                    h.BackgroundTransparency = 1
-                    h.Text = hum and tostring(math.floor(hum.Health)) or "100"
-                    h.TextColor3 = Color3.fromRGB(150,150,155)
-                    h.Font = Enum.Font.Gotham
-                    h.TextSize = 11
-                    h.TextXAlignment = Enum.TextXAlignment.Left
-                    local b = Instance.new("TextButton", row)
-                    b.Size = UDim2.new(1,0,1,0)
-                    b.BackgroundTransparency = 1
-                    b.Text = ""
-                    b.MouseButton1Click:Connect(function()
-                        if selectedRow then
-                            TweenService:Create(selectedRow, TweenInfo.new(0.1), {BackgroundColor3=Color3.fromRGB(22,22,24)}):Play()
-                        end
-                        selectedRow = row
-                        selected = plr
-                        TweenService:Create(row, TweenInfo.new(0.1), {BackgroundColor3=Color3.fromRGB(55,55,60)}):Play()
-                        NameLabel.Text = plr.Name.." (@"..plr.DisplayName..")"
-                        IDLabel.Text = "ID: "..plr.UserId
-                        AgeLabel.Text = "Account Age: "..plr.AccountAge.." days"
-                        Avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..plr.UserId.."&width=150&height=150&format=png"
-                        createToolsGui()
-                    end)
-                    y += 24
-                end
-            end
-            List.CanvasSize = UDim2.new(0,0,0,y)
-        end
-
-        Search:GetPropertyChangedSignal("Text"):Connect(refresh)
-        PlayersService.PlayerAdded:Connect(refresh)
-        PlayersService.PlayerRemoving:Connect(refresh)
-        task.spawn(function()
-            while Main.Parent do
-                pcall(refresh)
-                task.wait(1)
-            end
-            if ExternalGui then ExternalGui:Destroy() end
-            if loopTPConn then loopTPConn:Disconnect() end
-            if loopBringConn then loopBringConn:Disconnect() end
-        end)
-        refresh()
-    end)
- end
- -- ===== END CUSTOM =====
-
- if not FirstTab and not Ext then
 		if not FirstTab and not Ext then
 			Elements.UIPageLayout.Animated = false
 			Elements.UIPageLayout:JumpTo(TabPage)
@@ -5068,4 +4545,1022 @@ end
 			if not SliderSettings.Suffix then
 				Slider.Main.Information.Text = tostring(SliderSettings.CurrentValue)
 			else
-				Slider.Main.Information.Text = tostring(SliderSettings
+				Slider.Main.Information.Text = tostring(SliderSettings.CurrentValue) .. " " .. SliderSettings.Suffix
+			end
+
+			Slider.MouseEnter:Connect(function()
+				TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			Slider.MouseLeave:Connect(function()
+				TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			Slider.Main.Interact.InputBegan:Connect(function(Input)
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then 
+					TweenService:Create(Slider.Main.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+					TweenService:Create(Slider.Main.Progress.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+					SLDragging = true 
+				end 
+			end)
+
+			Slider.Main.Interact.InputEnded:Connect(function(Input) 
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then 
+					TweenService:Create(Slider.Main.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0.4}):Play()
+					TweenService:Create(Slider.Main.Progress.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0.3}):Play()
+					SLDragging = false 
+				end 
+			end)
+
+			Slider.Main.Interact.MouseButton1Down:Connect(function(X)
+				local Current = Slider.Main.Progress.AbsolutePosition.X + Slider.Main.Progress.AbsoluteSize.X
+				local Start = Current
+				local Location = X
+				local Loop; Loop = RunService.Stepped:Connect(function()
+					if SLDragging then
+						Location = UserInputService:GetMouseLocation().X
+						Current = Current + 0.025 * (Location - Start)
+
+						if Location < Slider.Main.AbsolutePosition.X then
+							Location = Slider.Main.AbsolutePosition.X
+						elseif Location > Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X then
+							Location = Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X
+						end
+
+						if Current < Slider.Main.AbsolutePosition.X + 5 then
+							Current = Slider.Main.AbsolutePosition.X + 5
+						elseif Current > Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X then
+							Current = Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X
+						end
+
+						if Current <= Location and (Location - Start) < 0 then
+							Start = Location
+						elseif Current >= Location and (Location - Start) > 0 then
+							Start = Location
+						end
+						TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Current - Slider.Main.AbsolutePosition.X, 1, 0)}):Play()
+						local NewValue = SliderSettings.Range[1] + (Location - Slider.Main.AbsolutePosition.X) / Slider.Main.AbsoluteSize.X * (SliderSettings.Range[2] - SliderSettings.Range[1])
+
+						NewValue = math.floor(NewValue / SliderSettings.Increment + 0.5) * (SliderSettings.Increment * 10000000) / 10000000
+						NewValue = math.clamp(NewValue, SliderSettings.Range[1], SliderSettings.Range[2])
+
+						if not SliderSettings.Suffix then
+							Slider.Main.Information.Text = tostring(NewValue)
+						else
+							Slider.Main.Information.Text = tostring(NewValue) .. " " .. SliderSettings.Suffix
+						end
+
+						if SliderSettings.CurrentValue ~= NewValue then
+							local Success, Response = pcall(function()
+								SliderSettings.Callback(NewValue)
+							end)
+							if not Success then
+								TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
+								TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+								Slider.Title.Text = "Callback Error"
+								print("Rayfield | "..SliderSettings.Name.." Callback Error " ..tostring(Response))
+								warn('Check docs.sirius.menu for help with Rayfield specific development.')
+								task.wait(0.5)
+								Slider.Title.Text = SliderSettings.Name
+								TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+								TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+							end
+
+							SliderSettings.CurrentValue = NewValue
+							if not SliderSettings.Ext then
+								SaveConfiguration()
+							end
+						end
+					else
+						TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Location - Slider.Main.AbsolutePosition.X > 5 and Location - Slider.Main.AbsolutePosition.X or 5, 1, 0)}):Play()
+						Loop:Disconnect()
+					end
+				end)
+			end)
+
+			function SliderSettings:Set(NewVal)
+				local NewVal = math.clamp(NewVal, SliderSettings.Range[1], SliderSettings.Range[2])
+
+				TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Slider.Main.AbsoluteSize.X * ((NewVal - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) > 5 and Slider.Main.AbsoluteSize.X * ((NewVal - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])) or 5, 1, 0)}):Play()
+				Slider.Main.Information.Text = tostring(NewVal) .. " " .. (SliderSettings.Suffix or "")
+
+				local Success, Response = pcall(function()
+					SliderSettings.Callback(NewVal)
+				end)
+
+				if not Success then
+					TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
+					TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+					Slider.Title.Text = "Callback Error"
+					print("Rayfield | "..SliderSettings.Name.." Callback Error " ..tostring(Response))
+					warn('Check docs.sirius.menu for help with Rayfield specific development.')
+					task.wait(0.5)
+					Slider.Title.Text = SliderSettings.Name
+					TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+					TweenService:Create(Slider.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+				end
+
+				SliderSettings.CurrentValue = NewVal
+				if not SliderSettings.Ext then
+					SaveConfiguration()
+				end
+			end
+
+			if Settings.ConfigurationSaving then
+				if Settings.ConfigurationSaving.Enabled and SliderSettings.Flag then
+					RayfieldLibrary.Flags[SliderSettings.Flag] = SliderSettings
+				end
+			end
+
+			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
+				if SelectedTheme ~= RayfieldLibrary.Theme.Default then
+					Slider.Main.Shadow.Visible = false
+				end
+
+				Slider.Main.BackgroundColor3 = SelectedTheme.SliderBackground
+				Slider.Main.UIStroke.Color = SelectedTheme.SliderStroke
+				Slider.Main.Progress.UIStroke.Color = SelectedTheme.SliderStroke
+				Slider.Main.Progress.BackgroundColor3 = SelectedTheme.SliderProgress
+			end)
+
+			return SliderSettings
+		end
+
+		Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
+			TabButton.UIStroke.Color = SelectedTheme.TabStroke
+
+			if Elements.UIPageLayout.CurrentPage == TabPage then
+				TabButton.BackgroundColor3 = SelectedTheme.TabBackgroundSelected
+				TabButton.Image.ImageColor3 = SelectedTheme.SelectedTabTextColor
+				TabButton.Title.TextColor3 = SelectedTheme.SelectedTabTextColor
+			else
+				TabButton.BackgroundColor3 = SelectedTheme.TabBackground
+				TabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
+				TabButton.Title.TextColor3 = SelectedTheme.TabTextColor
+			end
+		end)
+
+		return Tab
+	end
+
+	Elements.Visible = true
+
+	TweenService:Create(Main.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {ImageTransparency = 0.6}):Play()
+
+	Topbar.BackgroundTransparency = 1
+	Topbar.Divider.Size = UDim2.new(0, 0, 0, 1)
+	Topbar.Divider.BackgroundColor3 = SelectedTheme.ElementStroke
+	Topbar.CornerRepair.BackgroundTransparency = 1
+	Topbar.Title.TextTransparency = 1
+	Topbar.Search.ImageTransparency = 1
+	if Topbar:FindFirstChild('Settings') then
+		Topbar.Settings.ImageTransparency = 1
+	end
+	Topbar.ChangeSize.ImageTransparency = 1
+	Topbar.Hide.ImageTransparency = 1
+
+
+	task.wait(0.5)
+	Topbar.Visible = true
+	TweenService:Create(Topbar, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Topbar.CornerRepair, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	task.wait(0.1)
+	TweenService:Create(Topbar.Divider, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, 0, 0, 1)}):Play()
+	TweenService:Create(Topbar.Title, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+	task.wait(0.05)
+	TweenService:Create(Topbar.Search, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {ImageTransparency = 0.8}):Play()
+	task.wait(0.05)
+	if Topbar:FindFirstChild('Settings') then
+		TweenService:Create(Topbar.Settings, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {ImageTransparency = 0.8}):Play()
+		task.wait(0.05)
+	end
+	TweenService:Create(Topbar.ChangeSize, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {ImageTransparency = 0.8}):Play()
+	task.wait(0.05)
+	TweenService:Create(Topbar.Hide, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {ImageTransparency = 0.8}):Play()
+	task.wait(0.3)
+
+	if dragBar then
+		TweenService:Create(dragBarCosmetic, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+	end
+
+	function Window.ModifyTheme(NewTheme)
+		local success = pcall(ChangeTheme, NewTheme)
+		if not success then
+			RayfieldLibrary:Notify({Title = 'Unable to Change Theme', Content = 'We are unable find a theme on file.', Image = 4400704299})
+		else
+			RayfieldLibrary:Notify({Title = 'Theme Changed', Content = 'Successfully changed theme to '..(typeof(NewTheme) == 'string' and NewTheme or 'Custom Theme')..'.', Image = 4483362748})
+		end
+	end
+
+	local success, result = pcall(function()
+		pcall(createGlobalChat, Window)
+		createSettings(Window)
+	end)
+
+	if not success then warn('Rayfield had an issue creating settings.') end
+	snowEnabled = getSetting("System", "snow")
+	updateSnowState()
+
+	-- Report after createSettings so loadSettings() has run and usageAnalytics reflects the user's saved preference
+	if reporter and getSetting("System", "usageAnalytics") then
+		local themeName = "Default"
+		if Settings.Theme then
+			if type(Settings.Theme) == "string" then
+				themeName = Settings.Theme
+			elseif type(Settings.Theme) == "table" then
+				themeName = "Custom"
+			end
+		end
+
+		local discordInvite = nil
+		if Settings.Discord and Settings.Discord.Enabled and Settings.Discord.Invite and Settings.Discord.Invite ~= "" then
+			local raw = tostring(Settings.Discord.Invite)
+			-- Normalize: strip URL prefixes to extract just the invite code
+			discordInvite = (raw:match("discord%.gg/([%w%-]+)") or raw:match("discord%.com/invite/([%w%-]+)") or raw):sub(1, 32)
+		end
+
+		local sampleSend = false
+
+		-- Random Sampling Test
+		if not Settings.ScriptID and math.random() > 0.4 then
+			sampleSend = true
+		end
+
+		--if Settings.ScriptID then
+			reporter:windowCreated({
+				script_name        = Settings.Name or "Unknown",
+				script_version     = Release,
+				interface_version  = InterfaceBuild,
+				theme              = themeName,
+				is_mobile          = useMobileSizing and true or false,
+				has_key_system     = Settings.KeySystem and true or false,
+				discord_invite     = discordInvite,
+				config_saving      = (Settings.ConfigurationSaving and Settings.ConfigurationSaving.Enabled) and true or false,
+				script_id          = Settings.ScriptID or sampleSend and 'sid_tzfyxawonjx9' or nil,
+				verification_token = Settings.VerificationToken,
+			})
+		--end
+	end
+
+	return Window
+end
+
+local function setVisibility(visibility: boolean, notify: boolean?)
+	if Debounce then return end
+	if visibility then
+		Hidden = false
+		Unhide()
+	else
+		Hidden = true
+		Hide(notify)
+	end
+end
+
+function RayfieldLibrary:SetVisibility(visibility: boolean)
+	setVisibility(visibility, false)
+end
+
+function RayfieldLibrary:IsVisible(): boolean
+	return not Hidden
+end
+
+local hideHotkeyConnection -- Has to be initialized here since the connection is made later in the script
+function RayfieldLibrary:Destroy()
+	rayfieldDestroyed = true
+	updateSnowState()
+	if hideHotkeyConnection then
+		hideHotkeyConnection:Disconnect()
+	end
+	for _, connection in keybindConnections do
+		connection:Disconnect()
+	end
+	Rayfield:Destroy()
+end
+
+Topbar.ChangeSize.MouseButton1Click:Connect(function()
+	if Debounce then return end
+	if Minimised then
+		Minimised = false
+		Maximise()
+	else
+		Minimised = true
+		Minimise()
+	end
+end)
+
+Main.Search.Input:GetPropertyChangedSignal('Text'):Connect(function()
+	if #Main.Search.Input.Text > 0 then
+		if not Elements.UIPageLayout.CurrentPage:FindFirstChild('SearchTitle-fsefsefesfsefesfesfThanks') then 
+			local searchTitle = Elements.Template.SectionTitle:Clone()
+			searchTitle.Parent = Elements.UIPageLayout.CurrentPage
+			searchTitle.Name = 'SearchTitle-fsefsefesfsefesfesfThanks'
+			searchTitle.LayoutOrder = -100
+			searchTitle.Title.Text = "Results from '"..Elements.UIPageLayout.CurrentPage.Name.."'"
+			searchTitle.Visible = true
+		end
+	else
+		local searchTitle = Elements.UIPageLayout.CurrentPage:FindFirstChild('SearchTitle-fsefsefesfsefesfesfThanks')
+
+		if searchTitle then
+			searchTitle:Destroy()
+		end
+	end
+
+	for _, element in ipairs(Elements.UIPageLayout.CurrentPage:GetChildren()) do
+		if element.ClassName ~= 'UIListLayout' and element.Name ~= 'Placeholder' and element.Name ~= 'SearchTitle-fsefsefesfsefesfesfThanks' then
+			if element.Name == 'SectionTitle' then
+				if #Main.Search.Input.Text == 0 then
+					element.Visible = true
+				else
+					element.Visible = false
+				end
+			else
+				if string.lower(element.Name):find(string.lower(Main.Search.Input.Text), 1, true) then
+					element.Visible = true
+				else
+					element.Visible = false
+				end
+			end
+		end
+	end
+end)
+
+Main.Search.Input.FocusLost:Connect(function(enterPressed)
+	if #Main.Search.Input.Text == 0 and searchOpen then
+		task.wait(0.12)
+		closeSearch()
+	end
+end)
+
+Topbar.Search.MouseButton1Click:Connect(function()
+	task.spawn(function()
+		if searchOpen then
+			closeSearch()
+		else
+			openSearch()
+		end
+	end)
+end)
+
+if Topbar:FindFirstChild('Settings') then
+	Topbar.Settings.MouseButton1Click:Connect(function()
+		task.spawn(function()
+			for _, OtherTabButton in ipairs(TabList:GetChildren()) do
+				if OtherTabButton.Name ~= "Template" and OtherTabButton.ClassName == "Frame" and OtherTabButton.Name ~= "Placeholder" then
+					TweenService:Create(OtherTabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.TabBackground}):Play()
+					TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextColor3 = SelectedTheme.TabTextColor}):Play()
+					TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageColor3 = SelectedTheme.TabTextColor}):Play()
+					TweenService:Create(OtherTabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+					TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+					TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+					TweenService:Create(OtherTabButton.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				end
+			end
+
+			Elements.UIPageLayout:JumpTo(Elements['Settings'])
+		end)
+	end)
+end
+
+Topbar.Hide.MouseButton1Click:Connect(function()
+	setVisibility(Hidden, not useMobileSizing)
+end)
+
+hideHotkeyConnection = UserInputService.InputBegan:Connect(function(input, processed)
+	if (input.KeyCode == Enum.KeyCode[getSetting("General", "rayfieldOpen")]) and not processed then
+		if Debounce then return end
+		if Hidden then
+			Hidden = false
+			Unhide()
+		else
+			Hidden = true
+			Hide()
+		end
+	end
+end)
+
+if MPrompt then
+	MPrompt.Interact.MouseButton1Click:Connect(function()
+		if Debounce then return end
+		if Hidden then
+			Hidden = false
+			Unhide()
+		end
+	end)
+end
+
+for _, TopbarButton in ipairs(Topbar:GetChildren()) do
+	if TopbarButton.ClassName == "ImageButton" and TopbarButton.Name ~= 'Icon' then
+		TopbarButton.MouseEnter:Connect(function()
+			TweenService:Create(TopbarButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+		end)
+
+		TopbarButton.MouseLeave:Connect(function()
+			TweenService:Create(TopbarButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.8}):Play()
+		end)
+	end
+end
+
+
+function RayfieldLibrary:LoadConfiguration()
+	globalLoaded = true
+end
+
+
+
+if useStudio then
+	-- run w/ studio
+	-- Feel free to place your own script here to see how it'd work in Roblox Studio before running it on your execution software.
+
+
+	--local Window = RayfieldLibrary:CreateWindow({
+	--	Name = "Rayfield Example Window",
+	--	LoadingTitle = "Rayfield Interface Suite",
+	--	Theme = 'Default',
+	--	Icon = 0,
+	--	LoadingSubtitle = "by Sirius",
+	--	ConfigurationSaving = {
+	--		Enabled = true,
+	--		FolderName = nil, -- Create a custom folder for your hub/game
+	--		FileName = "Big Hub52"
+	--	},
+	--	Discord = {
+	--		Enabled = false,
+	--		Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+	--		RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+	--	},
+	--	KeySystem = false, -- Set this to true to use our key system
+	--	KeySettings = {
+	--		Title = "Untitled",
+	--		Subtitle = "Key System",
+	--		Note = "No method of obtaining the key is provided",
+	--		FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+	--		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+	--		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+	--		Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+	--	}
+	--})
+
+	--local Tab = Window:CreateTab("Tab Example", 'key-round') -- Title, Image
+	--local Tab2 = Window:CreateTab("Tab Example 2", 4483362458) -- Title, Image
+
+	--local Section = Tab2:CreateSection("Section")
+
+
+	--local ColorPicker = Tab2:CreateColorPicker({
+	--	Name = "Color Picker",
+	--	Color = Color3.fromRGB(255,255,255),
+	--	Flag = "ColorPicfsefker1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Value)
+	--		-- The function that takes place every time the color picker is moved/changed
+	--		-- The variable (Value) is a Color3fromRGB value based on which color is selected
+	--	end
+	--})
+
+	--local Slider = Tab2:CreateSlider({
+	--	Name = "Slider Example",
+	--	Range = {0, 100},
+	--	Increment = 10,
+	--	Suffix = "Bananas",
+	--	CurrentValue = 40,
+	--	Flag = "Slidefefsr1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Value)
+	--		-- The function that takes place when the slider changes
+	--		-- The variable (Value) is a number which correlates to the value the slider is currently at
+	--	end,
+	--})
+
+	--local Input = Tab2:CreateInput({
+	--	Name = "Input Example",
+	--	CurrentValue = '',
+	--	PlaceholderText = "Input Placeholder",
+	--	Flag = 'dawdawd',
+	--	RemoveTextAfterFocusLost = false,
+	--	Callback = function(Text)
+	--		-- The function that takes place when the input is changed
+	--		-- The variable (Text) is a string for the value in the text box
+	--	end,
+	--})
+
+
+	----RayfieldLibrary:Notify({Title = "Rayfield Interface", Content = "Welcome to Rayfield. These - are the brand new notification design for Rayfield, with custom sizing and Rayfield calculated wait times.", Image = 4483362458})
+
+	--local Section = Tab:CreateSection("Section Example")
+
+	--local Button = Tab:CreateButton({
+	--	Name = "Change Theme",
+	--	Callback = function()
+	--		-- The function that takes place when the button is pressed
+	--		Window.ModifyTheme('DarkBlue')
+	--	end,
+	--})
+
+	--local Toggle = Tab:CreateToggle({
+	--	Name = "Toggle Example",
+	--	CurrentValue = false,
+	--	Flag = "Toggle1adwawd", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Value)
+	--		-- The function that takes place when the toggle is pressed
+	--		-- The variable (Value) is a boolean on whether the toggle is true or false
+	--	end,
+	--})
+
+	--local ColorPicker = Tab:CreateColorPicker({
+	--	Name = "Color Picker",
+	--	Color = Color3.fromRGB(255,255,255),
+	--	Flag = "ColorPicker1awd", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Value)
+	--		-- The function that takes place every time the color picker is moved/changed
+	--		-- The variable (Value) is a Color3fromRGB value based on which color is selected
+	--	end
+	--})
+
+	--local Slider = Tab:CreateSlider({
+	--	Name = "Slider Example",
+	--	Range = {0, 100},
+	--	Increment = 10,
+	--	Suffix = "Bananas",
+	--	CurrentValue = 40,
+	--	Flag = "Slider1dawd", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Value)
+	--		-- The function that takes place when the slider changes
+	--		-- The variable (Value) is a number which correlates to the value the slider is currently at
+	--	end,
+	--})
+
+	--local Input = Tab:CreateInput({
+	--	Name = "Input Example",
+	--	CurrentValue = "Helo",
+	--	PlaceholderText = "Adaptive Input",
+	--	RemoveTextAfterFocusLost = false,
+	--	Flag = 'Input1',
+	--	Callback = function(Text)
+	--		-- The function that takes place when the input is changed
+	--		-- The variable (Text) is a string for the value in the text box
+	--	end,
+	--})
+
+	--local thoptions = {}
+	--for themename, theme in pairs(RayfieldLibrary.Theme) do
+	--	table.insert(thoptions, themename)
+	--end
+
+	--local Dropdown = Tab:CreateDropdown({
+	--	Name = "Theme",
+	--	Options = thoptions,
+	--	CurrentOption = {"Default"},
+	--	MultipleOptions = false,
+	--	Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Options)
+	--		--Window.ModifyTheme(Options[1])
+	--		-- The function that takes place when the selected option is changed
+	--		-- The variable (Options) is a table of strings for the current selected options
+	--	end,
+	--})
+
+
+	--Window.ModifyTheme({
+	--	TextColor = Color3.fromRGB(50, 55, 60),
+	--	Background = Color3.fromRGB(240, 245, 250),
+	--	Topbar = Color3.fromRGB(215, 225, 235),
+	--	Shadow = Color3.fromRGB(200, 210, 220),
+
+	--	NotificationBackground = Color3.fromRGB(210, 220, 230),
+	--	NotificationActionsBackground = Color3.fromRGB(225, 230, 240),
+
+	--	TabBackground = Color3.fromRGB(200, 210, 220),
+	--	TabStroke = Color3.fromRGB(180, 190, 200),
+	--	TabBackgroundSelected = Color3.fromRGB(175, 185, 200),
+	--	TabTextColor = Color3.fromRGB(50, 55, 60),
+	--	SelectedTabTextColor = Color3.fromRGB(30, 35, 40),
+
+	--	ElementBackground = Color3.fromRGB(210, 220, 230),
+	--	ElementBackgroundHover = Color3.fromRGB(220, 230, 240),
+	--	SecondaryElementBackground = Color3.fromRGB(200, 210, 220),
+	--	ElementStroke = Color3.fromRGB(190, 200, 210),
+	--	SecondaryElementStroke = Color3.fromRGB(180, 190, 200),
+
+	--	SliderBackground = Color3.fromRGB(200, 220, 235),  -- Lighter shade
+	--	SliderProgress = Color3.fromRGB(70, 130, 180),
+	--	SliderStroke = Color3.fromRGB(150, 180, 220),
+
+	--	ToggleBackground = Color3.fromRGB(210, 220, 230),
+	--	ToggleEnabled = Color3.fromRGB(70, 160, 210),
+	--	ToggleDisabled = Color3.fromRGB(180, 180, 180),
+	--	ToggleEnabledStroke = Color3.fromRGB(60, 150, 200),
+	--	ToggleDisabledStroke = Color3.fromRGB(140, 140, 140),
+	--	ToggleEnabledOuterStroke = Color3.fromRGB(100, 120, 140),
+	--	ToggleDisabledOuterStroke = Color3.fromRGB(120, 120, 130),
+
+	--	DropdownSelected = Color3.fromRGB(220, 230, 240),
+	--	DropdownUnselected = Color3.fromRGB(200, 210, 220),
+
+	--	InputBackground = Color3.fromRGB(220, 230, 240),
+	--	InputStroke = Color3.fromRGB(180, 190, 200),
+	--	PlaceholderColor = Color3.fromRGB(150, 150, 150)
+	--})
+
+	--local Keybind = Tab:CreateKeybind({
+	--	Name = "Keybind Example",
+	--	CurrentKeybind = "Q",
+	--	HoldToInteract = false,
+	--	Flag = "Keybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Keybind)
+	--		-- The function that takes place when the keybind is pressed
+	--		-- The variable (Keybind) is a boolean for whether the keybind is being held or not (HoldToInteract needs to be true)
+	--	end,
+	--})
+
+	--local Label = Tab:CreateLabel("Label Example")
+
+	--local Label2 = Tab:CreateLabel("Warning", 4483362458, Color3.fromRGB(255, 159, 49),  true)
+
+	--local Paragraph = Tab:CreateParagraph({Title = "Paragraph Example", Content = "Paragraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph Example"})
+end
+
+if CEnabled and Main:FindFirstChild('Notice') then
+	Main.Notice.BackgroundTransparency = 1
+	Main.Notice.Title.TextTransparency = 1
+	Main.Notice.Size = UDim2.new(0, 0, 0, 0)
+	Main.Notice.Position = UDim2.new(0.5, 0, 0, -100)
+	Main.Notice.Visible = true
+
+
+	TweenService:Create(Main.Notice, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {Size = UDim2.new(0, 280, 0, 35), Position = UDim2.new(0.5, 0, 0, -50), BackgroundTransparency = 0.5}):Play()
+	TweenService:Create(Main.Notice.Title, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0.1}):Play()
+end
+-- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA why :(
+--if not useStudio then
+--	task.spawn(loadWithTimeout, "https://raw.githubusercontent.com/SiriusSoftwareLtd/Sirius/refs/heads/request/boost.lua")
+--end
+
+globalLoaded = true
+
+task.delay(4, function()
+	if Main:FindFirstChild('Notice') and Main.Notice.Visible then
+		TweenService:Create(Main.Notice, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {Size = UDim2.new(0, 100, 0, 25), Position = UDim2.new(0.5, 0, 0, -100), BackgroundTransparency = 1}):Play()
+		TweenService:Create(Main.Notice.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+
+		task.wait(0.5)
+		Main.Notice.Visible = false
+	end
+end)
+
+
+return RayfieldLibrary
+                TabPage.Parent = Elements
+
+                -- ===== DK HUB SAFE CUSTOM =====
+                pcall(function()
+                    if Name == "Home" then
+                        for _,v in pairs(TabPage:GetChildren()) do 
+                            if v.ClassName == "Frame" and v.Name ~= "Placeholder" then 
+                                pcall(function() v:Destroy() end)
+                            end 
+                        end
+                        TabPage.ScrollingEnabled = true
+                        TabPage.ScrollBarThickness = 4
+                        TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+                        TabPage.CanvasSize = UDim2.new(0,0,0,0)
+                        TabPage.BackgroundTransparency = 1
+
+                        task.spawn(function()
+                            task.wait(0.3)
+                            if not TabPage or not TabPage.Parent then return end
+                            local ExecName = "Unknown"
+                            pcall(function()
+                                if identifyexecutor then 
+                                    local ok,res = pcall(identifyexecutor) 
+                                    if ok and res and type(res)=="string" then ExecName=res end 
+                                end
+                            end)
+
+                            local Layout = TabPage:FindFirstChildOfClass("UIListLayout")
+                            if not Layout then
+                                Layout = Instance.new("UIListLayout")
+                                Layout.Padding = UDim.new(0,18)
+                                Layout.SortOrder = Enum.SortOrder.LayoutOrder
+                                Layout.Parent = TabPage
+                            end
+
+                            local function card(h)
+                                local f = Instance.new("Frame")
+                                f.Name = "DKCard"
+                                f.Size = UDim2.new(1,-12,0,h)
+                                f.BackgroundColor3 = Color3.fromRGB(21,21,23)
+                                f.BorderSizePixel = 0
+                                f.Parent = TabPage
+                                Instance.new("UICorner", f).CornerRadius = UDim.new(0,14)
+                                return f
+                            end
+
+                            local Discord = card(92)
+                            local DIcon = Instance.new("ImageLabel")
+                            DIcon.Size = UDim2.new(0,48,0,48)
+                            DIcon.Position = UDim2.new(0,16,0,22)
+                            DIcon.BackgroundTransparency = 1
+                            DIcon.Image = "rbxassetid://6031071053"
+                            DIcon.ImageColor3 = Color3.fromRGB(88,101,242)
+                            DIcon.Parent = Discord
+                            local DTitle = Instance.new("TextLabel")
+                            DTitle.Text = "Not in our discord server yet?"
+                            DTitle.Position = UDim2.new(0,76,0,18)
+                            DTitle.Size = UDim2.new(1,-180,0,16)
+                            DTitle.BackgroundTransparency = 1
+                            DTitle.TextColor3 = Color3.fromRGB(235,235,235)
+                            DTitle.Font = Enum.Font.GothamBold
+                            DTitle.TextSize = 13
+                            DTitle.TextXAlignment = Enum.TextXAlignment.Left
+                            DTitle.Parent = Discord
+                            local DSub = Instance.new("TextLabel")
+                            DSub.Text = "Join to suggest features, report bugs,"
+                            DSub.Position = UDim2.new(0,76,0,36)
+                            DSub.Size = UDim2.new(1,-180,0,32)
+                            DSub.BackgroundTransparency = 1
+                            DSub.TextColor3 = Color3.fromRGB(130,130,135)
+                            DSub.Font = Enum.Font.Gotham
+                            DSub.TextSize = 11
+                            DSub.TextXAlignment = Enum.TextXAlignment.Left
+                            DSub.Parent = Discord
+                            local JoinBtn = Instance.new("TextButton")
+                            JoinBtn.Size = UDim2.new(0,104,0,36)
+                            JoinBtn.Position = UDim2.new(1,-116,0.5,-18)
+                            JoinBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
+                            JoinBtn.BorderSizePixel = 0
+                            JoinBtn.Text = "Join discord"
+                            JoinBtn.TextColor3 = Color3.new(1,1,1)
+                            JoinBtn.Font = Enum.Font.GothamBold
+                            JoinBtn.TextSize = 12
+                            JoinBtn.Parent = Discord
+                            Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0,12)
+                            JoinBtn.MouseButton1Click:Connect(function()
+                                if setclipboard then setclipboard("https://discord.gg/xpress") end
+                            end)
+
+                            local ExecF = card(84)
+                            local ETitle = Instance.new("TextLabel")
+                            ETitle.Text = "Executor: "..tostring(ExecName)
+                            ETitle.Position = UDim2.new(0,18,0,18)
+                            ETitle.Size = UDim2.new(1,-20,0,16)
+                            ETitle.BackgroundTransparency = 1
+                            ETitle.TextColor3 = Color3.fromRGB(235,235,235)
+                            ETitle.Font = Enum.Font.GothamBold
+                            ETitle.TextSize = 13
+                            ETitle.TextXAlignment = Enum.TextXAlignment.Left
+                            ETitle.Parent = ExecF
+                            local Dot = Instance.new("Frame")
+                            Dot.Size = UDim2.new(0,10,0,10)
+                            Dot.Position = UDim2.new(0,18,0,46)
+                            Dot.BackgroundColor3 = Color3.fromRGB(60,220,120)
+                            Dot.BorderSizePixel = 0
+                            Dot.Parent = ExecF
+                            Instance.new("UICorner", Dot).CornerRadius = UDim.new(1,0)
+                            local ESub = Instance.new("TextLabel")
+                            ESub.Text = "Fully supported executor."
+                            ESub.Position = UDim2.new(0,34,0,42)
+                            ESub.Size = UDim2.new(1,-40,0,16)
+                            ESub.BackgroundTransparency = 1
+                            ESub.TextColor3 = Color3.fromRGB(60,220,120)
+                            ESub.Font = Enum.Font.GothamMedium
+                            ESub.TextSize = 12
+                            ESub.TextXAlignment = Enum.TextXAlignment.Left
+                            ESub.Parent = ExecF
+
+                            local PerfLabel = Instance.new("TextLabel")
+                            PerfLabel.Text = "PERFORMANCE"
+                            PerfLabel.Size = UDim2.new(1,-12,0,14)
+                            PerfLabel.BackgroundTransparency = 1
+                            PerfLabel.TextColor3 = Color3.fromRGB(180,180,185)
+                            PerfLabel.Font = Enum.Font.GothamBold
+                            PerfLabel.TextSize = 11
+                            PerfLabel.TextXAlignment = Enum.TextXAlignment.Left
+                            PerfLabel.Parent = TabPage
+
+                            local PerfOuter = card(88)
+                            local function icard(p,h)
+                                local f = Instance.new("Frame")
+                                f.Size = UDim2.new(1,0,0,h)
+                                f.BackgroundColor3 = Color3.fromRGB(16,16,18)
+                                f.BorderSizePixel = 0
+                                f.Parent = p
+                                Instance.new("UICorner", f).CornerRadius = UDim.new(0,12)
+                                return f
+                            end
+                            local FPSCard = icard(PerfOuter, 68)
+                            FPSCard.Size = UDim2.new(0.5,-18,0,68)
+                            FPSCard.Position = UDim2.new(0,10,0,10)
+                            local FPST = Instance.new("TextLabel")
+                            FPST.Text = "FPS: 60"
+                            FPST.Position = UDim2.new(0,24,0,14)
+                            FPST.Size = UDim2.new(1,-30,0,16)
+                            FPST.BackgroundTransparency = 1
+                            FPST.TextColor3 = Color3.fromRGB(240,240,240)
+                            FPST.Font = Enum.Font.GothamBold
+                            FPST.TextSize = 13
+                            FPST.TextXAlignment = Enum.TextXAlignment.Left
+                            FPST.Parent = FPSCard
+                            local PingCard = icard(PerfOuter, 68)
+                            PingCard.Size = UDim2.new(0.5,-18,0,68)
+                            PingCard.Position = UDim2.new(0.5,8,0,10)
+                            local PingT = Instance.new("TextLabel")
+                            PingT.Text = "Ping: 0 ms"
+                            PingT.Position = UDim2.new(0,24,0,14)
+                            PingT.Size = UDim2.new(1,-30,0,16)
+                            PingT.BackgroundTransparency = 1
+                            PingT.TextColor3 = Color3.fromRGB(240,240,240)
+                            PingT.Font = Enum.Font.GothamBold
+                            PingT.TextSize = 13
+                            PingT.TextXAlignment = Enum.TextXAlignment.Left
+                            PingT.Parent = PingCard
+                        end)
+                    end
+
+                    if Name == "Players" then
+                        for _,v in pairs(TabPage:GetChildren()) do 
+                            if v.ClassName == "Frame" and v.Name ~= "Placeholder" then 
+                                pcall(function() v:Destroy() end)
+                            end 
+                        end
+                        TabPage.ScrollingEnabled = false
+                        TabPage.CanvasSize = UDim2.new(0,0,0,0)
+                        TabPage.BackgroundTransparency = 1
+                        task.spawn(function()
+                            task.wait(0.3)
+                            if not TabPage or not TabPage.Parent then return end
+                            local PlayersService = game:GetService("Players")
+                            local LP = PlayersService.LocalPlayer
+                            local TweenService = game:GetService("TweenService")
+                            local RunService = game:GetService("RunService")
+
+                            local Main = Instance.new("Frame")
+                            Main.Name = "PlayersMain"
+                            Main.Size = UDim2.new(1,-4,0,335)
+                            Main.BackgroundColor3 = Color3.fromRGB(22,22,24)
+                            Main.BorderSizePixel = 0
+                            Main.Parent = TabPage
+                            Instance.new("UICorner", Main).CornerRadius = UDim.new(0,8)
+
+                            local SearchHolder = Instance.new("Frame")
+                            SearchHolder.Size = UDim2.new(1,-16,0,30)
+                            SearchHolder.Position = UDim2.new(0,8,0,8)
+                            SearchHolder.BackgroundColor3 = Color3.fromRGB(28,28,31)
+                            SearchHolder.BorderSizePixel = 0
+                            SearchHolder.Parent = Main
+                            Instance.new("UICorner", SearchHolder).CornerRadius = UDim.new(0,7)
+
+                            local Search = Instance.new("TextBox")
+                            Search.Size = UDim2.new(1,-32,1,0)
+                            Search.Position = UDim2.new(0,32,0,0)
+                            Search.BackgroundTransparency = 1
+                            Search.Text = ""
+                            Search.PlaceholderText = "Search..."
+                            Search.TextColor3 = Color3.fromRGB(230,230,230)
+                            Search.PlaceholderColor3 = Color3.fromRGB(90,90,95)
+                            Search.Font = Enum.Font.Gotham
+                            Search.TextSize = 12
+                            Search.TextXAlignment = Enum.TextXAlignment.Left
+                            Search.ClearTextOnFocus = false
+                            Search.Parent = SearchHolder
+
+                            local Header = Instance.new("Frame")
+                            Header.Size = UDim2.new(1,-16,0,14)
+                            Header.Position = UDim2.new(0,12,0,44)
+                            Header.BackgroundTransparency = 1
+                            Header.Parent = Main
+                            for i,txt in ipairs({"Username","Team","Health"}) do
+                                local l = Instance.new("TextLabel")
+                                l.Text = txt
+                                l.Position = UDim2.new(i==1 and 0 or i==2 and 0.38 or 0.72,0,0,0)
+                                l.Size = UDim2.new(0.3,0,1,0)
+                                l.BackgroundTransparency = 1
+                                l.TextColor3 = Color3.fromRGB(110,110,115)
+                                l.Font = Enum.Font.GothamMedium
+                                l.TextSize = 10
+                                l.TextXAlignment = Enum.TextXAlignment.Left
+                                l.Parent = Header
+                            end
+
+                            local List = Instance.new("ScrollingFrame")
+                            List.Name = "PlayerList"
+                            List.Size = UDim2.new(1,-16,0,165)
+                            List.Position = UDim2.new(0,8,0,60)
+                            List.BackgroundTransparency = 1
+                            List.CanvasSize = UDim2.new(0,0,0,0)
+                            List.ScrollBarThickness = 2
+                            List.ScrollBarImageColor3 = Color3.fromRGB(60,60,60)
+                            List.Parent = Main
+                            local ll = Instance.new("UIListLayout")
+                            ll.Padding = UDim.new(0,2)
+                            ll.Parent = List
+
+                            local Bottom = Instance.new("Frame")
+                            Bottom.Size = UDim2.new(1,-16,0,60)
+                            Bottom.Position = UDim2.new(0,8,0,233)
+                            Bottom.BackgroundColor3 = Color3.fromRGB(28,28,31)
+                            Bottom.BorderSizePixel = 0
+                            Bottom.Parent = Main
+                            Instance.new("UICorner", Bottom).CornerRadius = UDim.new(0,7)
+
+                            local Avatar = Instance.new("ImageLabel")
+                            Avatar.Size = UDim2.new(0,36,0,36)
+                            Avatar.Position = UDim2.new(0,8,0,8)
+                            Avatar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+                            Avatar.BorderSizePixel = 0
+                            Avatar.Parent = Bottom
+                            Instance.new("UICorner", Avatar).CornerRadius = UDim.new(0,6)
+
+                            local NameLabel = Instance.new("TextLabel")
+                            NameLabel.Position = UDim2.new(0,52,0,4)
+                            NameLabel.Size = UDim2.new(1,-60,0,12)
+                            NameLabel.BackgroundTransparency = 1
+                            NameLabel.Text = "Select a player"
+                            NameLabel.TextColor3 = Color3.fromRGB(230,230,230)
+                            NameLabel.Font = Enum.Font.GothamBold
+                            NameLabel.TextSize = 11
+                            NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+                            NameLabel.Parent = Bottom
+
+                            local IDLabel = Instance.new("TextLabel")
+                            IDLabel.Position = UDim2.new(0,52,0,18)
+                            IDLabel.Size = UDim2.new(1,-60,0,10)
+                            IDLabel.BackgroundTransparency = 1
+                            IDLabel.Text = "ID: -"
+                            IDLabel.TextColor3 = Color3.fromRGB(115,115,120)
+                            IDLabel.Font = Enum.Font.Gotham
+                            IDLabel.TextSize = 9
+                            IDLabel.TextXAlignment = Enum.TextXAlignment.Left
+                            IDLabel.Parent = Bottom
+
+                            local AgeLabel = Instance.new("TextLabel")
+                            AgeLabel.Position = UDim2.new(0,52,0,30)
+                            AgeLabel.Size = UDim2.new(1,-60,0,10)
+                            AgeLabel.BackgroundTransparency = 1
+                            AgeLabel.Text = "Account Age: -"
+                            AgeLabel.TextColor3 = Color3.fromRGB(115,115,120)
+                            AgeLabel.Font = Enum.Font.Gotham
+                            AgeLabel.TextSize = 9
+                            AgeLabel.TextXAlignment = Enum.TextXAlignment.Left
+                            AgeLabel.Parent = Bottom
+
+                            local selected = nil
+                            local selectedRow = nil
+                            local ExternalGui = nil
+
+                            local function refresh()
+                                if not List or not List.Parent then return end
+                                local st = ""
+                                pcall(function() st = Search.Text:lower():gsub("%s+","") end)
+                                for _,c in pairs(List:GetChildren()) do
+                                    if c:IsA("Frame") then c:Destroy() end
+                                end
+                                local y = 0
+                                for _,plr in pairs(PlayersService:GetPlayers()) do
+                                    local okMatch = true
+                                    if st~="" then
+                                        okMatch = plr.Name:lower():find(st,1,true) or plr.DisplayName:lower():find(st,1,true)
+                                    end
+                                    if okMatch then
+                                        local row = Instance.new("Frame")
+                                        row.Size = UDim2.new(1,0,0,22)
+                                        row.BackgroundColor3 = (selected and selected==plr) and Color3.fromRGB(55,55,60) or Color3.fromRGB(22,22,24)
+                                        row.BorderSizePixel = 0
+                                        row.Parent = List
+                                        Instance.new("UICorner", row).CornerRadius = UDim.new(0,4)
+                                        local n = Instance.new("TextLabel")
+                                        n.Position = UDim2.new(0,8,0,0)
+                                        n.Size = UDim2.new(0.38,0,1,0)
+                                        n.BackgroundTransparency = 1
+                                        n.Text = plr.Name
+                                        n.TextColor3 = Color3.fromRGB(210,210,215)
+                                        n.Font = Enum.Font.Gotham
+                                        n.TextSize = 11
+                                        n.TextXAlignment = Enum.TextXAlignment.Left
+                                        n.Parent = row
+                                        local b = Instance.new("TextButton")
+                                        b.Size = UDim2.new(1,0,1,0)
+                                        b.BackgroundTransparency = 1
+                                        b.Text = ""
+                                        b.Parent = row
+                                        b.MouseButton1Click:Connect(function()
+                                            selected = plr
+                                            selectedRow = row
+                                            NameLabel.Text = plr.Name
+                                            IDLabel.Text = "ID: "..plr.UserId
+                                            AgeLabel.Text = "Age: "..plr.AccountAge.." days"
+                                            Avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..plr.UserId.."&w=150&h=150"
+                                        end)
+                                        y += 24
+                                    end
+                                end
+                                List.CanvasSize = UDim2.new(0,0,0,y)
+                            end
+
+                            Search:GetPropertyChangedSignal("Text"):Connect(function() pcall(refresh) end)
+                            PlayersService.PlayerAdded:Connect(function() pcall(refresh) end)
+                            PlayersService.PlayerRemoving:Connect(function() pcall(refresh) end)
+                            pcall(refresh)
+                        end)
+                    end
+                end)
+
+                if not FirstTab and not Ext then
