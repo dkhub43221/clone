@@ -4364,7 +4364,6 @@ end
     SliderSettings.CurrentValue = SliderSettings.CurrentValue or 50
     SliderSettings.Callback = SliderSettings.Callback or function() end
 
-    -- Build fresh frame, don't use broken template
     local Slider = Instance.new("Frame")
     Slider.Name = SliderSettings.Name
     Slider.Size = UDim2.new(1, 0, 0, 50)
@@ -4388,15 +4387,18 @@ end
     Title.Position = UDim2.new(0, 10, 0, 5)
     Title.Size = UDim2.new(0.6, 0, 0, 18)
 
-    local ValueLabel = Instance.new("TextLabel", Slider)
-    ValueLabel.Font = Enum.Font.GothamBold
-    ValueLabel.TextSize = 13
-    ValueLabel.TextColor3 = Color3.fromRGB(200,200,200)
-    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    ValueLabel.BackgroundTransparency = 1
-    ValueLabel.Position = UDim2.new(0, 0, 0, 5)
-    ValueLabel.Size = UDim2.new(1, -10, 0, 18)
-    ValueLabel.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
+    -- Typable Value Box
+    local ValueBox = Instance.new("TextBox", Slider)
+    ValueBox.Font = Enum.Font.GothamBold
+    ValueBox.TextSize = 13
+    ValueBox.TextColor3 = Color3.fromRGB(200,200,200)
+    ValueBox.TextXAlignment = Enum.TextXAlignment.Right
+    ValueBox.BackgroundTransparency = 1
+    ValueBox.Position = UDim2.new(0, 0, 0, 5)
+    ValueBox.Size = UDim2.new(1, -10, 0, 18)
+    ValueBox.Text = tostring(SliderSettings.CurrentValue)
+    ValueBox.ClearTextOnFocus = false
+    ValueBox.ClipsDescendants = true
 
     local Track = Instance.new("Frame", Slider)
     Track.Name = "Track"
@@ -4404,20 +4406,37 @@ end
     Track.Position = UDim2.new(0, 10, 0, 30)
     Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Track.BorderSizePixel = 0
-    Track.ClipsDescendants = true
+    Track.ClipsDescendants = false -- IMPORTANT for dot
     Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
 
     local Progress = Instance.new("Frame", Track)
     Progress.Name = "Progress"
     Progress.Size = UDim2.new(0, 0, 1, 0)
-    Progress.BackgroundColor3 = Color3.fromRGB(225, 0, 0) -- valry red, change to white if you want old style
+    Progress.BackgroundColor3 = Color3.fromRGB(225, 0, 0)
     Progress.BorderSizePixel = 0
+    Progress.ZIndex = 1
     Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
+
+    -- White Dot / Knob
+    local Dot = Instance.new("Frame", Track)
+    Dot.Name = "Dot"
+    Dot.Size = UDim2.new(0, 14, 0, 14)
+    Dot.AnchorPoint = Vector2.new(0.5, 0.5)
+    Dot.Position = UDim2.new(0, 0, 0.5, 0)
+    Dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Dot.BorderSizePixel = 0
+    Dot.ZIndex = 2
+    Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
+    local dotStroke = Instance.new("UIStroke", Dot)
+    dotStroke.Color = Color3.fromRGB(0,0,0)
+    dotStroke.Thickness = 1
+    dotStroke.Transparency = 0.7
 
     local Interact = Instance.new("TextButton", Track)
     Interact.Size = UDim2.new(1, 0, 1, 0)
     Interact.BackgroundTransparency = 1
     Interact.Text = ""
+    Interact.ZIndex = 3
 
     local function GetValue(x)
         local pos = math.clamp(x - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
@@ -4428,14 +4447,39 @@ end
     end
 
     local function Update(val, fromInput)
+        val = math.clamp(val, SliderSettings.Range[1], SliderSettings.Range[2])
         local p = (val - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])
         Progress.Size = UDim2.new(p, 0, 1, 0)
-        ValueLabel.Text = tostring(val)..SliderSettings.Suffix
+        Dot.Position = UDim2.new(p, 0, 0.5, 0)
+        -- Don't overwrite TextBox while user is typing
+        if not ValueBox:IsFocused() then
+            ValueBox.Text = tostring(val)..SliderSettings.Suffix
+        end
         if fromInput then
             pcall(SliderSettings.Callback, val)
             SliderSettings.CurrentValue = val
+        else
+            SliderSettings.CurrentValue = val
         end
     end
+
+    -- Typing logic
+    ValueBox.FocusLost:Connect(function(enterPressed)
+        local raw = ValueBox.Text:gsub(SliderSettings.Suffix, ""):gsub("%s+", "")
+        local num = tonumber(raw)
+        if num then
+            num = math.floor(num / SliderSettings.Increment + 0.5) * SliderSettings.Increment
+            Update(math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2]), true)
+        else
+            -- reset if invalid
+            ValueBox.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
+        end
+    end)
+
+    ValueBox.Focused:Connect(function()
+        -- show just number for editing
+        ValueBox.Text = tostring(SliderSettings.CurrentValue)
+    end)
 
     Update(SliderSettings.CurrentValue, false)
 
