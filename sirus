@@ -2720,7 +2720,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-function Tab:CreatePlayerList()
+Tab.CreatePlayerList = function(self)
     local Players = game:GetService("Players")
     local TweenService = game:GetService("TweenService")
     local CoreGui = game:GetService("CoreGui")
@@ -2730,7 +2730,6 @@ function Tab:CreatePlayerList()
     local Main = Instance.new("Frame", self.Page)
     Main.Size = UDim2.new(1,-4,0,335)
     Main.BackgroundColor3=Color3.fromRGB(22,22,24)
-    Main.ClipsDescendants=false
     Instance.new("UICorner", Main).CornerRadius=UDim.new(0,8)
     Instance.new("UIStroke", Main).Color=Color3.fromRGB(38,38,42)
 
@@ -2823,14 +2822,15 @@ function Tab:CreatePlayerList()
     AgeLabel.TextSize=9
     AgeLabel.TextXAlignment=Enum.TextXAlignment.Left
 
-    local selected,selectedRow,ExternalGui,loopTPConn,loopBringConn=nil,nil,nil
+    local selected,selectedRow,ExternalGui,loopTPConn,loopBringConn=nil,nil,nil,nil,nil
 
     local function createToolsGui()
         if ExternalGui then ExternalGui:Destroy() end
-        local sg=Instance.new("ScreenGui",CoreGui)
+        local sg=Instance.new("ScreenGui")
         sg.Name="DKToolsFinal"
         sg.ResetOnSpawn=false
         sg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+        sg.Parent=CoreGui
         ExternalGui=sg
         local Popup=Instance.new("Frame",sg)
         Popup.Size=UDim2.new(0,170,0,125)
@@ -2888,36 +2888,27 @@ function Tab:CreatePlayerList()
             local on=false
             btn.MouseButton1Click:Connect(function()
                 on=not on
-                if on then
-                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(220,220,220)}):Play()
-                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(1,-9,0,2)}):Play()
-                else
-                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(50,50,55)}):Play()
-                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(0,2,0,2)}):Play()
-                end
+                TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=on and Color3.fromRGB(220,220,220) or Color3.fromRGB(50,50,55)}):Play()
+                TweenService:Create(d,TweenInfo.new(0.12),{Position=on and UDim2.new(1,-9,0,2) or UDim2.new(0,2,0,2)}):Play()
             end)
             return {btn=btn, get=function() return on end}
-        end
-        local function addBtn(txt,y)
-            local b=Instance.new("TextButton",Popup)
-            b.Size=UDim2.new(1,-8,0,20)
-            b.Position=UDim2.new(0,4,0,y)
-            b.BackgroundColor3=Color3.fromRGB(32,32,36)
-            b.Text=txt
-            b.TextColor3=Color3.fromRGB(200,200,205)
-            b.Font=Enum.Font.Gotham
-            b.TextSize=10
-            Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
-            return b
         end
         local spec=addToggle("Spectate",24)
         local ltp=addToggle("Loop TP to Player",44)
         local lbring=addToggle("Loop Bring to you",64)
-        local tp=addBtn("Teleport to Player",86)
+        local tp=Instance.new("TextButton",Popup)
+        tp.Size=UDim2.new(1,-8,0,20)
+        tp.Position=UDim2.new(0,4,0,86)
+        tp.BackgroundColor3=Color3.fromRGB(32,32,36)
+        tp.Text="Teleport to Player"
+        tp.TextColor3=Color3.fromRGB(200,200,205)
+        tp.Font=Enum.Font.Gotham
+        tp.TextSize=10
+        Instance.new("UICorner",tp).CornerRadius=UDim.new(0,5)
         spec.btn.MouseButton1Click:Connect(function() task.wait(0.11) if spec.get() then if selected and selected.Character and selected.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=selected.Character.Humanoid end else if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end end end)
         ltp.btn.MouseButton1Click:Connect(function() task.wait(0.11) if ltp.get() then loopTPConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,2) end end) else if loopTPConn then loopTPConn:Disconnect() end end end)
         lbring.btn.MouseButton1Click:Connect(function() task.wait(0.11) if lbring.get() then loopBringConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then selected.Character.HumanoidRootPart.CFrame=LP.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,3) end end) else if loopBringConn then loopBringConn:Disconnect() end end end)
-        tp.MouseButton1Click:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame end end)
+        tp.MouseButton1Click:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame end end)
         Close.MouseButton1Click:Connect(function() if loopTPConn then loopTPConn:Disconnect() end if loopBringConn then loopBringConn:Disconnect() end if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end sg:Destroy() ExternalGui=nil end)
     end
 
@@ -2984,7 +2975,7 @@ function Tab:CreatePlayerList()
     task.spawn(function() while Main.Parent do pcall(refresh) task.wait(1) end if ExternalGui then ExternalGui:Destroy() end end)
     refresh()
     return Main
-end,
+end
 
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
