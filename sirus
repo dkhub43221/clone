@@ -2720,7 +2720,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-        function Tab:CreatePlayerList(Settings)
+       function Tab:CreatePlayerList(Settings)
     Settings = Settings or {}
     local PlayerList = {}
 
@@ -2730,6 +2730,7 @@ function RayfieldLibrary:CreateWindow(Settings)
     Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     Main.BorderSizePixel = 0
     Main.Parent = TabPage
+    Main.ClipsDescendants = false -- FIX: allow popup to show outside
     Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 6)
     Instance.new("UIStroke", Main).Color = Color3.fromRGB(45,45,45)
 
@@ -2778,6 +2779,7 @@ function RayfieldLibrary:CreateWindow(Settings)
     List.BackgroundTransparency = 1
     List.CanvasSize = UDim2.new(0,0,0,0)
     List.ScrollBarThickness = 2
+    List.ClipsDescendants = false
     Instance.new("UIListLayout", List).Padding = UDim.new(0, 2)
 
     -- BOTTOM
@@ -2800,6 +2802,7 @@ function RayfieldLibrary:CreateWindow(Settings)
     NameLabel.Font=Enum.Font.GothamBold
     NameLabel.TextSize=12
     NameLabel.TextXAlignment=Enum.TextXAlignment.Left
+    NameLabel.TextTruncate = Enum.TextTruncate.AtEnd
     local IDLabel=Instance.new("TextLabel", Bottom)
     IDLabel.Position=UDim2.new(0,62,0,26)
     IDLabel.Size=UDim2.new(0.5,0,0,14)
@@ -2838,20 +2841,23 @@ function RayfieldLibrary:CreateWindow(Settings)
     ToggleDot.Position=UDim2.new(0,2,0,2)
     ToggleDot.BackgroundColor3=Color3.fromRGB(255,255,255)
     Instance.new("UICorner", ToggleDot).CornerRadius=UDim.new(1,0)
-    local ToggleBtn=Instance.new("TextButton", ToggleBack)
-    ToggleBtn.Size=UDim2.new(1,0,1,0)
+    local ToggleBtn=Instance.new("TextButton", Bottom) -- FIX: bigger click area
+    ToggleBtn.Size=UDim2.new(0,125,0,30)
+    ToggleBtn.Position=UDim2.new(1,-125,0,28)
     ToggleBtn.BackgroundTransparency=1
     ToggleBtn.Text=""
+    ToggleBtn.ZIndex = 5
 
-    -- PLAYER TOOLS POPUP - EXACT IY
+    -- POPUP - parent to TabPage so it doesn't get clipped
     local Popup = Instance.new("Frame")
     Popup.Name = "PlayerToolsPopup"
     Popup.Size = UDim2.new(0, 230, 0, 320)
-    Popup.Position = UDim2.new(1, 10, 0, 0)
+    Popup.Position = UDim2.new(0, 300, 0, 0) -- FIX: to the right of main
     Popup.BackgroundColor3 = Color3.fromRGB(25,25,25)
     Popup.BorderSizePixel = 0
     Popup.Visible = false
-    Popup.Parent = Main
+    Popup.Parent = TabPage
+    Popup.ZIndex = 10
     Instance.new("UICorner", Popup).CornerRadius = UDim.new(0, 6)
     local pStroke = Instance.new("UIStroke", Popup)
     pStroke.Color = Color3.fromRGB(60,60,60)
@@ -2958,7 +2964,8 @@ function RayfieldLibrary:CreateWindow(Settings)
 
     -- LOGIC
     local selected = nil
-    local loopTPConn, loopBringConn, spectating = nil, nil, false
+    local selectedRow = nil
+    local loopTPConn, loopBringConn = nil, nil
 
     tpBtn.MouseButton1Click:Connect(function()
         if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -2966,61 +2973,10 @@ function RayfieldLibrary:CreateWindow(Settings)
         end
     end)
 
-    spec.btn.MouseButton1Click:Connect(function()
-        task.wait(0.1)
-        if spec.get() then
-            if selected then
-                workspace.CurrentCamera.CameraSubject = selected.Character:FindFirstChild("Humanoid") or selected.Character
-                spectating = true
-            end
-        else
-            workspace.CurrentCamera.CameraSubject = Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-            spectating = false
-        end
-    end)
-
-    loopTP.btn.MouseButton1Click:Connect(function()
-        task.wait(0.1)
-        if loopTP.get() then
-            loopTPConn = task.spawn(function()
-                while loopTP.get() and selected do
-                    if selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selected.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2)
-                    end
-                    task.wait(0.05)
-                end
-            end)
-        else
-            if loopTPConn then task.cancel(loopTPConn) end
-        end
-    end)
-
-    loopBring.btn.MouseButton1Click:Connect(function()
-        task.wait(0.1)
-        if loopBring.get() then
-            loopBringConn = task.spawn(function()
-                while loopBring.get() and selected do
-                    if selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        selected.Character.HumanoidRootPart.CFrame = Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
-                    end
-                    task.wait(0.05)
-                end
-            end)
-        else
-            if loopBringConn then task.cancel(loopBringConn) end
-        end
-    end)
-
-    viewBtn.MouseButton1Click:Connect(function()
-        if backpackBtn.Text:find("Backpack") then
-            backpackBtn.Text = "Backpack has: Fist, Phone, etc"
-        end
-    end)
-
     CloseBtn.MouseButton1Click:Connect(function()
         Popup.Visible = false
-        ToggleBack.BackgroundColor3 = Color3.fromRGB(60,60,60)
-        ToggleDot.Position = UDim2.new(0,2,0,2)
+        TweenService:Create(ToggleBack,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(60,60,60)}):Play()
+        TweenService:Create(ToggleDot,TweenInfo.new(0.15),{Position=UDim2.new(0,2,0,2)}):Play()
     end)
 
     ToggleBtn.MouseButton1Click:Connect(function()
@@ -3043,6 +2999,7 @@ function RayfieldLibrary:CreateWindow(Settings)
                 row.Name="Row"
                 row.Size=UDim2.new(1,0,0,24)
                 row.BackgroundColor3=Color3.fromRGB(25,25,25)
+                row.BorderSizePixel=0
                 Instance.new("UICorner", row).CornerRadius=UDim.new(0,4)
                 local n=Instance.new("TextLabel", row)
                 n.Text=plr.Name
@@ -3076,6 +3033,13 @@ function RayfieldLibrary:CreateWindow(Settings)
                 btn.BackgroundTransparency=1
                 btn.Text=""
                 btn.MouseButton1Click:Connect(function()
+                    -- GREY HIGHLIGHT - exact IY
+                    if selectedRow then
+                        TweenService:Create(selectedRow, TweenInfo.new(0.15), {BackgroundColor3=Color3.fromRGB(25,25,25)}):Play()
+                    end
+                    selectedRow = row
+                    TweenService:Create(row, TweenInfo.new(0.15), {BackgroundColor3=Color3.fromRGB(65,65,65)}):Play()
+                    
                     selected=plr
                     NameLabel.Text=plr.Name.." (@"..plr.DisplayName..")"
                     IDLabel.Text="User ID: "..plr.UserId
@@ -3099,7 +3063,7 @@ function RayfieldLibrary:CreateWindow(Settings)
     Search:GetPropertyChangedSignal("Text"):Connect(refresh)
     refresh()
     return PlayerList
-end
+end,
                 
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
