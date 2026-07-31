@@ -4364,97 +4364,81 @@ function Tab:CreateSlider(SliderSettings)
     SliderSettings.CurrentValue = SliderSettings.CurrentValue or 50
     SliderSettings.Callback = SliderSettings.Callback or function() end
 
-    -- THEME SUPPORT
-    local Theme = SliderSettings.Theme or (getgenv().Library and getgenv().Library.Theme) or (getgenv().Theme) or {
-        Background = Color3.fromRGB(30,30,30),
-        Stroke = Color3.fromRGB(50,50,50),
-        Text = Color3.fromRGB(220,220,220),
-        Track = Color3.fromRGB(45,45,45),
-        Progress = Color3.fromRGB(225, 0, 0),
-        Dot = Color3.fromRGB(255,255,255)
-    }
-
     local Slider = Instance.new("Frame")
     Slider.Name = SliderSettings.Name
-    Slider.Size = UDim2.new(1, 0, 0, 54)
-    Slider.BackgroundColor3 = Theme.Background
+    Slider.Size = UDim2.new(1, 0, 0, 40) -- SAME SIZE AS TOGGLE
+    Slider.BackgroundColor3 = Color3.fromRGB(30,30,30)
     Slider.BorderSizePixel = 0
     Slider.Parent = TabPage
-    Slider.ClipsDescendants = false
-    Instance.new("UICorner", Slider).CornerRadius = UDim.new(0, 8)
+    Slider.ClipsDescendants = true
+    Instance.new("UICorner", Slider).CornerRadius = UDim.new(0, 6)
     local stroke = Instance.new("UIStroke", Slider)
-    stroke.Color = Theme.Stroke
+    stroke.Color = Color3.fromRGB(35, 95, 45) -- same green outline as your Speed Boost toggle
     stroke.Thickness = 1
 
     local Title = Instance.new("TextLabel", Slider)
     Title.Text = SliderSettings.Name
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 13
-    Title.TextColor3 = Theme.Text
+    Title.TextColor3 = Color3.fromRGB(220,220,220)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 12, 0, 6)
-    Title.Size = UDim2.new(0.5, 0, 0, 18)
+    Title.Position = UDim2.new(0, 12, 0, 4)
+    Title.Size = UDim2.new(0.5, 0, 0, 16)
 
     local ValueBox = Instance.new("TextBox", Slider)
     ValueBox.Font = Enum.Font.GothamBold
     ValueBox.TextSize = 13
-    ValueBox.TextColor3 = Theme.Text
+    ValueBox.TextColor3 = Color3.fromRGB(200,200,200)
     ValueBox.TextXAlignment = Enum.TextXAlignment.Right
     ValueBox.BackgroundTransparency = 1
-    ValueBox.Position = UDim2.new(0.5, 0, 0, 6)
-    ValueBox.Size = UDim2.new(0.5, -12, 0, 18)
+    ValueBox.Position = UDim2.new(0.5, 0, 0, 4)
+    ValueBox.Size = UDim2.new(0.5, -12, 0, 16)
     ValueBox.Text = tostring(SliderSettings.CurrentValue)..SliderSettings.Suffix
     ValueBox.ClearTextOnFocus = true
 
-    local TrackContainer = Instance.new("Frame", Slider)
-    TrackContainer.Size = UDim2.new(1, -24, 0, 20)
-    TrackContainer.Position = UDim2.new(0, 12, 0, 28)
-    TrackContainer.BackgroundTransparency = 1
-    TrackContainer.ClipsDescendants = false
-
-    local Track = Instance.new("Frame", TrackContainer)
-    Track.Size = UDim2.new(1, 0, 0, 6)
-    Track.Position = UDim2.new(0, 0, 0.5, 0)
-    Track.AnchorPoint = Vector2.new(0, 0.5)
-    Track.BackgroundColor3 = Theme.Track
+    local Track = Instance.new("Frame", Slider)
+    Track.Name = "Track"
+    Track.Size = UDim2.new(1, -24, 0, 4) -- nice thin line
+    Track.Position = UDim2.new(0, 12, 0, 26) -- centered in box like toggle
+    Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Track.BorderSizePixel = 0
-    Track.ClipsDescendants = false
     Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
 
     local Progress = Instance.new("Frame", Track)
+    Progress.Name = "Progress"
     Progress.Size = UDim2.new(0, 0, 1, 0)
-    Progress.BackgroundColor3 = Theme.Progress
+    Progress.BackgroundColor3 = Color3.fromRGB(77, 251, 16) -- DK GREEN not red
     Progress.BorderSizePixel = 0
-    Progress.ZIndex = 1
     Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
 
     local Dot = Instance.new("Frame", Track)
-    Dot.Size = UDim2.new(0, 14, 0, 14)
+    Dot.Name = "Dot"
+    Dot.Size = UDim2.new(0, 10, 0, 10) -- smaller nice dot
     Dot.AnchorPoint = Vector2.new(0.5, 0.5)
     Dot.Position = UDim2.new(0, 0, 0.5, 0)
-    Dot.BackgroundColor3 = Theme.Dot
+    Dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Dot.BorderSizePixel = 0
-    Dot.ZIndex = 2
     Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
 
-    local Interact = Instance.new("TextButton", TrackContainer)
-    Interact.Size = UDim2.new(1, 0, 1, 0)
+    local Interact = Instance.new("TextButton", Track)
+    Interact.Size = UDim2.new(1, 0, 1, 16)
+    Interact.Position = UDim2.new(0,0,0,-6)
     Interact.BackgroundTransparency = 1
     Interact.Text = ""
-    Interact.ZIndex = 3
 
     local function GetValue(x)
+        if Track.AbsoluteSize.X <= 5 then return SliderSettings.CurrentValue end -- fix close bug
         local pos = math.clamp(x - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
         local p = pos / Track.AbsoluteSize.X
-        if Track.AbsoluteSize.X == 0 then return SliderSettings.CurrentValue end
         local val = SliderSettings.Range[1] + p * (SliderSettings.Range[2] - SliderSettings.Range[1])
         val = math.floor(val / SliderSettings.Increment + 0.5) * SliderSettings.Increment
         return math.clamp(val, SliderSettings.Range[1], SliderSettings.Range[2])
     end
 
     local function UpdateVisual(val)
-        local p = (val - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1])
+        if Track.AbsoluteSize.X <= 0 then return end
+        local p = math.clamp((val - SliderSettings.Range[1]) / (SliderSettings.Range[2] - SliderSettings.Range[1]), 0, 1)
         Progress.Size = UDim2.new(p, 0, 1, 0)
         Dot.Position = UDim2.new(p, 0, 0.5, 0)
         if not ValueBox:IsFocused() then
@@ -4470,52 +4454,66 @@ function Tab:CreateSlider(SliderSettings)
 
     Update(SliderSettings.CurrentValue, false)
 
-    Interact.InputBegan:Connect(function(Input)
+    local conns = {}
+    conns[1] = Interact.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             SLDragging = true
             Update(GetValue(Input.Position.X), true)
         end
     end)
-    UserInputService.InputChanged:Connect(function(Input)
+    conns[2] = UserInputService.InputChanged:Connect(function(Input)
         if SLDragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
             Update(GetValue(Input.Position.X), true)
         end
     end)
-    UserInputService.InputEnded:Connect(function(Input)
+    conns[3] = UserInputService.InputEnded:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
             SLDragging = false
+        end
+    end)
+
+    -- fix bug when closing DK's HUB
+    Slider.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            SLDragging = false
+            for _, c in ipairs(conns) do if c.Connected then c:Disconnect() end end
         end
     end)
 
     ValueBox:GetPropertyChangedSignal("Text"):Connect(function()
         if ValueBox:IsFocused() then
             local filtered = ValueBox.Text:gsub("[^%d%-]", "")
-            if ValueBox.Text ~= filtered then ValueBox.Text = filtered end
-            local num = tonumber(filtered)
-            if num then
-                num = math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2])
-                UpdateVisual(num)
-                SliderSettings.CurrentValue = num
-                pcall(SliderSettings.Callback, num)
+            if ValueBox.Text ~= filtered then
+                ValueBox.Text = filtered
+                ValueBox.CursorPosition = #filtered + 1
+            end
+            if filtered ~= "" and filtered ~= "-" then
+                local num = tonumber(filtered)
+                if num then
+                    num = math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2])
+                    num = math.floor(num / SliderSettings.Increment + 0.5) * SliderSettings.Increment
+                    UpdateVisual(num)
+                    SliderSettings.CurrentValue = num
+                    pcall(SliderSettings.Callback, num)
+                end
             end
         end
     end)
+
     ValueBox.FocusLost:Connect(function()
-        local num = tonumber(ValueBox.Text:gsub(SliderSettings.Suffix, ""))
-        if num then Update(math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2]), true)
-        else UpdateVisual(SliderSettings.CurrentValue) end
+        local raw = ValueBox.Text:gsub(SliderSettings.Suffix, ""):gsub("%s+", "")
+        local num = tonumber(raw)
+        if num then
+            num = math.floor(num / SliderSettings.Increment + 0.5) * SliderSettings.Increment
+            Update(math.clamp(num, SliderSettings.Range[1], SliderSettings.Range[2]), true)
+        else
+            UpdateVisual(SliderSettings.CurrentValue)
+        end
     end)
 
-    function SliderSettings:Set(v) Update(math.clamp(v, SliderSettings.Range[1], SliderSettings.Range[2]), true) end
-    function SliderSettings:SetTheme(newTheme)
-        Theme = newTheme
-        Slider.BackgroundColor3 = Theme.Background
-        stroke.Color = Theme.Stroke
-        Title.TextColor3 = Theme.Text
-        ValueBox.TextColor3 = Theme.Text
-        Track.BackgroundColor3 = Theme.Track
-        Progress.BackgroundColor3 = Theme.Progress
-        Dot.BackgroundColor3 = Theme.Dot
+    function SliderSettings:Set(v)
+        v = math.clamp(v, SliderSettings.Range[1], SliderSettings.Range[2])
+        Update(v, true)
     end
 
     return SliderSettings
