@@ -3135,7 +3135,7 @@ function RayfieldLibrary:CreateWindow(Settings)
     Search:GetPropertyChangedSignal("Text"):Connect(refresh)
     refresh()
     return PlayerList
-end,
+end
                 
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
