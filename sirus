@@ -4411,7 +4411,7 @@ end
     local Progress = Instance.new("Frame", Track)
     Progress.Name = "Progress"
     Progress.Size = UDim2.new(0, 0, 1, 0)
-    Progress.BackgroundColor3 = Color3.fromRGB(225, 0, 0)
+    Progress.BackgroundColor3 = Color3.fromRGB(46, 255, 87)
     Progress.BorderSizePixel = 0
     Progress.ZIndex = 1
     Instance.new("UICorner", Progress).CornerRadius = UDim.new(1, 0)
