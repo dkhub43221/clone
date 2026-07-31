@@ -2703,6 +2703,208 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
+function Tab:CreatePlayerList(Settings)
+    Settings = Settings or {}
+    local PlayerList = {}
+    
+    local Main = Instance.new("Frame")
+    Main.Name = "PlayersMain"
+    Main.Size = UDim2.new(1, -2, 0, 380)
+    Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Main.BorderSizePixel = 0
+    Main.Parent = TabPage
+    Main.ClipsDescendants = true
+    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 6)
+    local stroke = Instance.new("UIStroke", Main)
+    stroke.Color = Color3.fromRGB(77, 251, 16)
+    stroke.Thickness = 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local Search = Instance.new("TextBox", Main)
+    Search.Size = UDim2.new(1, -20, 0, 32)
+    Search.Position = UDim2.new(0, 10, 0, 10)
+    Search.BackgroundColor3 = Color3.fromRGB(17, 16, 20)
+    Search.Text = ""
+    Search.PlaceholderText = "    Search"
+    Search.TextColor3 = Color3.fromRGB(220, 220, 220)
+    Search.PlaceholderColor3 = Color3.fromRGB(90, 90, 90)
+    Search.Font = Enum.Font.Gotham
+    Search.TextSize = 13
+    Search.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UICorner", Search).CornerRadius = UDim.new(0, 6)
+    local sStroke = Instance.new("UIStroke", Search)
+    sStroke.Color = Color3.fromRGB(35, 95, 45)
+    sStroke.Thickness = 1
+
+    local Headers = Instance.new("Frame", Main)
+    Headers.Size = UDim2.new(1, -20, 0, 18)
+    Headers.Position = UDim2.new(0, 10, 0, 50)
+    Headers.BackgroundTransparency = 1
+    for i, txt in ipairs({"Username", "Team", "Health"}) do
+        local l = Instance.new("TextLabel", Headers)
+        l.Text = txt
+        l.Position = UDim2.new((i-1)*0.35, 0, 0, 0)
+        l.Size = UDim2.new(0.3, 0, 1, 0)
+        l.BackgroundTransparency = 1
+        l.TextColor3 = Color3.fromRGB(130, 130, 130)
+        l.Font = Enum.Font.GothamBold
+        l.TextSize = 11
+        l.TextXAlignment = Enum.TextXAlignment.Left
+    end
+
+    local List = Instance.new("ScrollingFrame", Main)
+    List.Size = UDim2.new(1, -20, 0, 165)
+    List.Position = UDim2.new(0, 10, 0, 70)
+    List.BackgroundTransparency = 1
+    List.BorderSizePixel = 0
+    List.CanvasSize = UDim2.new(0, 0, 0, 0)
+    List.ScrollBarThickness = 2
+    List.ScrollBarImageColor3 = Color3.fromRGB(77, 251, 16)
+    local uil = Instance.new("UIListLayout", List)
+    uil.Padding = UDim.new(0, 2)
+
+    local Bottom = Instance.new("Frame", Main)
+    Bottom.Size = UDim2.new(1, -20, 0, 95)
+    Bottom.Position = UDim2.new(0, 10, 0, 253)
+    Bottom.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+    Bottom.BorderSizePixel = 0
+    Instance.new("UICorner", Bottom).CornerRadius = UDim.new(0, 6)
+
+    local Avatar = Instance.new("ImageLabel", Bottom)
+    Avatar.Size = UDim2.new(0, 52, 0, 52)
+    Avatar.Position = UDim2.new(0, 12, 0, 10)
+    Avatar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Avatar.BorderSizePixel = 0
+    Instance.new("UICorner", Avatar).CornerRadius = UDim.new(0, 10)
+
+    local NameLabel = Instance.new("TextLabel", Bottom)
+    NameLabel.Position = UDim2.new(0, 75, 0, 8)
+    NameLabel.Size = UDim2.new(0.5, 0, 0, 18)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Text = "Select a player"
+    NameLabel.TextColor3 = Color3.new(1, 1, 1)
+    NameLabel.Font = Enum.Font.GothamBold
+    NameLabel.TextSize = 12
+    NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local IDLabel = Instance.new("TextLabel", Bottom)
+    IDLabel.Position = UDim2.new(0, 75, 0, 28)
+    IDLabel.Size = UDim2.new(0.5, 0, 0, 16)
+    IDLabel.BackgroundTransparency = 1
+    IDLabel.Text = "User ID: -"
+    IDLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
+    IDLabel.Font = Enum.Font.Gotham
+    IDLabel.TextSize = 11
+    IDLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local DistLabel = Instance.new("TextLabel", Bottom)
+    DistLabel.Position = UDim2.new(0, 75, 0, 46)
+    DistLabel.Size = UDim2.new(0.5, 0, 0, 16)
+    DistLabel.BackgroundTransparency = 1
+    DistLabel.Text = "Distance: -"
+    DistLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
+    DistLabel.Font = Enum.Font.Gotham
+    DistLabel.TextSize = 11
+    DistLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local ToolsLabel = Instance.new("TextLabel", Bottom)
+    ToolsLabel.Position = UDim2.new(1, -120, 0, 35)
+    ToolsLabel.Size = UDim2.new(0, 70, 0, 16)
+    ToolsLabel.BackgroundTransparency = 1
+    ToolsLabel.Text = "Player Tools"
+    ToolsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ToolsLabel.Font = Enum.Font.Gotham
+    ToolsLabel.TextSize = 12
+    ToolsLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+    local ToggleBack = Instance.new("Frame", Bottom)
+    ToggleBack.Size = UDim2.new(0, 36, 0, 20)
+    ToggleBack.Position = UDim2.new(1, -40, 0, 33)
+    ToggleBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    ToggleBack.BorderSizePixel = 0
+    Instance.new("UICorner", ToggleBack).CornerRadius = UDim.new(1, 0)
+
+    local ToggleDot = Instance.new("Frame", ToggleBack)
+    ToggleDot.Size = UDim2.new(0, 16, 0, 16)
+    ToggleDot.Position = UDim2.new(0, 2, 0, 2)
+    ToggleDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleDot.BorderSizePixel = 0
+    Instance.new("UICorner", ToggleDot).CornerRadius = UDim.new(1, 0)
+
+    local ToggleBtn = Instance.new("TextButton", ToggleBack)
+    ToggleBtn.Size = UDim2.new(1, 0, 1, 0)
+    ToggleBtn.BackgroundTransparency = 1
+    ToggleBtn.Text = ""
+
+    local toolsEnabled = false
+    ToggleBtn.MouseButton1Click:Connect(function()
+        toolsEnabled = not toolsEnabled
+        if toolsEnabled then
+            game:GetService("TweenService"):Create(ToggleBack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(77, 251, 16)}):Play()
+            game:GetService("TweenService"):Create(ToggleDot, TweenInfo.new(0.2), {Position = UDim2.new(1, -18, 0, 2)}):Play()
+        else
+            game:GetService("TweenService"):Create(ToggleBack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+            game:GetService("TweenService"):Create(ToggleDot, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0, 2)}):Play()
+        end
+    end)
+
+    local selectedPlayer = nil
+    local function refresh()
+        for _, c in pairs(List:GetChildren()) do if c:IsA("Frame") and c.Name == "Row" then c:Destroy() end end
+        local y = 0
+        for _, plr in pairs(game.Players:GetPlayers()) do
+            if Search.Text == "" or plr.Name:lower():find(Search.Text:lower()) then
+                local row = Instance.new("Frame", List)
+                row.Name = "Row"
+                row.Size = UDim2.new(1, 0, 0, 26)
+                row.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                row.BorderSizePixel = 0
+                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 4)
+                for i, txt in ipairs({plr.Name, plr.Team and plr.Team.Name or "None", tostring(plr.Character and plr.Character:FindFirstChild("Humanoid") and math.floor(plr.Character.Humanoid.Health) or 100)}) do
+                    local l = Instance.new("TextLabel", row)
+                    l.Text = txt
+                    l.Position = UDim2.new((i-1)*0.35, 8, 0, 0)
+                    l.Size = UDim2.new(0.3, 0, 1, 0)
+                    l.BackgroundTransparency = 1
+                    l.TextColor3 = Color3.fromRGB(220, 220, 220)
+                    l.Font = Enum.Font.Gotham
+                    l.TextSize = 11
+                    l.TextXAlignment = Enum.TextXAlignment.Left
+                end
+                local btn = Instance.new("TextButton", row)
+                btn.Size = UDim2.new(1, 0, 1, 0)
+                btn.BackgroundTransparency = 1
+                btn.Text = ""
+                btn.MouseButton1Click:Connect(function()
+                    selectedPlayer = plr
+                    NameLabel.Text = plr.Name.." (@"..plr.DisplayName..")"
+                    IDLabel.Text = "User ID: "..plr.UserId
+                    Avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..plr.UserId.."&width=420&height=420&format=png"
+                end)
+                y += 28
+            end
+        end
+        List.CanvasSize = UDim2.new(0, 0, 0, y)
+    end
+
+    task.spawn(function()
+        while Main.Parent do
+            pcall(refresh)
+            if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local d = (selectedPlayer.Character.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                DistLabel.Text = "Distance: "..math.floor(d).." studs"
+            end
+            task.wait(0.5)
+        end
+    end)
+
+    Search:GetPropertyChangedSignal("Text"):Connect(refresh)
+    refresh()
+
+    return PlayerList
+end
+
+
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
