@@ -4366,15 +4366,16 @@ function Tab:CreateSlider(SliderSettings)
 
     local Slider = Instance.new("Frame")
     Slider.Name = SliderSettings.Name
-    Slider.Size = UDim2.new(1, 0, 0, 40) -- SAME AS TOGGLE
+    Slider.Size = UDim2.new(1, -2, 0, 40) -- FIX: -2 so stroke doesn't go out the UI like toggle
     Slider.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- FULL BLACK
     Slider.BorderSizePixel = 0
     Slider.Parent = TabPage
     Slider.ClipsDescendants = true
     Instance.new("UICorner", Slider).CornerRadius = UDim.new(0, 6)
     local stroke = Instance.new("UIStroke", Slider)
-    stroke.Color = Color3.fromRGB(77, 251, 16) -- green outline like toggle
+    stroke.Color = Color3.fromRGB(77, 251, 16)
     stroke.Thickness = 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- FIX: stroke inside, not outside
 
     local Title = Instance.new("TextLabel", Slider)
     Title.Text = SliderSettings.Name
@@ -4399,7 +4400,7 @@ function Tab:CreateSlider(SliderSettings)
 
     local Track = Instance.new("Frame", Slider)
     Track.Name = "Track"
-    Track.Size = UDim2.new(1, -24, 0, 4) -- same padding as toggle
+    Track.Size = UDim2.new(1, -24, 0, 4)
     Track.Position = UDim2.new(0, 12, 0, 26)
     Track.BackgroundColor3 = Color3.fromRGB(45,45,45)
     Track.BorderSizePixel = 0
