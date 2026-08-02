@@ -1748,6 +1748,425 @@ local function gcHasLink(s)
 	return false
 end
 
+local function createHomeTab(window)
+    local TabList = {}
+    local Elements = {}
+    local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
+    local Stats = game:GetService("Stats")
+    local Players = game:GetService("Players")
+    local LP = Players.LocalPlayer
+
+    local homeTab = window:CreateTab("Home", 10723407389)
+    TabList["Home"] = homeTab
+    
+    if TabList["Home"] then
+        TabList["Home"].Visible = true
+        TabList["Home"].LayoutOrder = 1
+    end
+    if Elements["Home"] then
+        Elements["Home"].LayoutOrder = 1
+    end
+
+    local function getExec()
+        if identifyexecutor then
+            local ok, res = pcall(identifyexecutor)
+            if ok and res then return res end
+        end
+        return "Delta"
+    end
+    local ExecName = getExec()
+
+    task.wait(0.3)
+
+    local function getHui()
+        local ok, h = pcall(function() return gethui() end)
+        if ok and h then return h end
+        return game:GetService("CoreGui")
+    end
+    local Hui = getHui()
+
+    local HomePage = nil
+    for _, gui in pairs(Hui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            local main = gui:FindFirstChild("Main", true)
+            if main then
+                local elems = main:FindFirstChild("Elements")
+                if elems and elems:FindFirstChild("Home") then
+                    HomePage = elems:FindFirstChild("Home")
+                    break
+                end
+            end
+        end
+    end
+    if not HomePage then
+        for _, o in pairs(Hui:GetDescendants()) do
+            if o.Name == "Home" and o:IsA("ScrollingFrame") then
+                HomePage = o
+                break
+            end
+        end
+    end
+
+    if not HomePage then return end
+
+    for _, c in pairs(HomePage:GetChildren()) do
+        if c:IsA("Frame") then
+            c:Destroy()
+        end
+    end
+
+    local Layout = Instance.new("UIListLayout")
+    Layout.Padding = UDim.new(0,18)
+    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    Layout.Parent = HomePage
+    HomePage.ScrollingEnabled = true
+    HomePage.ScrollBarThickness = 4
+    HomePage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    HomePage.CanvasSize = UDim2.new(0,0,0,0)
+    HomePage.ScrollBarImageColor3 = Color3.fromRGB(85,85,90)
+
+    local function XNotify(t, m)
+        local g = Hui:FindFirstChild("XpressNotify")
+        if not g then
+            g = Instance.new("ScreenGui")
+            g.Name = "XpressNotify"
+            g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+            g.Parent = Hui
+        end
+        local f = Instance.new("Frame")
+        f.Size = UDim2.new(0,280,0,76)
+        f.Position = UDim2.new(1,20,1,-100)
+        f.BackgroundColor3 = Color3.fromRGB(30,30,33)
+        f.Parent = g
+        local fc = Instance.new("UICorner")
+        fc.CornerRadius = UDim.new(0,12)
+        fc.Parent = f
+        local s = Instance.new("UIStroke")
+        s.Color = Color3.fromRGB(88,101,242)
+        s.Thickness = 1.5
+        s.Parent = f
+        local a = Instance.new("TextLabel")
+        a.Text = t
+        a.Position = UDim2.new(0,16,0,12)
+        a.Size = UDim2.new(1,-24,0,16)
+        a.BackgroundTransparency = 1
+        a.TextColor3 = Color3.new(1,1,1)
+        a.Font = Enum.Font.GothamBold
+        a.TextSize = 14
+        a.TextXAlignment = Enum.TextXAlignment.Left
+        a.Parent = f
+        local b = Instance.new("TextLabel")
+        b.Text = m
+        b.Position = UDim2.new(0,16,0,30)
+        b.Size = UDim2.new(1,-24,0,28)
+        b.BackgroundTransparency = 1
+        b.TextColor3 = Color3.fromRGB(170,170,180)
+        b.Font = Enum.Font.Gotham
+        b.TextSize = 12
+        b.TextXAlignment = Enum.TextXAlignment.Left
+        b.TextWrapped = true
+        b.Parent = f
+        TweenService:Create(f, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1,-296,1,-100)}):Play()
+        task.wait(3.2)
+        TweenService:Create(f, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(1,20,1,-100)}):Play()
+        task.wait(0.5)
+        f:Destroy()
+    end
+
+    local function card(h)
+        local f = Instance.new("Frame")
+        f.Size = UDim2.new(1,-12,0,h)
+        f.BackgroundColor3 = Color3.fromRGB(21,21,23)
+        f.BorderSizePixel = 0
+        f.Parent = HomePage
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0,14)
+        c.Parent = f
+        return f
+    end
+
+    local function icard(p, h)
+        local f = Instance.new("Frame")
+        f.Size = UDim2.new(1,0,0,h)
+        f.BackgroundColor3 = Color3.fromRGB(16,16,18)
+        f.BorderSizePixel = 0
+        f.Parent = p
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0,12)
+        c.Parent = f
+        return f
+    end
+
+    local Discord = card(92)
+    local DIcon = Instance.new("ImageLabel")
+    DIcon.Size = UDim2.new(0,48,0,48)
+    DIcon.Position = UDim2.new(0,16,0,22)
+    DIcon.BackgroundTransparency = 1
+    DIcon.Image = "rbxassetid://6031071053"
+    DIcon.ScaleType = Enum.ScaleType.Fit
+    DIcon.ImageColor3 = Color3.fromRGB(88,101,242)
+    DIcon.Parent = Discord
+    local DTitle = Instance.new("TextLabel")
+    DTitle.Text = "Not in our discord server yet?"
+    DTitle.Position = UDim2.new(0,76,0,18)
+    DTitle.Size = UDim2.new(1,-180,0,16)
+    DTitle.BackgroundTransparency = 1
+    DTitle.TextColor3 = Color3.fromRGB(235,235,235)
+    DTitle.Font = Enum.Font.GothamBold
+    DTitle.TextSize = 13
+    DTitle.TextXAlignment = Enum.TextXAlignment.Left
+    DTitle.Parent = Discord
+    local DSub = Instance.new("TextLabel")
+    DSub.Text = "Join to suggest\nfeatures, report bugs,"
+    DSub.Position = UDim2.new(0,76,0,36)
+    DSub.Size = UDim2.new(1,-180,0,32)
+    DSub.BackgroundTransparency = 1
+    DSub.TextColor3 = Color3.fromRGB(130,130,135)
+    DSub.Font = Enum.Font.Gotham
+    DSub.TextSize = 11
+    DSub.TextXAlignment = Enum.TextXAlignment.Left
+    DSub.TextWrapped = true
+    DSub.Parent = Discord
+    local JoinBtn = Instance.new("TextButton")
+    JoinBtn.Size = UDim2.new(0,104,0,36)
+    JoinBtn.Position = UDim2.new(1,-116,0.5,-18)
+    JoinBtn.BackgroundColor3 = Color3.fromRGB(88,101,242)
+    JoinBtn.Text = "Join discord"
+    JoinBtn.TextColor3 = Color3.new(1,1,1)
+    JoinBtn.Font = Enum.Font.GothamBold
+    JoinBtn.TextSize = 12
+    JoinBtn.BorderSizePixel = 0
+    JoinBtn.Parent = Discord
+    local jc = Instance.new("UICorner")
+    jc.CornerRadius = UDim.new(0,12)
+    jc.Parent = JoinBtn
+    JoinBtn.MouseButton1Click:Connect(function()
+        if setclipboard then setclipboard("") end
+        XNotify("Discord", "Invite copied!")
+    end)
+
+    local Exec = card(84)
+    local ETitle = Instance.new("TextLabel")
+    ETitle.Text = "Executor: "..ExecName
+    ETitle.Position = UDim2.new(0,18,0,18)
+    ETitle.Size = UDim2.new(1,-20,0,16)
+    ETitle.BackgroundTransparency = 1
+    ETitle.TextColor3 = Color3.fromRGB(235,235,235)
+    ETitle.Font = Enum.Font.GothamBold
+    ETitle.TextSize = 13
+    ETitle.TextXAlignment = Enum.TextXAlignment.Left
+    ETitle.Parent = Exec
+    local Dot = Instance.new("Frame")
+    Dot.Size = UDim2.new(0,10,0,10)
+    Dot.Position = UDim2.new(0,18,0,46)
+    Dot.BackgroundColor3 = Color3.fromRGB(60,220,120)
+    Dot.BorderSizePixel = 0
+    Dot.Parent = Exec
+    local dc = Instance.new("UICorner")
+    dc.CornerRadius = UDim.new(1,0)
+    dc.Parent = Dot
+    local ESub = Instance.new("TextLabel")
+    ESub.Text = "Fully supported executor."
+    ESub.Position = UDim2.new(0,34,0,42)
+    ESub.Size = UDim2.new(1,-40,0,16)
+    ESub.BackgroundTransparency = 1
+    ESub.TextColor3 = Color3.fromRGB(60,220,120)
+    ESub.Font = Enum.Font.GothamMedium
+    ESub.TextSize = 12
+    ESub.TextXAlignment = Enum.TextXAlignment.Left
+    ESub.Parent = Exec
+
+    local PerfLabel = Instance.new("TextLabel")
+    PerfLabel.Text = "PERFORMANCE"
+    PerfLabel.Size = UDim2.new(1,-12,0,14)
+    PerfLabel.BackgroundTransparency = 1
+    PerfLabel.TextColor3 = Color3.fromRGB(180,180,185)
+    PerfLabel.Font = Enum.Font.GothamBold
+    PerfLabel.TextSize = 11
+    PerfLabel.TextXAlignment = Enum.TextXAlignment.Left
+    PerfLabel.Parent = HomePage
+    local PerfOuter = card(88)
+    local FPSCard = icard(PerfOuter, 68)
+    FPSCard.Size = UDim2.new(0.5,-18,0,68)
+    FPSCard.Position = UDim2.new(0,10,0,10)
+    local FPSLine = Instance.new("Frame")
+    FPSLine.Size = UDim2.new(0,3,1,-24)
+    FPSLine.Position = UDim2.new(0,10,0,12)
+    FPSLine.BackgroundColor3 = Color3.fromRGB(210,50,255)
+    FPSLine.BorderSizePixel = 0
+    FPSLine.Parent = FPSCard
+    local flc = Instance.new("UICorner")
+    flc.CornerRadius = UDim.new(1,0)
+    flc.Parent = FPSLine
+    local FPST = Instance.new("TextLabel")
+    FPST.Text = "FPS: 59"
+    FPST.Position = UDim2.new(0,24,0,14)
+    FPST.Size = UDim2.new(1,-30,0,16)
+    FPST.BackgroundTransparency = 1
+    FPST.TextColor3 = Color3.fromRGB(240,240,240)
+    FPST.Font = Enum.Font.GothamBold
+    FPST.TextSize = 13
+    FPST.TextXAlignment = Enum.TextXAlignment.Left
+    FPST.Parent = FPSCard
+    local FPSS = Instance.new("TextLabel")
+    FPSS.Text = "frames per second"
+    FPSS.Position = UDim2.new(0,24,0,32)
+    FPSS.Size = UDim2.new(1,-30,0,14)
+    FPSS.BackgroundTransparency = 1
+    FPSS.TextColor3 = Color3.fromRGB(130,130,135)
+    FPSS.Font = Enum.Font.Gotham
+    FPSS.TextSize = 11
+    FPSS.TextXAlignment = Enum.TextXAlignment.Left
+    FPSS.Parent = FPSCard
+    local PingCard = icard(PerfOuter, 68)
+    PingCard.Size = UDim2.new(0.5,-18,0,68)
+    PingCard.Position = UDim2.new(0.5,8,0,10)
+    local PingLine = Instance.new("Frame")
+    PingLine.Size = UDim2.new(0,3,1,-24)
+    PingLine.Position = UDim2.new(0,10,0,12)
+    PingLine.BackgroundColor3 = Color3.fromRGB(80,110,255)
+    PingLine.BorderSizePixel = 0
+    PingLine.Parent = PingCard
+    local plc = Instance.new("UICorner")
+    plc.CornerRadius = UDim.new(1,0)
+    plc.Parent = PingLine
+    local PingT = Instance.new("TextLabel")
+    PingT.Text = "Ping: 216 ms"
+    PingT.Position = UDim2.new(0,24,0,14)
+    PingT.Size = UDim2.new(1,-30,0,16)
+    PingT.BackgroundTransparency = 1
+    PingT.TextColor3 = Color3.fromRGB(240,240,240)
+    PingT.Font = Enum.Font.GothamBold
+    PingT.TextSize = 13
+    PingT.TextXAlignment = Enum.TextXAlignment.Left
+    PingT.Parent = PingCard
+    local PingS = Instance.new("TextLabel")
+    PingS.Text = "network latency"
+    PingS.Position = UDim2.new(0,24,0,32)
+    PingS.Size = UDim2.new(1,-30,0,14)
+    PingS.BackgroundTransparency = 1
+    PingS.TextColor3 = Color3.fromRGB(130,130,135)
+    PingS.Font = Enum.Font.Gotham
+    PingS.TextSize = 11
+    PingS.TextXAlignment = Enum.TextXAlignment.Left
+    PingS.Parent = PingCard
+
+    task.spawn(function()
+        while PerfOuter.Parent do
+            pcall(function()
+                local fps = math.floor(1 / RunService.RenderStepped:Wait())
+                FPST.Text = "FPS: "..fps
+                local ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+                PingT.Text = "Ping: "..math.floor(ping).." ms"
+            end)
+            task.wait(0.5)
+        end
+    end)
+
+    local SessLabel = Instance.new("TextLabel")
+    SessLabel.Text = "SESSION INFORMATION"
+    SessLabel.Size = UDim2.new(1,-12,0,14)
+    SessLabel.BackgroundTransparency = 1
+    SessLabel.TextColor3 = Color3.fromRGB(180,180,185)
+    SessLabel.Font = Enum.Font.GothamBold
+    SessLabel.TextSize = 11
+    SessLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SessLabel.Parent = HomePage
+    local SessOuter = card(260)
+    SessOuter.Size = UDim2.new(1,-12,0,260)
+    local PCard = icard(SessOuter, 62)
+    PCard.Position = UDim2.new(0,10,0,10)
+    PCard.Size = UDim2.new(1,-20,0,62)
+    local PT = Instance.new("TextLabel")
+    PT.Text = "Players"
+    PT.Position = UDim2.new(0,14,0,10)
+    PT.Size = UDim2.new(1,-28,0,16)
+    PT.BackgroundTransparency = 1
+    PT.TextColor3 = Color3.fromRGB(240,240,240)
+    PT.Font = Enum.Font.GothamBold
+    PT.TextSize = 13
+    PT.TextXAlignment = Enum.TextXAlignment.Left
+    PT.Parent = PCard
+    local PS = Instance.new("TextLabel")
+    PS.Text = #Players:GetPlayers().." players currently online"
+    PS.Position = UDim2.new(0,14,0,30)
+    PS.Size = UDim2.new(1,-28,0,14)
+    PS.BackgroundTransparency = 1
+    PS.TextColor3 = Color3.fromRGB(130,130,135)
+    PS.Font = Enum.Font.Gotham
+    PS.TextSize = 11
+    PS.TextXAlignment = Enum.TextXAlignment.Left
+    PS.Parent = PCard
+    local MCard = icard(SessOuter, 62)
+    MCard.Position = UDim2.new(0,10,0,82)
+    MCard.Size = UDim2.new(1,-20,0,62)
+    local MT = Instance.new("TextLabel")
+    MT.Text = "Max players"
+    MT.Position = UDim2.new(0,14,0,10)
+    MT.Size = UDim2.new(1,-28,0,16)
+    MT.BackgroundTransparency = 1
+    MT.TextColor3 = Color3.fromRGB(240,240,240)
+    MT.Font = Enum.Font.GothamBold
+    MT.TextSize = 13
+    MT.TextXAlignment = Enum.TextXAlignment.Left
+    MT.Parent = MCard
+    local MS = Instance.new("TextLabel")
+    MS.Text = "Maximum of "..Players.MaxPlayers.." people can join"
+    MS.Position = UDim2.new(0,14,0,30)
+    MS.Size = UDim2.new(1,-28,0,22)
+    MS.BackgroundTransparency = 1
+    MS.TextColor3 = Color3.fromRGB(130,130,135)
+    MS.Font = Enum.Font.Gotham
+    MS.TextSize = 11
+    MS.TextXAlignment = Enum.TextXAlignment.Left
+    MS.TextWrapped = true
+    MS.Parent = MCard
+    local UCard = icard(SessOuter, 84)
+    UCard.Position = UDim2.new(0,10,0,154)
+    UCard.Size = UDim2.new(1,-20,0,84)
+    local Av = Instance.new("ImageLabel")
+    Av.Size = UDim2.new(0,54,0,54)
+    Av.Position = UDim2.new(0,12,0,15)
+    Av.BackgroundColor3 = Color3.fromRGB(25,25,27)
+    Av.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..LP.UserId.."&width=150&height=150&format=png"
+    Av.Parent = UCard
+    local AvC = Instance.new("UICorner")
+    AvC.CornerRadius = UDim.new(0,10)
+    AvC.Parent = Av
+    local Un = Instance.new("TextLabel")
+    Un.Text = LP.DisplayName
+    Un.Position = UDim2.new(0,78,0,14)
+    Un.Size = UDim2.new(1,-84,0,14)
+    Un.BackgroundTransparency = 1
+    Un.TextColor3 = Color3.fromRGB(240,240,240)
+    Un.Font = Enum.Font.GothamBold
+    Un.TextSize = 13
+    Un.TextXAlignment = Enum.TextXAlignment.Left
+    Un.Parent = UCard
+    local Uh = Instance.new("TextLabel")
+    Uh.Text = "@"..LP.Name
+    Uh.Position = UDim2.new(0,78,0,30)
+    Uh.Size = UDim2.new(1,-84,0,14)
+    Uh.BackgroundTransparency = 1
+    Uh.TextColor3 = Color3.fromRGB(160,160,165)
+    Uh.Font = Enum.Font.Gotham
+    Uh.TextSize = 12
+    Uh.TextXAlignment = Enum.TextXAlignment.Left
+    Uh.Parent = UCard
+    local Ua = Instance.new("TextLabel")
+    Ua.Text = "Age: "..LP.AccountAge.." days"
+    Ua.Position = UDim2.new(0,78,0,48)
+    Ua.Size = UDim2.new(1,-84,0,14)
+    Ua.BackgroundTransparency = 1
+    Ua.TextColor3 = Color3.fromRGB(120,120,125)
+    Ua.Font = Enum.Font.Gotham
+    Ua.TextSize = 11
+    Ua.TextXAlignment = Enum.TextXAlignment.Left
+    Ua.Parent = UCard
+end
+
+
 local function createGlobalChat(window)
 	window:CreateTab("Global Chat", 10734888000, true)
 	if TabList["Global Chat"] then TabList["Global Chat"].Visible = true; TabList["Global Chat"].LayoutOrder = 999 end
