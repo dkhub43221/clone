@@ -3557,33 +3557,50 @@ end)
 	return ColorPickerSettings
 end
 
+		
 		-- Section
-		function Tab:CreateSection(SectionName)
+		function Tab:CreateSection(SectionName, IconId)
+	local SectionValue = {}
 
-			local SectionValue = {}
+	if SDone then
+		local SectionSpace = Elements.Template.SectionSpacing:Clone()
+		SectionSpace.Visible = true
+		SectionSpace.Parent = TabPage
+	end
 
-			if SDone then
-				local SectionSpace = Elements.Template.SectionSpacing:Clone()
-				SectionSpace.Visible = true
-				SectionSpace.Parent = TabPage
-			end
+	local Section = Elements.Template.SectionTitle:Clone()
+	Section.Visible = true
+	Section.Parent = TabPage
 
-			local Section = Elements.Template.SectionTitle:Clone()
-			Section.Title.Text = SectionName
-			Section.Visible = true
-			Section.Parent = TabPage
+	Section.Title.Text = SectionName
+	Section.Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-			Section.Title.TextTransparency = 1
-			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
-
-			function SectionValue:Set(NewSection)
-				Section.Title.Text = NewSection
-			end
-
-			SDone = true
-
-			return SectionValue
+	if Section:FindFirstChild("Icon") then
+		if IconId and IconId ~= "" then
+			local AssetId = tostring(IconId):gsub("rbxassetid://", "")
+			Section.Icon.Visible = true
+			Section.Icon.Image = "rbxassetid://" .. AssetId
+			Section.Icon.ImageColor3 = Color3.fromRGB(57, 255, 20)
+		else
+			Section.Icon.Visible = false
 		end
+	end
+
+	Section.Title.TextTransparency = 1
+	TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+
+	function SectionValue:Set(NewSection, NewIconId)
+		Section.Title.Text = NewSection
+		if Section:FindFirstChild("Icon") and NewIconId then
+			local AssetId = tostring(NewIconId):gsub("rbxassetid://", "")
+			Section.Icon.Image = "rbxassetid://" .. AssetId
+			Section.Icon.Visible = true
+		end
+	end
+
+	SDone = true
+	return SectionValue
+end
 
 		-- Divider
 		function Tab:CreateDivider()
