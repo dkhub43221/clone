@@ -3558,7 +3558,6 @@ end)
 end
 
 		
-		-- Section
 		function Tab:CreateSection(SectionName, IconId)
 	local SectionValue = {}
 
@@ -3574,27 +3573,42 @@ end
 
 	Section.Title.Text = SectionName
 	Section.Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Section.Title.TextTransparency = 1
 
-	if Section:FindFirstChild("Icon") then
-		if IconId and IconId ~= "" then
-			local AssetId = tostring(IconId):gsub("rbxassetid://", "")
-			Section.Icon.Visible = true
-			Section.Icon.Image = "rbxassetid://" .. AssetId
-			Section.Icon.ImageColor3 = Color3.fromRGB(57, 255, 20)
-		else
-			Section.Icon.Visible = false
-		end
+	local IconObject = Section:FindFirstChild("Icon", true)
+
+	if not IconObject then
+		IconObject = Instance.new("ImageLabel")
+		IconObject.Name = "Icon"
+		IconObject.BackgroundTransparency = 1
+		IconObject.Size = UDim2.new(0, 18, 0, 18)
+		IconObject.Position = UDim2.new(0, 0, 0.5, 0)
+		IconObject.AnchorPoint = Vector2.new(0, 0.5)
+		IconObject.Parent = Section
 	end
 
-	Section.Title.TextTransparency = 1
+	if IconId and tostring(IconId) ~= "" then
+		local AssetId = tostring(IconId):gsub("rbxassetid://", "")
+		IconObject.Visible = true
+		IconObject.Image = "rbxassetid://" .. AssetId
+		IconObject.ImageColor3 = Color3.fromRGB(57, 255, 20)
+		IconObject.ImageTransparency = 1
+		IconObject.BackgroundTransparency = 1
+		TweenService:Create(IconObject, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+		Section.Title.Position = UDim2.new(0, 24, 0.5, 0)
+	else
+		IconObject.Visible = false
+		Section.Title.Position = UDim2.new(0, 0, 0.5, 0)
+	end
+
 	TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
 	function SectionValue:Set(NewSection, NewIconId)
 		Section.Title.Text = NewSection
-		if Section:FindFirstChild("Icon") and NewIconId then
+		if NewIconId and tostring(NewIconId) ~= "" then
 			local AssetId = tostring(NewIconId):gsub("rbxassetid://", "")
-			Section.Icon.Image = "rbxassetid://" .. AssetId
-			Section.Icon.Visible = true
+			IconObject.Image = "rbxassetid://" .. AssetId
+			IconObject.Visible = true
 		end
 	end
 
