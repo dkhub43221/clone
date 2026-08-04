@@ -3632,46 +3632,42 @@ end
 	Section.Visible = true
 	Section.Parent = TabPage
 	Section.BackgroundTransparency = 1
+	Section.Size = UDim2.new(1, 0, 0, 20)
 
 	local Container = Instance.new("Frame")
-	Container.Name = "Container"
 	Container.Parent = Section
 	Container.BackgroundTransparency = 1
 	Container.Size = UDim2.new(1, 0, 0, 20)
 
-	local textWidth = 52 -- "Chams" width
-	local gap = 12 -- <-- THIS IS THE SPACING - lower = closer like right pic
+	local textWidth = 55
+	local gap = 10
 
 	local LeftBar = Instance.new("Frame")
-	LeftBar.Name = "LeftBar"
 	LeftBar.Parent = Container
-	LeftBar.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+	LeftBar.BackgroundColor3 = Color3.fromRGB(70, 70, 75)
 	LeftBar.BorderSizePixel = 0
 	LeftBar.Size = UDim2.new(0.5, -(textWidth/2 + gap), 0, 1)
 	LeftBar.Position = UDim2.new(0, 0, 0.5, 0)
 
 	local Title = Instance.new("TextLabel")
-	Title.Name = "Title"
 	Title.Parent = Container
 	Title.BackgroundTransparency = 1
 	Title.Size = UDim2.new(0, textWidth, 1, 0)
 	Title.Position = UDim2.new(0.5, -textWidth/2, 0, 0)
 	Title.Text = SectionText or "Chams"
-	Title.Font = Enum.Font.GothamMedium
-	Title.TextSize = 13
-	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Title.TextTransparency = 0.2
+	Title.Font = Enum.Font.GothamBold
+	Title.TextSize = 12
+	Title.TextColor3 = Color3.fromRGB(235, 235, 235)
 
 	local RightBar = Instance.new("Frame")
-	RightBar.Name = "RightBar"
 	RightBar.Parent = Container
-	RightBar.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+	RightBar.BackgroundColor3 = Color3.fromRGB(70, 70, 75)
 	RightBar.BorderSizePixel = 0
 	RightBar.Size = UDim2.new(0.5, -(textWidth/2 + gap), 0, 1)
 	RightBar.Position = UDim2.new(0.5, (textWidth/2 + gap), 0.5, 0)
 
-	function SectionValue:Set(Value)
-		Section.Visible = Value
+	function SectionValue:Set(v)
+		Section.Visible = v
 	end
 
 	return SectionValue
