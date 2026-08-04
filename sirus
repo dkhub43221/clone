@@ -3624,23 +3624,62 @@ end
 	return SectionValue
 end
 
-		-- Divider
-		function Tab:CreateDivider()
-			local DividerValue = {}
+		-- NEW FUNCTION - doesn't overwrite your old divider
+function Tab:CreateTextDivider(SectionText)
+	local SectionValue = {}
 
-			local Divider = Elements.Template.Divider:Clone()
-			Divider.Visible = true
-			Divider.Parent = TabPage
+	local Section = Elements.Template.Divider:Clone()
+	Section.Name = "TextDivider"
+	Section.Visible = true
+	Section.Parent = TabPage
+	Section.BackgroundTransparency = 1
 
-			Divider.Divider.BackgroundTransparency = 1
-			TweenService:Create(Divider.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.85}):Play()
-
-			function DividerValue:Set(Value)
-				Divider.Visible = Value
-			end
-
-			return DividerValue
+	for _, v in pairs(Section:GetChildren()) do
+		if v:IsA("Frame") then
+			v:Destroy()
 		end
+	end
+
+	local Container = Instance.new("Frame")
+	Container.Name = "Container"
+	Container.Parent = Section
+	Container.BackgroundTransparency = 1
+	Container.Size = UDim2.new(1, 0, 0, 20)
+
+	local LeftBar = Instance.new("Frame")
+	LeftBar.Name = "LeftBar"
+	LeftBar.Parent = Container
+	LeftBar.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+	LeftBar.BorderSizePixel = 0
+	LeftBar.Size = UDim2.new(0.32, 0, 0, 1)
+	LeftBar.Position = UDim2.new(0, 0, 0.5, 0)
+
+	local Title = Instance.new("TextLabel")
+	Title.Name = "Title"
+	Title.Parent = Container
+	Title.BackgroundTransparency = 1
+	Title.Size = UDim2.new(0.36, 0, 1, 0)
+	Title.Position = UDim2.new(0.32, 0, 0, 0)
+	Title.Text = SectionText or "Chams"
+	Title.Font = Enum.Font.GothamBold
+	Title.TextSize = 14
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.TextTransparency = 0.3
+
+	local RightBar = Instance.new("Frame")
+	RightBar.Name = "RightBar"
+	RightBar.Parent = Container
+	RightBar.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+	RightBar.BorderSizePixel = 0
+	RightBar.Size = UDim2.new(0.32, 0, 0, 1)
+	RightBar.Position = UDim2.new(0.68, 0, 0.5, 0)
+
+	function SectionValue:Set(Value)
+		Section.Visible = Value
+	end
+
+	return SectionValue
+end
 
 		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
 	local LabelValue = {}
