@@ -3639,13 +3639,13 @@ end
 	Container.BackgroundTransparency = 1
 	Container.Size = UDim2.new(1, 0, 0, 20)
 
-	local textWidth = 70
-	local gap = 10
+	local textWidth = 52 -- "Chams" width
+	local gap = 12 -- <-- THIS IS THE SPACING - lower = closer like right pic
 
 	local LeftBar = Instance.new("Frame")
 	LeftBar.Name = "LeftBar"
 	LeftBar.Parent = Container
-	LeftBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	LeftBar.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
 	LeftBar.BorderSizePixel = 0
 	LeftBar.Size = UDim2.new(0.5, -(textWidth/2 + gap), 0, 1)
 	LeftBar.Position = UDim2.new(0, 0, 0.5, 0)
@@ -3657,14 +3657,15 @@ end
 	Title.Size = UDim2.new(0, textWidth, 1, 0)
 	Title.Position = UDim2.new(0.5, -textWidth/2, 0, 0)
 	Title.Text = SectionText or "Chams"
-	Title.Font = Enum.Font.GothamBold
+	Title.Font = Enum.Font.GothamMedium
 	Title.TextSize = 13
-	Title.TextColor3 = Color3.fromRGB(200, 200, 200)
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.TextTransparency = 0.2
 
 	local RightBar = Instance.new("Frame")
 	RightBar.Name = "RightBar"
 	RightBar.Parent = Container
-	RightBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	RightBar.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
 	RightBar.BorderSizePixel = 0
 	RightBar.Size = UDim2.new(0.5, -(textWidth/2 + gap), 0, 1)
 	RightBar.Position = UDim2.new(0.5, (textWidth/2 + gap), 0.5, 0)
