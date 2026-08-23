@@ -2720,272 +2720,9 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-        function Tab:CreatePlayerList()
-    local Players = game:GetService("Players")
-    local TweenService = game:GetService("TweenService")
-    local CoreGui = game:GetService("CoreGui")
-    local RunService = game:GetService("RunService")
-    local LP = Players.LocalPlayer
-
-    local Main = Instance.new("Frame", self.Page)
-    Main.Size = UDim2.new(1,-4,0,335)
-    Main.BackgroundColor3=Color3.fromRGB(22,22,24)
-    Main.ClipsDescendants=false
-    Instance.new("UICorner", Main).CornerRadius=UDim.new(0,8)
-    Instance.new("UIStroke", Main).Color=Color3.fromRGB(38,38,42)
-
-    local SearchHolder = Instance.new("Frame", Main)
-    SearchHolder.Size=UDim2.new(1,-16,0,30)
-    SearchHolder.Position=UDim2.new(0,8,0,8)
-    SearchHolder.BackgroundColor3=Color3.fromRGB(28,28,31)
-    Instance.new("UICorner", SearchHolder).CornerRadius=UDim.new(0,7)
-
-    local SearchIcon = Instance.new("ImageLabel", SearchHolder)
-    SearchIcon.Size=UDim2.new(0,14,0,14)
-    SearchIcon.Position=UDim2.new(0,10,0.5,-7)
-    SearchIcon.BackgroundTransparency=1
-    SearchIcon.Image="rbxassetid://6031154871"
-    SearchIcon.ImageColor3=Color3.fromRGB(120,120,120)
-
-    local Search = Instance.new("TextBox", SearchHolder)
-    Search.Size=UDim2.new(1,-32,1,0)
-    Search.Position=UDim2.new(0,32,0,0)
-    Search.BackgroundTransparency=1
-    Search.Text=""
-    Search.PlaceholderText="Search..."
-    Search.TextColor3=Color3.fromRGB(230,230,230)
-    Search.PlaceholderColor3=Color3.fromRGB(90,90,95)
-    Search.Font=Enum.Font.Gotham
-    Search.TextSize=12
-    Search.TextXAlignment=Enum.TextXAlignment.Left
-    Search.ClearTextOnFocus=false
-
-    local Header=Instance.new("Frame",Main)
-    Header.Size=UDim2.new(1,-16,0,14)
-    Header.Position=UDim2.new(0,12,0,44)
-    Header.BackgroundTransparency=1
-    for i,txt in ipairs({"Username","Team","Health"}) do
-        local l=Instance.new("TextLabel",Header)
-        l.Text=txt
-        l.Position=UDim2.new(i==1 and 0 or i==2 and 0.38 or 0.72,0,0,0)
-        l.Size=UDim2.new(0.3,0,1,0)
-        l.BackgroundTransparency=1
-        l.TextColor3=Color3.fromRGB(110,110,115)
-        l.Font=Enum.Font.GothamMedium
-        l.TextSize=10
-        l.TextXAlignment=Enum.TextXAlignment.Left
-    end
-
-    local List=Instance.new("ScrollingFrame",Main)
-    List.Size=UDim2.new(1,-16,0,165)
-    List.Position=UDim2.new(0,8,0,60)
-    List.BackgroundTransparency=1
-    List.CanvasSize=UDim2.new(0,0,0,0)
-    List.ScrollBarThickness=0
-    Instance.new("UIListLayout",List).Padding=UDim.new(0,2)
-
-    local Bottom=Instance.new("Frame",Main)
-    Bottom.Size=UDim2.new(1,-16,0,60)
-    Bottom.Position=UDim2.new(0,8,0,233)
-    Bottom.BackgroundColor3=Color3.fromRGB(28,28,31)
-    Instance.new("UICorner",Bottom).CornerRadius=UDim.new(0,7)
-    local Avatar=Instance.new("ImageLabel",Bottom)
-    Avatar.Size=UDim2.new(0,36,0,36)
-    Avatar.Position=UDim2.new(0,8,0,8)
-    Avatar.BackgroundColor3=Color3.fromRGB(20,20,20)
-    Instance.new("UICorner",Avatar).CornerRadius=UDim.new(0,6)
-    local NameLabel=Instance.new("TextLabel",Bottom)
-    NameLabel.Position=UDim2.new(0,52,0,4)
-    NameLabel.Size=UDim2.new(1,-60,0,12)
-    NameLabel.BackgroundTransparency=1
-    NameLabel.Text="Select a player"
-    NameLabel.TextColor3=Color3.fromRGB(230,230,230)
-    NameLabel.Font=Enum.Font.GothamBold
-    NameLabel.TextSize=11
-    NameLabel.TextXAlignment=Enum.TextXAlignment.Left
-    NameLabel.TextTruncate=Enum.TextTruncate.AtEnd
-    local IDLabel=Instance.new("TextLabel",Bottom)
-    IDLabel.Position=UDim2.new(0,52,0,18)
-    IDLabel.Size=UDim2.new(1,-60,0,10)
-    IDLabel.BackgroundTransparency=1
-    IDLabel.Text="ID: -"
-    IDLabel.TextColor3=Color3.fromRGB(115,115,120)
-    IDLabel.Font=Enum.Font.Gotham
-    IDLabel.TextSize=9
-    IDLabel.TextXAlignment=Enum.TextXAlignment.Left
-    local AgeLabel=Instance.new("TextLabel",Bottom)
-    AgeLabel.Position=UDim2.new(0,52,0,30)
-    AgeLabel.Size=UDim2.new(1,-60,0,10)
-    AgeLabel.BackgroundTransparency=1
-    AgeLabel.Text="Account Age: -"
-    AgeLabel.TextColor3=Color3.fromRGB(115,115,120)
-    AgeLabel.Font=Enum.Font.Gotham
-    AgeLabel.TextSize=9
-    AgeLabel.TextXAlignment=Enum.TextXAlignment.Left
-
-    local selected,selectedRow,ExternalGui,loopTPConn,loopBringConn=nil,nil,nil
-
-    local function createToolsGui()
-        if ExternalGui then ExternalGui:Destroy() end
-        local sg=Instance.new("ScreenGui",CoreGui)
-        sg.Name="DKToolsFinal"
-        sg.ResetOnSpawn=false
-        sg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
-        ExternalGui=sg
-        local Popup=Instance.new("Frame",sg)
-        Popup.Size=UDim2.new(0,170,0,125)
-        Popup.Position=UDim2.new(0.5,120,0.5,-80)
-        Popup.BackgroundColor3=Color3.fromRGB(20,20,22)
-        Popup.Active=true
-        Popup.Draggable=true
-        Instance.new("UICorner",Popup).CornerRadius=UDim.new(0,8)
-        Instance.new("UIStroke",Popup).Color=Color3.fromRGB(45,45,50)
-        local Title=Instance.new("TextLabel",Popup)
-        Title.Size=UDim2.new(1,-24,0,18)
-        Title.Position=UDim2.new(0,8,0,4)
-        Title.BackgroundTransparency=1
-        Title.Text="DK's HUB"
-        Title.TextColor3=Color3.fromRGB(220,220,225)
-        Title.Font=Enum.Font.GothamBold
-        Title.TextSize=11
-        Title.TextXAlignment=Enum.TextXAlignment.Left
-        local Close=Instance.new("TextButton",Popup)
-        Close.Size=UDim2.new(0,16,0,16)
-        Close.Position=UDim2.new(1,-20,0,4)
-        Close.BackgroundColor3=Color3.fromRGB(32,32,36)
-        Close.Text="x"
-        Close.TextColor3=Color3.fromRGB(160,160,160)
-        Close.Font=Enum.Font.GothamBold
-        Close.TextSize=9
-        Instance.new("UICorner",Close).CornerRadius=UDim.new(0,3)
-        local function addToggle(name,y)
-            local r=Instance.new("Frame",Popup)
-            r.Size=UDim2.new(1,-8,0,18)
-            r.Position=UDim2.new(0,4,0,y)
-            r.BackgroundTransparency=1
-            local l=Instance.new("TextLabel",r)
-            l.Text=name
-            l.Size=UDim2.new(1,-24,1,0)
-            l.BackgroundTransparency=1
-            l.TextColor3=Color3.fromRGB(170,170,175)
-            l.Font=Enum.Font.Gotham
-            l.TextSize=10
-            l.TextXAlignment=Enum.TextXAlignment.Left
-            local b=Instance.new("Frame",r)
-            b.Size=UDim2.new(0,22,0,11)
-            b.Position=UDim2.new(1,-22,0.5,-5)
-            b.BackgroundColor3=Color3.fromRGB(50,50,55)
-            Instance.new("UICorner",b).CornerRadius=UDim.new(1,0)
-            local d=Instance.new("Frame",b)
-            d.Size=UDim2.new(0,7,0,7)
-            d.Position=UDim2.new(0,2,0,2)
-            d.BackgroundColor3=Color3.new(1,1,1)
-            Instance.new("UICorner",d).CornerRadius=UDim.new(1,0)
-            local btn=Instance.new("TextButton",b)
-            btn.Size=UDim2.new(1,0,1,0)
-            btn.BackgroundTransparency=1
-            btn.Text=""
-            local on=false
-            btn.MouseButton1Click:Connect(function()
-                on=not on
-                if on then
-                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(220,220,220)}):Play()
-                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(1,-9,0,2)}):Play()
-                else
-                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(50,50,55)}):Play()
-                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(0,2,0,2)}):Play()
-                end
-            end)
-            return {btn=btn, get=function() return on end}
-        end
-        local function addBtn(txt,y)
-            local b=Instance.new("TextButton",Popup)
-            b.Size=UDim2.new(1,-8,0,20)
-            b.Position=UDim2.new(0,4,0,y)
-            b.BackgroundColor3=Color3.fromRGB(32,32,36)
-            b.Text=txt
-            b.TextColor3=Color3.fromRGB(200,200,205)
-            b.Font=Enum.Font.Gotham
-            b.TextSize=10
-            Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
-            return b
-        end
-        local spec=addToggle("Spectate",24)
-        local ltp=addToggle("Loop TP to Player",44)
-        local lbring=addToggle("Loop Bring to you",64)
-        local tp=addBtn("Teleport to Player",86)
-        spec.btn.MouseButton1Click:Connect(function() task.wait(0.11) if spec.get() then if selected and selected.Character and selected.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=selected.Character.Humanoid end else if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end end end)
-        ltp.btn.MouseButton1Click:Connect(function() task.wait(0.11) if ltp.get() then loopTPConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,2) end end) else if loopTPConn then loopTPConn:Disconnect() end end end)
-        lbring.btn.MouseButton1Click:Connect(function() task.wait(0.11) if lbring.get() then loopBringConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then selected.Character.HumanoidRootPart.CFrame=LP.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,3) end end) else if loopBringConn then loopBringConn:Disconnect() end end end)
-        tp.MouseButton1Click:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame end end)
-        Close.MouseButton1Click:Connect(function() if loopTPConn then loopTPConn:Disconnect() end if loopBringConn then loopBringConn:Disconnect() end if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end sg:Destroy() ExternalGui=nil end)
-    end
-
-    local function refresh()
-        local st=Search.Text:lower():gsub("%s+","")
-        for _,c in pairs(List:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
-        local y=0
-        for _,plr in pairs(Players:GetPlayers()) do
-            if st=="" or plr.Name:lower():find(st,1,true) or plr.DisplayName:lower():find(st,1,true) then
-                local row=Instance.new("Frame",List)
-                row.Size=UDim2.new(1,0,0,22)
-                row.BackgroundColor3= (selected and selected==plr) and Color3.fromRGB(55,55,60) or Color3.fromRGB(22,22,24)
-                Instance.new("UICorner",row).CornerRadius=UDim.new(0,4)
-                local n=Instance.new("TextLabel",row)
-                n.Position=UDim2.new(0,8,0,0)
-                n.Size=UDim2.new(0.38,0,1,0)
-                n.BackgroundTransparency=1
-                n.Text=plr.Name
-                n.TextColor3=Color3.fromRGB(210,210,215)
-                n.Font=Enum.Font.Gotham
-                n.TextSize=11
-                n.TextXAlignment=Enum.TextXAlignment.Left
-                n.TextTruncate=Enum.TextTruncate.AtEnd
-                local t=Instance.new("TextLabel",row)
-                t.Position=UDim2.new(0.38,0,0,0)
-                t.Size=UDim2.new(0.34,0,1,0)
-                t.BackgroundTransparency=1
-                t.Text=plr.Team and plr.Team.Name or "None"
-                t.TextColor3=Color3.fromRGB(150,150,155)
-                t.Font=Enum.Font.Gotham
-                t.TextSize=11
-                local h=Instance.new("TextLabel",row)
-                h.Position=UDim2.new(0.72,0,0,0)
-                h.Size=UDim2.new(0.28,0,1,0)
-                h.BackgroundTransparency=1
-                local hum=plr.Character and plr.Character:FindFirstChild("Humanoid")
-                h.Text= hum and tostring(math.floor(hum.Health)) or "100"
-                h.TextColor3=Color3.fromRGB(150,150,155)
-                h.Font=Enum.Font.Gotham
-                h.TextSize=11
-                local b=Instance.new("TextButton",row)
-                b.Size=UDim2.new(1,0,1,0)
-                b.BackgroundTransparency=1
-                b.Text=""
-                b.MouseButton1Click:Connect(function()
-                    if selectedRow then TweenService:Create(selectedRow,TweenInfo.new(0.1),{BackgroundColor3=Color3.fromRGB(22,22,24)}):Play() end
-                    selectedRow=row
-                    selected=plr
-                    TweenService:Create(row,TweenInfo.new(0.1),{BackgroundColor3=Color3.fromRGB(55,55,60)}):Play()
-                    NameLabel.Text=plr.Name.." (@"..plr.DisplayName..")"
-                    IDLabel.Text="ID: "..plr.UserId
-                    AgeLabel.Text="Account Age: "..plr.AccountAge.." days"
-                    Avatar.Image="https://www.roblox.com/headshot-thumbnail/image?userId="..plr.UserId.."&width=150&height=150&format=png"
-                    createToolsGui()
-                end)
-                y+=24
-            end
-        end
-        List.CanvasSize=UDim2.new(0,0,0,y)
-    end
-    Search:GetPropertyChangedSignal("Text"):Connect(refresh)
-    Players.PlayerAdded:Connect(refresh)
-    Players.PlayerRemoving:Connect(refresh)
-    task.spawn(function() while Main.Parent do pcall(refresh) task.wait(1) end if ExternalGui then ExternalGui:Destroy() end end)
-    refresh()
-    return Main
-end,
-                
+        local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 function Tab:CreateToggle(ToggleSettings)
 	ToggleSettings.Name = ToggleSettings.Name or "Toggle"
@@ -2997,8 +2734,8 @@ function Tab:CreateToggle(ToggleSettings)
 	local PICKER_OFFSET_X = -35
 	local PICKER_OFFSET_Y = 15
 	
-	-- Changed to emoji â ï¸ and lighter standing-out yellow
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " â ï¸") or ToggleSettings.Name
+	-- Changed to emoji â ï¸ and lighter standing-out yellow
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " â ï¸") or ToggleSettings.Name
 	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor -- Lighter yellow
 	local WarningHoverColor = Color3.fromRGB(255, 235, 120) -- Even lighter for hover
 
@@ -3028,7 +2765,7 @@ function Tab:CreateToggle(ToggleSettings)
 		ColorPickerDisplay = Instance.new("Frame")
 		ColorPickerDisplay.Name = "ColorDisplay"
 		ColorPickerDisplay.Size = UDim2.new(0, 22, 0, 22)
-		ColorPickerDisplay.Position = UDim2.new(1, -52, 0.5, -11)
+		ColorPickerDisplay.Position = UDim2.new(1, -80, 0.5, -11)
 		ColorPickerDisplay.BackgroundColor3 = ToggleSettings.CurrentColor
 		ColorPickerDisplay.ZIndex = 5
 		ColorPickerDisplay.Parent = Toggle
@@ -3049,31 +2786,6 @@ function Tab:CreateToggle(ToggleSettings)
 		ColorPickerButton.Text = ""
 		ColorPickerButton.ZIndex = 6
 		ColorPickerButton.Parent = ColorPickerDisplay
-
-		-- Real settings/gear button next to the color swatch.
-		local SettingsButton = Instance.new("ImageButton")
-		SettingsButton.Name = "SettingsButton"
-		SettingsButton.Size = UDim2.new(0, 22, 0, 22)
-		SettingsButton.Position = UDim2.new(1, -80, 0.5, -11)
-		SettingsButton.BackgroundTransparency = 1
-		SettingsButton.Image = "rbxassetid://6031280882"
-		SettingsButton.ImageColor3 = SelectedTheme.TextColor
-		SettingsButton.ImageTransparency = 0.08
-		SettingsButton.ScaleType = Enum.ScaleType.Fit
-		SettingsButton.ZIndex = 7
-		SettingsButton.Parent = Toggle
-
-		local SettingsButtonCorner = Instance.new("UICorner")
-		SettingsButtonCorner.CornerRadius = UDim.new(0, 5)
-		SettingsButtonCorner.Parent = SettingsButton
-
-		SettingsButton.MouseEnter:Connect(function()
-			TweenService:Create(SettingsButton, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {ImageColor3 = SelectedTheme.ToggleEnabled, ImageTransparency = 0}):Play()
-		end)
-
-		SettingsButton.MouseLeave:Connect(function()
-			TweenService:Create(SettingsButton, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {ImageColor3 = SelectedTheme.TextColor, ImageTransparency = 0.08}):Play()
-		end)
 
 		ColorPickerFrame = Instance.new("Frame")
 		ColorPickerFrame.Name = "ColorPickerFrame"
@@ -3364,10 +3076,6 @@ function Tab:CreateToggle(ToggleSettings)
 			else
 				ClosePicker()
 			end
-		end)
-
-		SettingsButton.MouseButton1Click:Connect(function()
-			ColorPickerButton:Activate()
 		end)
 
 		CloseButton.MouseButton1Click:Connect(ClosePicker)
@@ -3698,98 +3406,42 @@ ColorPicker.Interact.MouseButton1Down:Connect(function()
 end)
 
 	-- Rainbow toggle logic
-	local function UpdateRainbowVisual(instant)
-		local tweenTime = instant and 0 or 0.25
-		local easing = TweenInfo.new(tweenTime, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-		local colorEasing = TweenInfo.new(tweenTime, Enum.EasingStyle.Exponential)
-
+	local ToggleButton = Instance.new("TextButton")
+	ToggleButton.BackgroundTransparency = 1
+	ToggleButton.Size = UDim2.new(1, 0, 1, 0)
+	ToggleButton.Text = ""
+	ToggleButton.ZIndex = 10 -- force on top
+	ToggleButton.Active = true
+	ToggleButton.Parent = RainbowToggle
+	
+	ToggleButton.MouseButton1Click:Connect(function()
+		rainbowEnabled = not rainbowEnabled
 		if rainbowEnabled then
-			TweenService:Create(ToggleIndicator, easing, {
-				Position = UDim2.new(1, -16, 0.5, -7)
-			}):Play()
-			TweenService:Create(ToggleSwitch, colorEasing, {
-				BackgroundColor3 = SelectedTheme.ToggleEnabled
-			}):Play()
-		else
-			TweenService:Create(ToggleIndicator, easing, {
-				Position = UDim2.new(0, 2, 0.5, -7)
-			}):Play()
-			TweenService:Create(ToggleSwitch, colorEasing, {
-				BackgroundColor3 = SelectedTheme.ToggleDisabled
-			}):Play()
-		end
-	end
-
-	local function ApplyRainbowColor()
-		if not rainbowEnabled then return end
-		h = (h + 0.008) % 1
-		local newColor = Color3.fromHSV(h, s, v)
-		ColorPickerSettings.Color = newColor
-		setDisplay()
-		pcall(function()
-			ColorPickerSettings.Callback(newColor)
-		end)
-	end
-
-	local function SetRainbowEnabled(state, instant)
-		state = state == true
-		rainbowEnabled = state
-		UpdateRainbowVisual(instant)
-
-		if rainbowConnection then
-			rainbowConnection:Disconnect()
-			rainbowConnection = nil
-		end
-
-		if rainbowEnabled then
-			-- Immediately apply a new color when enabled.
-			ApplyRainbowColor()
-
+			TweenService:Create(ToggleIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -16, 0.5, -7)}):Play()
+			TweenService:Create(ToggleSwitch, TweenInfo.new(0.25, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+			
 			rainbowConnection = RunService.RenderStepped:Connect(function()
 				if rainbowEnabled then
-					ApplyRainbowColor()
+					h = h + 0.005
+					if h > 1 then h = 0 end
+					setDisplay()
+					local color = Color3.fromHSV(h,s,v)
+					pcall(function() ColorPickerSettings.Callback(color) end)
+					ColorPickerSettings.Color = color
 				end
 			end)
+		else
+			TweenService:Create(ToggleIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0, 2, 0.5, -7)}):Play()
+			TweenService:Create(ToggleSwitch, TweenInfo.new(0.25, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+			
+			if rainbowConnection then
+				rainbowConnection:Disconnect()
+				rainbowConnection = nil
+			end
 		end
-
 		if not ColorPickerSettings.Ext then
 			SaveConfiguration()
 		end
-	end
-
-	-- Gear/settings button opens the picker without touching the current color.
-	SettingsButton.MouseButton1Click:Connect(function()
-		if not opened then
-			ColorPicker.Interact:Activate()
-		else
-			opened = false
-			ColorPicker.Interact:Activate()
-		end
-	end)
-
-	ToggleButton.MouseButton1Click:Connect(function()
-		SetRainbowEnabled(not rainbowEnabled, false)
-	end)
-
-	-- Do not automatically switch Rainbow Mode off when manually picking a color.
-	Main.MouseButton1Down:Connect(function()
-		if opened then
-			mainDragging = true
-		end
-	end)
-
-	Main.MainPoint.MouseButton1Down:Connect(function()
-		if opened then
-			mainDragging = true
-		end
-	end)
-
-	Slider.MouseButton1Down:Connect(function()
-		sliderDragging = true
-	end)
-
-	Slider.SliderPoint.MouseButton1Down:Connect(function()
-		sliderDragging = true
 	end)
 
 	local colorPickerInputConnection = UserInputService.InputEnded:Connect(function(input, gameProcessed) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -3890,9 +3542,30 @@ end)
 		setDisplay()
 	end
 	
-\tfunction ColorPickerSettings:SetRainbow(state)
-\t\tSetRainbowEnabled(state, true)
-\tend
+	function ColorPickerSettings:SetRainbow(state)
+		rainbowEnabled = state
+		if rainbowEnabled then
+			TweenService:Create(ToggleIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {Position = UDim2.new(1, -16, 0.5, -7)}):Play()
+			TweenService:Create(ToggleSwitch, TweenInfo.new(0.25, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+			
+			if not rainbowConnection then
+				rainbowConnection = RunService.RenderStepped:Connect(function()
+					if rainbowEnabled then
+						h = h + 0.005
+						if h > 1 then h = 0 end
+						setDisplay()
+						local color = Color3.fromHSV(h,s,v)
+						pcall(function() ColorPickerSettings.Callback(color) end)
+						ColorPickerSettings.Color = color
+					end
+				end)
+			end
+		else
+			TweenService:Create(ToggleIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {Position = UDim2.new(0, 2, 0.5, -7)}):Play()
+			TweenService:Create(ToggleSwitch, TweenInfo.new(0.25, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+			if rainbowConnection then rainbowConnection:Disconnect() rainbowConnection = nil end
+		end
+	end
 
 	Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
 		ToggleLabel.TextColor3 = SelectedTheme.TextColor
@@ -3900,7 +3573,6 @@ end)
 
 	return ColorPickerSettings
 end
-
 
 		-- Section
 		function Tab:CreateSection(SectionName)
@@ -5314,4 +4986,57 @@ if useStudio then
 	--	Shadow = Color3.fromRGB(200, 210, 220),
 
 	--	NotificationBackground = Color3.fromRGB(210, 220, 230),
-	--	NotificationActionsBack
+	--	NotificationActionsBackground = Color3.fromRGB(225, 230, 240),
+
+	--	TabBackground = Color3.fromRGB(200, 210, 220),
+	--	TabStroke = Color3.fromRGB(180, 190, 200),
+	--	TabBackgroundSelected = Color3.fromRGB(175, 185, 200),
+	--	TabTextColor = Color3.fromRGB(50, 55, 60),
+	--	SelectedTabTextColor = Color3.fromRGB(30, 35, 40),
+
+	--	ElementBackground = Color3.fromRGB(210, 220, 230),
+	--	ElementBackgroundHover = Color3.fromRGB(220, 230, 240),
+	--	SecondaryElementBackground = Color3.fromRGB(200, 210, 220),
+	--	ElementStroke = Color3.fromRGB(190, 200, 210),
+	--	SecondaryElementStroke = Color3.fromRGB(180, 190, 200),
+
+	--	SliderBackground = Color3.fromRGB(200, 220, 235),  -- Lighter shade
+	--	SliderProgress = Color3.fromRGB(70, 130, 180),
+	--	SliderStroke = Color3.fromRGB(150, 180, 220),
+
+	--	ToggleBackground = Color3.fromRGB(210, 220, 230),
+	--	ToggleEnabled = Color3.fromRGB(70, 160, 210),
+	--	ToggleDisabled = Color3.fromRGB(180, 180, 180),
+	--	ToggleEnabledStroke = Color3.fromRGB(60, 150, 200),
+	--	ToggleDisabledStroke = Color3.fromRGB(140, 140, 140),
+	--	ToggleEnabledOuterStroke = Color3.fromRGB(100, 120, 140),
+	--	ToggleDisabledOuterStroke = Color3.fromRGB(120, 120, 130),
+
+	--	DropdownSelected = Color3.fromRGB(220, 230, 240),
+	--	DropdownUnselected = Color3.fromRGB(200, 210, 220),
+
+	--	InputBackground = Color3.fromRGB(220, 230, 240),
+	--	InputStroke = Color3.fromRGB(180, 190, 200),
+	--	PlaceholderColor = Color3.fromRGB(150, 150, 150)
+	--})
+
+	--local Keybind = Tab:CreateKeybind({
+	--	Name = "Keybind Example",
+	--	CurrentKeybind = "Q",
+	--	HoldToInteract = false,
+	--	Flag = "Keybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	--	Callback = function(Keybind)
+	--		-- The function that takes place when the keybind is pressed
+	--		-- The variable (Keybind) is a boolean for whether the keybind is being held or not (HoldToInteract needs to be true)
+	--	end,
+	--})
+
+	--local Label = Tab:CreateLabel("Label Example")
+
+	--local Label2 = Tab:CreateLabel("Warning", 4483362458, Color3.fromRGB(255, 159, 49),  true)
+
+	--local Paragraph = Tab:CreateParagraph({Title = "Paragraph Example", Content = "Paragraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph Example"})
+end
+
+if CEnabled and Main:FindFirstChild('Notice') then
+	Main.Notice.Back
