@@ -694,6 +694,9 @@ local RayfieldLibrary = {
 	}
 }
 
+
+
+
 -- Interface Management
 
 local RayfieldAssetId = customAssetId or 10804731440
@@ -1712,9 +1715,1292 @@ local function updateSetting(category: string, setting: string, value: any)
 	settingsTable[category][setting].Value = value
 	overriddenSettings[category .. "." .. setting] = nil -- If user changes an overriden setting, remove the override
 	if category == "System" and setting == "snow" then
-		snowEnabled = true
+		snowEnabled = value
 		updateSnowState()
 	end
+	saveSettings()
+end
+
+local DKGC_BASE = "https://b6791824-1065-4839-b4ab-c6bad46ead19-00-2mcbfk9iw54r3.janeway.replit.dev/api"
+
+local function gcSafeJsonEncode(data)
+	local ok, result = pcall(function()
+		return HttpService:JSONEncode(data)
+	end)
+	return ok and result or "{}"
+end
+
+local function gcSafeJsonDecode(body)
+	if not body or body == "" then
+		return nil
+	end
+
+	local ok, result = pcall(function()
+		return HttpService:JSONDecode(body)
+	end)
+
+	return ok and result or nil
+end
+
+local function gcHttpGet(url)
+	for attempt = 1, 3 do
+		local ok, res = pcall(function()
+			if requestFunc then
+				return requestFunc({
+					Url = url,
+					Method = "GET"
+				})
+			end
+
+			return {
+				Body = HttpService:GetAsync(url, false)
+			}
+		end)
+
+		if ok and res then
+			if type(res) == "table" then
+				return res.Body
+			end
+
+			return res
+		end
+
+		task.wait(0.35 * attempt)
+	end
+
+	return nil
+end
+
+local function gcHttpRequest(method, url, body)
+	for attempt = 1, 3 do
+		local ok, res = pcall(function()
+			if requestFunc then
+				return requestFunc({
+					Url = url,
+					Method = method,
+					Headers = {
+						["Content-Type"] = "application/json"
+					},
+					Body = body
+				})
+			end
+
+			if method == "POST" or method == "DELETE" then
+				local requestBody = method == "POST" and body or ""
+				return HttpService:RequestAsync({
+					Url = url,
+					Method = method,
+					Headers = {
+						["Content-Type"] = "application/json"
+					},
+					Body = requestBody
+				})
+			end
+
+			return nil
+		end)
+
+		if ok then
+			return true, res
+		end
+
+		task.wait(0.35 * attempt)
+	end
+
+	return false, nil
+end
+
+local function gcHttpPost(url, body)
+	return gcHttpRequest("POST", url, body)
+end
+
+local function gcHttpDelete(url)
+	return gcHttpRequest("DELETE", url, "")
+end
+
+local function gcHttpPatch(url, body)
+	return gcHttpRequest("PATCH", url, body)
+end
+
+local function gcHasLink(s)
+	local lo = tostring(s):lower()
+
+	for _, p in ipairs({
+		"https?://",
+		"discord%.gg/",
+		"discord%.com/",
+		"www%.",
+		"%a+%.com[/%s%z]",
+		"%a+%.gg[/%s%z]"
+	}) do
+		if lo:match(p) then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function gcEscapeRichText(text)
+	text = tostring(text or "")
+
+	text = text:gsub("&", "&amp;")
+	text = text:gsub("<", "&lt;")
+	text = text:gsub(">", "&gt;")
+	text = text:gsub('"', "&quot;")
+	text = text:gsub("'", "&apos;")
+
+	return text
+end
+
+local function createGlobalChat(window)
+	window:CreateTab("Global Chat", 10734888000, true)
+
+	if TabList["Global Chat"] then
+		TabList["Global Chat"].Visible = true
+		TabList["Global Chat"].LayoutOrder = 999
+	end
+
+	if Elements["Global Chat"] then
+		Elements["Global Chat"].LayoutOrder = 999
+	end
+
+	local gcPage = Elements:FindFirstChild("Global Chat")
+	if not gcPage then
+		return
+	end
+
+	----------------------------------------------------------------
+	-- OVERLAY
+	----------------------------------------------------------------
+
+	local overlay = Instance.new("Frame")
+	overlay.Name = "GlobalChatOverlay"
+	overlay.Parent = Main
+	overlay.Position = useMobileSizing
+		and UDim2.new(0, 12, 0, 92)
+		or UDim2.new(0, 16, 0, 96)
+
+	overlay.Size = useMobileSizing
+		and UDim2.new(1, -24, 1, -104)
+		or UDim2.new(1, -32, 1, -112)
+
+	overlay.BackgroundTransparency = 1
+	overlay.BorderSizePixel = 0
+	overlay.ClipsDescendants = true
+	overlay.ZIndex = 10
+	overlay.Visible = false
+
+	local function connectHideBtn(btn)
+		if btn.ClassName == "Frame"
+			and btn.Name ~= "Global Chat"
+			and btn.Name ~= "Template"
+			and btn.Name ~= "Placeholder" then
+
+			local interact = btn:FindFirstChild("Interact")
+
+			if interact then
+				interact.MouseButton1Click:Connect(function()
+					overlay.Visible = false
+				end)
+			end
+		end
+	end
+
+	for _, btn in ipairs(TabList:GetChildren()) do
+		connectHideBtn(btn)
+	end
+
+	TabList.ChildAdded:Connect(connectHideBtn)
+
+	local gcBtn = TabList["Global Chat"]
+
+	if gcBtn and gcBtn:FindFirstChild("Interact") then
+		gcBtn.Interact.MouseButton1Click:Connect(function()
+			overlay.Visible = true
+		end)
+	end
+
+	----------------------------------------------------------------
+	-- SHELL
+	----------------------------------------------------------------
+
+	local gcShell = Instance.new("Frame")
+	gcShell.Parent = overlay
+	gcShell.Size = UDim2.new(1, 0, 1, 0)
+	gcShell.BackgroundColor3 = Color3.fromRGB(12, 12, 14)
+	gcShell.BorderSizePixel = 0
+	gcShell.ZIndex = 10
+
+	Instance.new("UICorner", gcShell).CornerRadius = UDim.new(0, 12)
+
+	local shellStroke = Instance.new("UIStroke", gcShell)
+	shellStroke.Color = Color3.fromRGB(38, 38, 43)
+	shellStroke.Thickness = 1
+
+	----------------------------------------------------------------
+	-- HEADER
+	----------------------------------------------------------------
+
+	local header = Instance.new("Frame")
+	header.Parent = overlay
+	header.Position = UDim2.new(0, 8, 0, 6)
+	header.Size = UDim2.new(1, -16, 0, 30)
+	header.BackgroundTransparency = 1
+	header.ZIndex = 12
+
+	local title = Instance.new("TextLabel")
+	title.Parent = header
+	title.Size = UDim2.new(0, 150, 1, 0)
+	title.BackgroundTransparency = 1
+	title.Text = "GLOBAL CHAT"
+	title.TextColor3 = Color3.fromRGB(245, 245, 245)
+	title.TextSize = 14
+	title.Font = Enum.Font.GothamBold
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.ZIndex = 13
+
+	local statusDot = Instance.new("Frame")
+	statusDot.Parent = header
+	statusDot.Position = UDim2.new(0, 114, 0.5, -4)
+	statusDot.Size = UDim2.new(0, 8, 0, 8)
+	statusDot.BackgroundColor3 = Color3.fromRGB(255, 180, 60)
+	statusDot.BorderSizePixel = 0
+	statusDot.ZIndex = 13
+
+	Instance.new("UICorner", statusDot).CornerRadius = UDim.new(1, 0)
+
+	local gcActive = Instance.new("TextLabel")
+	gcActive.Parent = header
+	gcActive.AnchorPoint = Vector2.new(1, 0)
+	gcActive.Position = UDim2.new(1, -4, 0, 2)
+	gcActive.Size = UDim2.new(0, 130, 0, 24)
+	gcActive.BackgroundTransparency = 1
+	gcActive.Text = "Connecting..."
+	gcActive.TextColor3 = Color3.fromRGB(255, 190, 70)
+	gcActive.TextSize = 11
+	gcActive.Font = Enum.Font.GothamMedium
+	gcActive.TextXAlignment = Enum.TextXAlignment.Right
+	gcActive.ZIndex = 13
+
+	----------------------------------------------------------------
+	-- MESSAGE SCROLL
+	----------------------------------------------------------------
+
+	local gcScroll = Instance.new("ScrollingFrame")
+	gcScroll.Parent = overlay
+	gcScroll.Size = UDim2.new(1, -12, 1, -140)
+	gcScroll.Position = UDim2.new(0, 6, 0, 38)
+	gcScroll.BackgroundTransparency = 1
+	gcScroll.BorderSizePixel = 0
+	gcScroll.ScrollBarThickness = 4
+	gcScroll.ScrollBarImageColor3 = Color3.fromRGB(70, 70, 75)
+	gcScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	gcScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	gcScroll.ZIndex = 11
+
+	local gcLL = Instance.new("UIListLayout")
+	gcLL.Parent = gcScroll
+	gcLL.Padding = UDim.new(0, 6)
+	gcLL.SortOrder = Enum.SortOrder.LayoutOrder
+
+	local gcPad = Instance.new("UIPadding")
+	gcPad.Parent = gcScroll
+	gcPad.PaddingTop = UDim.new(0, 6)
+	gcPad.PaddingBottom = UDim.new(0, 8)
+	gcPad.PaddingLeft = UDim.new(0, 8)
+	gcPad.PaddingRight = UDim.new(0, 8)
+
+	----------------------------------------------------------------
+	-- REPLY BAR
+	----------------------------------------------------------------
+
+	local replyBar = Instance.new("Frame")
+	replyBar.Parent = overlay
+	replyBar.Position = UDim2.new(0, 8, 1, -103)
+	replyBar.Size = UDim2.new(1, -16, 0, 30)
+	replyBar.BackgroundColor3 = Color3.fromRGB(23, 23, 27)
+	replyBar.BorderSizePixel = 0
+	replyBar.Visible = false
+	replyBar.ZIndex = 15
+
+	Instance.new("UICorner", replyBar).CornerRadius = UDim.new(0, 8)
+
+	local replyAccent = Instance.new("Frame")
+	replyAccent.Parent = replyBar
+	replyAccent.Size = UDim2.new(0, 3, 1, 0)
+	replyAccent.BackgroundColor3 = Color3.fromRGB(90, 235, 120)
+	replyAccent.BorderSizePixel = 0
+	replyAccent.ZIndex = 16
+
+	local replyLabel = Instance.new("TextLabel")
+	replyLabel.Parent = replyBar
+	replyLabel.Position = UDim2.new(0, 12, 0, 0)
+	replyLabel.Size = UDim2.new(1, -48, 1, 0)
+	replyLabel.BackgroundTransparency = 1
+	replyLabel.Text = ""
+	replyLabel.TextColor3 = Color3.fromRGB(180, 180, 185)
+	replyLabel.TextSize = 10
+	replyLabel.Font = Enum.Font.Gotham
+	replyLabel.TextXAlignment = Enum.TextXAlignment.Left
+	replyLabel.TextTruncate = Enum.TextTruncate.AtEnd
+	replyLabel.ZIndex = 16
+
+	local replyCancel = Instance.new("TextButton")
+	replyCancel.Parent = replyBar
+	replyCancel.AnchorPoint = Vector2.new(1, 0.5)
+	replyCancel.Position = UDim2.new(1, -6, 0.5, 0)
+	replyCancel.Size = UDim2.new(0, 24, 0, 24)
+	replyCancel.BackgroundTransparency = 1
+	replyCancel.Text = "×"
+	replyCancel.TextColor3 = Color3.fromRGB(180, 180, 185)
+	replyCancel.TextSize = 18
+	replyCancel.Font = Enum.Font.GothamBold
+	replyCancel.ZIndex = 17
+
+	----------------------------------------------------------------
+	-- INPUT
+	----------------------------------------------------------------
+
+	local gcInputBg = Instance.new("Frame")
+	gcInputBg.Parent = overlay
+	gcInputBg.Size = UDim2.new(1, -66, 0, 38)
+	gcInputBg.Position = UDim2.new(0, 6, 1, -67)
+	gcInputBg.BackgroundColor3 = Color3.fromRGB(18, 18, 21)
+	gcInputBg.BorderSizePixel = 0
+	gcInputBg.ZIndex = 14
+
+	Instance.new("UICorner", gcInputBg).CornerRadius = UDim.new(0, 10)
+
+	local gcIStroke = Instance.new("UIStroke")
+	gcIStroke.Parent = gcInputBg
+	gcIStroke.Color = Color3.fromRGB(60, 220, 100)
+	gcIStroke.Thickness = 1
+
+	local gcMsgBox = Instance.new("TextBox")
+	gcMsgBox.Parent = gcInputBg
+	gcMsgBox.Size = UDim2.new(1, -16, 1, 0)
+	gcMsgBox.Position = UDim2.new(0, 10, 0, 0)
+	gcMsgBox.BackgroundTransparency = 1
+	gcMsgBox.PlaceholderText = "Send a message..."
+	gcMsgBox.PlaceholderColor3 = Color3.fromRGB(90, 90, 95)
+	gcMsgBox.Text = ""
+	gcMsgBox.TextColor3 = Color3.fromRGB(235, 235, 235)
+	gcMsgBox.TextSize = 13
+	gcMsgBox.Font = Enum.Font.Gotham
+	gcMsgBox.TextXAlignment = Enum.TextXAlignment.Left
+	gcMsgBox.ClearTextOnFocus = false
+	gcMsgBox.ZIndex = 15
+
+	----------------------------------------------------------------
+	-- ANONYMOUS CHECKBOX
+	----------------------------------------------------------------
+
+	local anonymous = false
+
+	local anonymousButton = Instance.new("TextButton")
+	anonymousButton.Parent = overlay
+	anonymousButton.Size = UDim2.new(0, 110, 0, 20)
+	anonymousButton.Position = UDim2.new(0, 9, 1, -25)
+	anonymousButton.BackgroundTransparency = 1
+	anonymousButton.Text = ""
+	anonymousButton.ZIndex = 15
+
+	local checkBox = Instance.new("Frame")
+	checkBox.Parent = anonymousButton
+	checkBox.Position = UDim2.new(0, 0, 0.5, -7)
+	checkBox.Size = UDim2.new(0, 14, 0, 14)
+	checkBox.BackgroundColor3 = Color3.fromRGB(28, 28, 32)
+	checkBox.BorderSizePixel = 0
+	checkBox.ZIndex = 16
+
+	Instance.new("UICorner", checkBox).CornerRadius = UDim.new(0, 4)
+
+	local checkStroke = Instance.new("UIStroke")
+	checkStroke.Parent = checkBox
+	checkStroke.Color = Color3.fromRGB(80, 80, 88)
+	checkStroke.Thickness = 1
+
+	local checkMark = Instance.new("TextLabel")
+	checkMark.Parent = checkBox
+	checkMark.Size = UDim2.new(1, 0, 1, 0)
+	checkMark.BackgroundTransparency = 1
+	checkMark.Text = "✓"
+	checkMark.TextColor3 = Color3.fromRGB(255, 255, 255)
+	checkMark.TextSize = 11
+	checkMark.Font = Enum.Font.GothamBold
+	checkMark.Visible = false
+	checkMark.ZIndex = 17
+
+	local anonymousLabel = Instance.new("TextLabel")
+	anonymousLabel.Parent = anonymousButton
+	anonymousLabel.Position = UDim2.new(0, 21, 0, 0)
+	anonymousLabel.Size = UDim2.new(1, -21, 1, 0)
+	anonymousLabel.BackgroundTransparency = 1
+	anonymousLabel.Text = "Send anonymously"
+	anonymousLabel.TextColor3 = Color3.fromRGB(145, 145, 150)
+	anonymousLabel.TextSize = 10
+	anonymousLabel.Font = Enum.Font.GothamMedium
+	anonymousLabel.TextXAlignment = Enum.TextXAlignment.Left
+	anonymousLabel.ZIndex = 16
+
+	anonymousButton.MouseButton1Click:Connect(function()
+		anonymous = not anonymous
+
+		checkMark.Visible = anonymous
+
+		if anonymous then
+			checkBox.BackgroundColor3 = Color3.fromRGB(60, 220, 100)
+			checkStroke.Color = Color3.fromRGB(60, 220, 100)
+			anonymousLabel.TextColor3 = Color3.fromRGB(220, 255, 225)
+		else
+			checkBox.BackgroundColor3 = Color3.fromRGB(28, 28, 32)
+			checkStroke.Color = Color3.fromRGB(80, 80, 88)
+			anonymousLabel.TextColor3 = Color3.fromRGB(145, 145, 150)
+		end
+	end)
+
+	----------------------------------------------------------------
+	-- SEND BUTTON
+	----------------------------------------------------------------
+
+	local gcArrow, gcArrowOffset, gcArrowSize = resolveIcon("send")
+
+	local gcSendBtn = Instance.new("TextButton")
+	gcSendBtn.Parent = overlay
+	gcSendBtn.Size = UDim2.new(0, 44, 0, 38)
+	gcSendBtn.Position = UDim2.new(1, -50, 1, -67)
+	gcSendBtn.BackgroundColor3 = Color3.fromRGB(60, 220, 100)
+	gcSendBtn.Text = ""
+	gcSendBtn.BorderSizePixel = 0
+	gcSendBtn.ZIndex = 15
+
+	Instance.new("UICorner", gcSendBtn).CornerRadius = UDim.new(0, 10)
+
+	local gcSendIcon = Instance.new("ImageLabel")
+	gcSendIcon.Parent = gcSendBtn
+	gcSendIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+	gcSendIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+	gcSendIcon.Size = UDim2.new(0, 18, 0, 18)
+	gcSendIcon.BackgroundTransparency = 1
+	gcSendIcon.Image = gcArrow
+	gcSendIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+	gcSendIcon.ZIndex = 16
+
+	if gcArrowOffset then
+		gcSendIcon.ImageRectOffset = gcArrowOffset
+	end
+
+	if gcArrowSize then
+		gcSendIcon.ImageRectSize = gcArrowSize
+	end
+
+	----------------------------------------------------------------
+	-- DATA
+	----------------------------------------------------------------
+
+	local gcLocalPlayer = Players.LocalPlayer
+
+	local gcMsgOrder = 0
+	local gcLastMsgId = 0
+	local gcLastSend = 0
+	local gcCooldown = false
+	local gcTimedOut = false
+	local gcTimeoutMessage = ""
+
+	local gcMessages = {}
+	local gcMessageRows = {}
+	local gcThumbs = {}
+	local gcUsers = {
+		[gcLocalPlayer.Name] = gcLocalPlayer.UserId
+	}
+
+	local replyTarget = nil
+
+	----------------------------------------------------------------
+	-- AVATARS
+	----------------------------------------------------------------
+
+	local function gcThumbFor(username)
+		if gcThumbs[username] ~= nil then
+			return gcThumbs[username]
+		end
+
+		local userId = gcUsers[username]
+
+		if not userId then
+			local plr = Players:FindFirstChild(username)
+
+			if plr then
+				userId = plr.UserId
+			else
+				pcall(function()
+					userId = Players:GetUserIdFromNameAsync(username)
+				end)
+			end
+
+			gcUsers[username] = userId or false
+		end
+
+		if not userId then
+			gcThumbs[username] = false
+			return false
+		end
+
+		local thumb = false
+
+		pcall(function()
+			thumb = Players:GetUserThumbnailAsync(
+				userId,
+				Enum.ThumbnailType.HeadShot,
+				Enum.ThumbnailSize.Size48x48
+			)
+		end)
+
+		gcThumbs[username] = thumb or false
+
+		return gcThumbs[username]
+	end
+
+	----------------------------------------------------------------
+	-- REPLY
+	----------------------------------------------------------------
+
+	local function cancelReply()
+		replyTarget = nil
+		replyBar.Visible = false
+	end
+
+	replyCancel.MouseButton1Click:Connect(cancelReply)
+
+	local function startReply(message)
+		replyTarget = message
+		replyBar.Visible = true
+
+		replyLabel.Text =
+			"Replying to "
+			.. tostring(message.username or "Unknown")
+			.. ": "
+			.. tostring(message.message or "")
+
+		gcMsgBox:CaptureFocus()
+	end
+
+	----------------------------------------------------------------
+	-- ERROR
+	----------------------------------------------------------------
+
+	local function gcFlashError(msg)
+		TweenService:Create(
+			gcIStroke,
+			TweenInfo.new(0.1),
+			{Color = Color3.fromRGB(230, 65, 65)}
+		):Play()
+
+		gcMsgBox.PlaceholderText = msg
+
+		task.delay(2, function()
+			if gcMsgBox.Parent then
+				TweenService:Create(
+					gcIStroke,
+					TweenInfo.new(0.3),
+					{Color = Color3.fromRGB(60, 220, 100)}
+				):Play()
+
+				gcMsgBox.PlaceholderText = "Send a message..."
+			end
+		end)
+	end
+
+	----------------------------------------------------------------
+	-- TIMEOUT LOCK
+	----------------------------------------------------------------
+
+	local function gcSetTimeoutState(timedOut, remainingMinutes)
+		gcTimedOut = timedOut == true
+
+		if gcTimedOut then
+			local mins = math.max(0, tonumber(remainingMinutes) or 0)
+			local hours = math.floor(mins / 60)
+			local leftMinutes = mins % 60
+
+			if hours > 0 then
+				gcTimeoutMessage = "Timed out — " .. tostring(hours) .. "h " .. tostring(leftMinutes) .. "m left"
+			else
+				gcTimeoutMessage = "Timed out — " .. tostring(mins) .. "m left"
+			end
+
+			gcMsgBox.Text = ""
+			gcMsgBox.ClearTextOnFocus = false
+			gcMsgBox.PlaceholderText = gcTimeoutMessage
+			gcMsgBox.TextEditable = false
+			gcMsgBox.Active = false
+			gcSendBtn.Active = false
+			gcSendBtn.AutoButtonColor = false
+			gcSendBtn.BackgroundColor3 = Color3.fromRGB(90, 55, 55)
+			gcIStroke.Color = Color3.fromRGB(230, 65, 65)
+		else
+			if gcTimedOut then
+				gcMsgBox.PlaceholderText = "Send a message..."
+				gcMsgBox.TextEditable = true
+				gcMsgBox.Active = true
+				gcSendBtn.Active = true
+				gcSendBtn.AutoButtonColor = true
+				gcSendBtn.BackgroundColor3 = Color3.fromRGB(60, 220, 100)
+				gcIStroke.Color = Color3.fromRGB(60, 220, 100)
+			end
+
+			gcTimeoutMessage = ""
+		end
+	end
+
+	----------------------------------------------------------------
+	-- MESSAGE ACTION MENU
+	----------------------------------------------------------------
+
+	local actionMenu = Instance.new("Frame")
+	actionMenu.Parent = overlay
+	actionMenu.Size = UDim2.new(0, 145, 0, 78)
+	actionMenu.BackgroundColor3 = Color3.fromRGB(25, 25, 29)
+	actionMenu.BorderSizePixel = 0
+	actionMenu.Visible = false
+	actionMenu.ZIndex = 50
+
+	Instance.new("UICorner", actionMenu).CornerRadius = UDim.new(0, 8)
+
+	local actionStroke = Instance.new("UIStroke")
+	actionStroke.Parent = actionMenu
+	actionStroke.Color = Color3.fromRGB(55, 55, 62)
+	actionStroke.Thickness = 1
+
+	local actionReply = Instance.new("TextButton")
+	actionReply.Parent = actionMenu
+	actionReply.Size = UDim2.new(1, 0, 0, 39)
+	actionReply.BackgroundTransparency = 1
+	actionReply.Text = "  ↩  Reply"
+	actionReply.TextColor3 = Color3.fromRGB(235, 235, 240)
+	actionReply.TextSize = 12
+	actionReply.Font = Enum.Font.GothamMedium
+	actionReply.TextXAlignment = Enum.TextXAlignment.Left
+	actionReply.ZIndex = 51
+
+	local actionDelete = Instance.new("TextButton")
+	actionDelete.Parent = actionMenu
+	actionDelete.Position = UDim2.new(0, 0, 0, 39)
+	actionDelete.Size = UDim2.new(1, 0, 0, 39)
+	actionDelete.BackgroundTransparency = 1
+	actionDelete.Text = "  🗑  Delete"
+	actionDelete.TextColor3 = Color3.fromRGB(255, 105, 105)
+	actionDelete.TextSize = 12
+	actionDelete.Font = Enum.Font.GothamMedium
+	actionDelete.TextXAlignment = Enum.TextXAlignment.Left
+	actionDelete.ZIndex = 51
+
+	local selectedMessage = nil
+
+	actionReply.MouseButton1Click:Connect(function()
+		if selectedMessage then
+			startReply(selectedMessage)
+		end
+
+		actionMenu.Visible = false
+	end)
+
+	actionDelete.MouseButton1Click:Connect(function()
+		if not selectedMessage then
+			return
+		end
+
+		if selectedMessage.username ~= gcLocalPlayer.Name then
+			actionMenu.Visible = false
+			return
+		end
+
+		local messageId = selectedMessage.id
+
+		if messageId then
+			task.spawn(function()
+				local success = gcHttpDelete(
+					DKGC_BASE .. "/chat/messages/" .. tostring(messageId)
+				)
+
+				if success and gcMessageRows[messageId] then
+					gcMessageRows[messageId]:Destroy()
+					gcMessageRows[messageId] = nil
+				end
+			end)
+		end
+
+		actionMenu.Visible = false
+	end)
+
+	----------------------------------------------------------------
+	-- ADD MESSAGE
+	----------------------------------------------------------------
+
+	local function gcAddMsg(message)
+		if not message then
+			return
+		end
+
+		local id = message.id
+
+		if id and gcMessages[id] then
+			return
+		end
+
+		if id then
+			gcMessages[id] = message
+
+			if id > gcLastMsgId then
+				gcLastMsgId = id
+			end
+		end
+
+		gcMsgOrder += 1
+
+		local username = tostring(message.username or "Unknown")
+		local text = tostring(message.message or "")
+
+		if message.anonymous then
+			username = "Anonymous"
+		end
+
+		local row = Instance.new("Frame")
+		row.Parent = gcScroll
+		row.Size = UDim2.new(1, 0, 0, 0)
+		row.AutomaticSize = Enum.AutomaticSize.Y
+		row.BackgroundColor3 = Color3.fromRGB(18, 18, 21)
+		row.BorderSizePixel = 0
+		row.LayoutOrder = gcMsgOrder
+		row.ZIndex = 12
+
+		Instance.new("UICorner", row).CornerRadius = UDim.new(0, 9)
+
+		gcMessageRows[id] = row
+
+		local avatar = Instance.new("ImageLabel")
+		avatar.Parent = row
+		avatar.Size = UDim2.new(0, 28, 0, 28)
+		avatar.Position = UDim2.new(0, 7, 0, 8)
+		avatar.BackgroundColor3 = Color3.fromRGB(32, 32, 36)
+		avatar.BorderSizePixel = 0
+		avatar.ZIndex = 13
+
+		Instance.new("UICorner", avatar).CornerRadius = UDim.new(1, 0)
+
+		if not message.anonymous then
+			local thumb = gcThumbFor(username)
+
+			if thumb then
+				avatar.Image = thumb
+			end
+		end
+
+		local body = Instance.new("Frame")
+		body.Parent = row
+		body.Position = UDim2.new(0, 42, 0, 6)
+		body.Size = UDim2.new(1, -50, 0, 0)
+		body.AutomaticSize = Enum.AutomaticSize.Y
+		body.BackgroundTransparency = 1
+		body.ZIndex = 13
+
+		local nameLabel = Instance.new("TextLabel")
+		nameLabel.Parent = body
+		nameLabel.Size = UDim2.new(1, 0, 0, 17)
+		nameLabel.BackgroundTransparency = 1
+		nameLabel.Text = gcEscapeRichText(username)
+		nameLabel.TextColor3 =
+			username == gcLocalPlayer.Name
+			and Color3.fromRGB(255, 255, 255)
+			or Color3.fromRGB(190, 190, 195)
+
+		nameLabel.TextSize = 11
+		nameLabel.Font = Enum.Font.GothamBold
+		nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+		nameLabel.ZIndex = 14
+
+		-- Reply preview
+		if message.replyTo then
+			local reply = Instance.new("TextLabel")
+			reply.Parent = body
+			reply.Position = UDim2.new(0, 0, 0, 17)
+			reply.Size = UDim2.new(1, 0, 0, 18)
+			reply.BackgroundTransparency = 1
+			reply.Text =
+				"↪ "
+				.. gcEscapeRichText(message.replyTo.username or "Unknown")
+				.. ": "
+				.. gcEscapeRichText(message.replyTo.message or "")
+
+			reply.TextColor3 = Color3.fromRGB(115, 220, 140)
+			reply.TextSize = 9
+			reply.Font = Enum.Font.Gotham
+			reply.TextXAlignment = Enum.TextXAlignment.Left
+			reply.TextTruncate = Enum.TextTruncate.AtEnd
+			reply.ZIndex = 14
+		end
+
+		local messageLabel = Instance.new("TextLabel")
+		messageLabel.Parent = body
+		messageLabel.Position = UDim2.new(
+			0,
+			0,
+			0,
+			message.replyTo and 34 or 17
+		)
+
+		messageLabel.Size = UDim2.new(1, 0, 0, 0)
+		messageLabel.AutomaticSize = Enum.AutomaticSize.Y
+		messageLabel.BackgroundTransparency = 1
+		messageLabel.TextWrapped = true
+		messageLabel.TextXAlignment = Enum.TextXAlignment.Left
+		messageLabel.TextYAlignment = Enum.TextYAlignment.Top
+		messageLabel.TextSize = 12
+		messageLabel.Font = Enum.Font.Gotham
+		messageLabel.TextColor3 = Color3.fromRGB(210, 210, 215)
+		messageLabel.Text =
+			gcEscapeRichText(text)
+			.. (message.edited and "  (edited)" or "")
+		messageLabel.ZIndex = 14
+
+		-- Right click / touch action
+		local actionButton = Instance.new("TextButton")
+		actionButton.Parent = row
+		actionButton.Size = UDim2.new(1, 0, 1, 0)
+		actionButton.BackgroundTransparency = 1
+		actionButton.Text = ""
+		actionButton.ZIndex = 20
+
+		actionButton.MouseButton2Click:Connect(function()
+			selectedMessage = message
+
+			local mouse = Players.LocalPlayer:GetMouse()
+
+			actionMenu.Position = UDim2.fromOffset(
+				math.clamp(mouse.X, 0, overlay.AbsoluteSize.X - 150),
+				math.clamp(mouse.Y, 0, overlay.AbsoluteSize.Y - 85)
+			)
+
+			actionDelete.Visible =
+				message.username == gcLocalPlayer.Name
+				and not message.anonymous
+
+			actionMenu.Visible = true
+		end)
+
+		-- Mobile-friendly left click = reply
+		actionButton.MouseButton1Click:Connect(function()
+			selectedMessage = message
+			startReply(message)
+		end)
+
+		task.defer(function()
+			if gcScroll.Parent then
+				gcScroll.CanvasPosition =
+					Vector2.new(0, math.max(0, gcScroll.AbsoluteCanvasSize.Y))
+			end
+		end)
+	end
+
+	----------------------------------------------------------------
+	-- COOLDOWN
+	----------------------------------------------------------------
+
+	local function gcUpdateCooldown()
+		if gcCooldown then
+			return
+		end
+
+		local timeLeft = 1 - (tick() - gcLastSend)
+
+		if timeLeft <= 0 then
+			return
+		end
+
+		gcCooldown = true
+		gcSendIcon.Visible = false
+
+		task.spawn(function()
+			while true do
+				local left = 1 - (tick() - gcLastSend)
+
+				if left <= 0 then
+					break
+				end
+
+				gcSendBtn.Text = tostring(math.ceil(left))
+				gcSendBtn.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+
+				task.wait(0.1)
+			end
+
+			gcSendBtn.Text = ""
+			gcSendIcon.Visible = true
+			gcSendBtn.BackgroundColor3 = Color3.fromRGB(60, 220, 100)
+			gcCooldown = false
+		end)
+	end
+
+	----------------------------------------------------------------
+	-- SEND
+	----------------------------------------------------------------
+
+	local function gcSend()
+		if gcCooldown or gcTimedOut then
+			return
+		end
+
+		local text = gcMsgBox.Text
+
+		if text == "" then
+			return
+		end
+
+		if #text > 200 then
+			gcFlashError("Too long! Maximum 200 characters.")
+			return
+		end
+
+		if gcHasLink(text) then
+			gcFlashError("Links aren't allowed!")
+			return
+		end
+
+		gcLastSend = tick()
+		gcUpdateCooldown()
+
+		local targetReply = replyTarget
+
+		local payload = {
+			username = gcLocalPlayer.Name,
+			message = text,
+			gameId = tostring(game.PlaceId),
+			anonymous = anonymous
+		}
+
+		if targetReply and targetReply.id then
+			payload.replyToId = targetReply.id
+		end
+
+		gcMsgBox.Text = ""
+		cancelReply()
+
+		-- Don't show the real username if anonymous.
+		gcAddMsg({
+			id = nil,
+			username = anonymous and "Anonymous" or gcLocalPlayer.Name,
+			message = text,
+			anonymous = anonymous,
+			replyTo = targetReply
+		})
+
+		task.spawn(function()
+			local success, response = gcHttpPost(
+				DKGC_BASE .. "/chat/messages",
+				gcSafeJsonEncode(payload)
+			)
+
+			if not success then
+				gcFlashError("Message failed — retrying...")
+				return
+			end
+
+			local statusCode = type(response) == "table" and response.StatusCode
+			local responseBody = type(response) == "table" and response.Body
+			local responseData = gcSafeJsonDecode(responseBody)
+
+			if statusCode == 403 and responseData and responseData.error then
+				gcSetTimeoutState(true, responseData.remainingMinutes or 0)
+				gcFlashError(responseData.error)
+			end
+		end)
+	end
+
+	gcSendBtn.MouseButton1Click:Connect(gcSend)
+
+	gcMsgBox.FocusLost:Connect(function(enterPressed)
+		if enterPressed then
+			gcSend()
+		end
+	end)
+
+	----------------------------------------------------------------
+	-- LOAD INITIAL MESSAGES
+	----------------------------------------------------------------
+
+	task.spawn(function()
+		local body = gcHttpGet(
+			DKGC_BASE .. "/chat/messages?limit=50"
+		)
+
+		local msgs = gcSafeJsonDecode(body)
+
+		if type(msgs) == "table" then
+			for _, m in ipairs(msgs) do
+				if m.id and m.message then
+					gcAddMsg(m)
+				end
+			end
+		end
+	end)
+
+	----------------------------------------------------------------
+	-- REAL PRESENCE HEARTBEAT
+	----------------------------------------------------------------
+
+	task.spawn(function()
+		while overlay.Parent do
+			local success, response = gcHttpPost(
+				DKGC_BASE .. "/clients/heartbeat",
+				gcSafeJsonEncode({
+					username = gcLocalPlayer.Name,
+					userId = gcLocalPlayer.UserId,
+					gameId = tostring(game.PlaceId)
+				})
+			)
+
+			if success then
+				local responseBody = type(response) == "table" and response.Body
+				local heartbeat = gcSafeJsonDecode(responseBody)
+
+				if heartbeat and heartbeat.timedOut then
+					gcSetTimeoutState(true, heartbeat.remainingMinutes or 0)
+				else
+					gcSetTimeoutState(false, 0)
+				end
+
+				statusDot.BackgroundColor3 =
+					Color3.fromRGB(60, 220, 100)
+			else
+				statusDot.BackgroundColor3 =
+					Color3.fromRGB(255, 75, 75)
+			end
+
+			task.wait(8)
+		end
+	end)
+
+	----------------------------------------------------------------
+	-- ONLINE COUNT
+	----------------------------------------------------------------
+
+	task.spawn(function()
+		while overlay.Parent do
+			local body = gcHttpGet(
+				DKGC_BASE .. "/clients/online"
+			)
+
+			local result = gcSafeJsonDecode(body)
+
+			if result and result.count ~= nil then
+				gcActive.Text =
+					tostring(result.count) .. " online"
+
+				statusDot.BackgroundColor3 =
+					Color3.fromRGB(60, 220, 100)
+			else
+				gcActive.Text = "Reconnecting..."
+				statusDot.BackgroundColor3 =
+					Color3.fromRGB(255, 180, 60)
+			end
+
+			task.wait(5)
+		end
+	end)
+
+	----------------------------------------------------------------
+	-- MESSAGE POLLING
+	----------------------------------------------------------------
+
+	task.spawn(function()
+		while overlay.Parent do
+			task.wait(2)
+
+			local body = gcHttpGet(
+				DKGC_BASE .. "/chat/messages?limit=50"
+			)
+
+			local msgs = gcSafeJsonDecode(body)
+
+			if type(msgs) == "table" then
+				for _, m in ipairs(msgs) do
+					if m.id and m.message then
+						gcAddMsg(m)
+					end
+				end
+			end
+		end
+	end)
+
+	----------------------------------------------------------------
+	-- CLOSE ACTION MENU WHEN CLICKING OUTSIDE
+	----------------------------------------------------------------
+
+	overlay.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			if actionMenu.Visible then
+				actionMenu.Visible = false
+			end
+		end
+	end)
+end
+
+local function createSettings(window)
+	if not (writefile and isfile and readfile and isfolder and makefolder) and not useStudio then
+		if Topbar['Settings'] then Topbar.Settings.Visible = false end
+		Topbar['Search'].Position = UDim2.new(1, -75, 0.5, 0)
+		warn('Can\'t create settings as no file-saving functionality is available.')
+		return
+	end
+
+
+
+	local configTab = window:CreateTab('Settings', 10723344270, true)
+
+	if TabList['Settings'] then
+		TabList['Settings'].Visible = true
+		TabList['Settings'].LayoutOrder = 1001
+	end
+
+	if Elements['Settings'] then
+		Elements['Settings'].LayoutOrder = 1001
+	end
+
+	do
+		local selectedConfig = CFileName or ""
+		local pendingName = ""
+
+		local function getConfigs()
+			local configs = {}
+			if callSafely(isfolder, ConfigurationFolder) then
+				for _, file in ipairs(callSafely(listfiles, ConfigurationFolder) or {}) do
+					local name = file:match("([^/\\]+)$")
+					if name and name:sub(-#ConfigurationExtension) == ConfigurationExtension then
+						name = name:sub(1, -#ConfigurationExtension - 1)
+						if name ~= '' and not name:match('^%d+$') then
+							table.insert(configs, name)
+						end
+					end
+				end
+			end
+			table.sort(configs)
+			return configs
+		end
+
+		local configs = getConfigs()
+		if selectedConfig ~= '' and not table.find(configs, selectedConfig) then
+			selectedConfig = ''
+		end
+
+		configTab:CreateSection('Configurations')
+
+		local ConfigDropdown = configTab:CreateDropdown({
+			Name = 'Select Config',
+			Options = configs,
+			CurrentOption = selectedConfig ~= '' and {selectedConfig} or {},
+			MultipleOptions = false,
+			Ext = true,
+			Callback = function(option)
+				selectedConfig = type(option) == 'table' and option[1] or option
+			end,
+		})
+
+		configTab:CreateInput({
+			Name = 'New Config Name',
+			CurrentValue = '',
+			PlaceholderText = 'Enter name...',
+			RemoveTextAfterFocusLost = false,
+			Ext = true,
+			Callback = function(text)
+				pendingName = text or ''
+			end,
+		})
+
+		configTab:CreateSection('Actions')
+
+		configTab:CreateButton({
+			Name = 'Save Config',
+			Callback = function()
+				local name = pendingName ~= '' and pendingName or selectedConfig
+				if name ~= '' then
+					ensureFolder(ConfigurationFolder)
+					CFileName = name
+					selectedConfig = name
+					SaveConfiguration()
+					RayfieldLibrary:Notify({Title = 'Config Saved', Content = "Saved as '" .. name .. "'", Duration = 3})
+					ConfigDropdown:Refresh(getConfigs())
+				end
+			end,
+		})
+
+		configTab:CreateButton({
+			Name = 'Load Config',
+			Callback = function()
+				if selectedConfig ~= '' then
+					local path = ConfigurationFolder .. '/' .. selectedConfig .. ConfigurationExtension
+					if callSafely(isfile, path) then
+						CFileName = selectedConfig
+						LoadConfiguration(callSafely(readfile, path))
+						RayfieldLibrary:Notify({Title = 'Config Loaded', Content = "Loaded '" .. selectedConfig .. "'", Duration = 3})
+					else
+						RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '" .. selectedConfig .. "' does not exist.", Duration = 3})
+					end
+				end
+			end,
+		})
+
+		configTab:CreateButton({
+			Name = 'Delete Config',
+			Callback = function()
+				if selectedConfig ~= '' then
+					local path = ConfigurationFolder .. '/' .. selectedConfig .. ConfigurationExtension
+					if callSafely(isfile, path) then
+						callSafely(delfile, path)
+						RayfieldLibrary:Notify({Title = 'Deleted', Content = "Deleted '" .. selectedConfig .. "'", Duration = 3})
+						ConfigDropdown:Refresh(getConfigs())
+						selectedConfig = ''
+					else
+						RayfieldLibrary:Notify({Title = 'Not Found', Content = "Config '" .. selectedConfig .. "' does not exist.", Duration = 3})
+					end
+				end
+			end,
+		})
+
+		configTab:CreateSection('Extra')
+
+		settingsTable.System.snow.Element = configTab:CreateToggle({
+			Name = settingsTable.System.snow.Name,
+			CurrentValue = settingsTable.System.snow.Value,
+			Ext = true,
+			Callback = function(Value)
+				updateSetting('System', 'snow', Value)
+			end,
+		})
+
+		settingsTable.General.rayfieldOpen.Element = configTab:CreateKeybind({
+			Name = settingsTable.General.rayfieldOpen.Name,
+			CurrentKeybind = settingsTable.General.rayfieldOpen.Value,
+			HoldToInteract = false,
+			Ext = true,
+			CallOnChange = true,
+			Callback = function(Value)
+				updateSetting('General', 'rayfieldOpen', Value)
+			end,
+		})
+
+		settingsTable.System.usageAnalytics.Element = configTab:CreateToggle({
+			Name = settingsTable.System.usageAnalytics.Name,
+			CurrentValue = settingsTable.System.usageAnalytics.Value,
+			Ext = true,
+			Callback = function(Value)
+				updateSetting('System', 'usageAnalytics', Value)
+			end,
+		})
+	end
+
+	settingsCreated = true
+	loadSettings()
 	saveSettings()
 end
 
@@ -2177,8 +3463,25 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		-- Create Elements Page
 		local TabPage = Elements.Template:Clone()
+
+		TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
+		TabPage.ScrollingDirection = Enum.ScrollingDirection.Y
+
+		TabPage.ScrollBarThickness = 3
+		TabPage.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+		TabPage.ScrollBarImageTransparency = 0.2
+		TabPage.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+		TabPage.ElasticBehavior = Enum.ElasticBehavior.Never
+
+		TabPage.Size = UDim2.new(1, 0, 1, -6)
+
 		TabPage.Name = Name
 		TabPage.Visible = true
+
+		local Padding = Instance.new("UIPadding")
+		Padding.PaddingRight = UDim.new(0, 8)
+		Padding.Parent = TabPage
 
 		TabPage.LayoutOrder = Ext and 10000 or #Elements:GetChildren()
 
@@ -2258,6 +3561,272 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
+        function Tab:CreatePlayerList()
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+    local CoreGui = game:GetService("CoreGui")
+    local RunService = game:GetService("RunService")
+    local LP = Players.LocalPlayer
+
+    local Main = Instance.new("Frame", self.Page)
+    Main.Size = UDim2.new(1,-4,0,335)
+    Main.BackgroundColor3=Color3.fromRGB(22,22,24)
+    Main.ClipsDescendants=false
+    Instance.new("UICorner", Main).CornerRadius=UDim.new(0,8)
+    Instance.new("UIStroke", Main).Color=Color3.fromRGB(38,38,42)
+
+    local SearchHolder = Instance.new("Frame", Main)
+    SearchHolder.Size=UDim2.new(1,-16,0,30)
+    SearchHolder.Position=UDim2.new(0,8,0,8)
+    SearchHolder.BackgroundColor3=Color3.fromRGB(28,28,31)
+    Instance.new("UICorner", SearchHolder).CornerRadius=UDim.new(0,7)
+
+    local SearchIcon = Instance.new("ImageLabel", SearchHolder)
+    SearchIcon.Size=UDim2.new(0,14,0,14)
+    SearchIcon.Position=UDim2.new(0,10,0.5,-7)
+    SearchIcon.BackgroundTransparency=1
+    SearchIcon.Image="rbxassetid://6031154871"
+    SearchIcon.ImageColor3=Color3.fromRGB(120,120,120)
+
+    local Search = Instance.new("TextBox", SearchHolder)
+    Search.Size=UDim2.new(1,-32,1,0)
+    Search.Position=UDim2.new(0,32,0,0)
+    Search.BackgroundTransparency=1
+    Search.Text=""
+    Search.PlaceholderText="Search..."
+    Search.TextColor3=Color3.fromRGB(230,230,230)
+    Search.PlaceholderColor3=Color3.fromRGB(90,90,95)
+    Search.Font=Enum.Font.Gotham
+    Search.TextSize=12
+    Search.TextXAlignment=Enum.TextXAlignment.Left
+    Search.ClearTextOnFocus=false
+
+    local Header=Instance.new("Frame",Main)
+    Header.Size=UDim2.new(1,-16,0,14)
+    Header.Position=UDim2.new(0,12,0,44)
+    Header.BackgroundTransparency=1
+    for i,txt in ipairs({"Username","Team","Health"}) do
+        local l=Instance.new("TextLabel",Header)
+        l.Text=txt
+        l.Position=UDim2.new(i==1 and 0 or i==2 and 0.38 or 0.72,0,0,0)
+        l.Size=UDim2.new(0.3,0,1,0)
+        l.BackgroundTransparency=1
+        l.TextColor3=Color3.fromRGB(110,110,115)
+        l.Font=Enum.Font.GothamMedium
+        l.TextSize=10
+        l.TextXAlignment=Enum.TextXAlignment.Left
+    end
+
+    local List=Instance.new("ScrollingFrame",Main)
+    List.Size=UDim2.new(1,-16,0,165)
+    List.Position=UDim2.new(0,8,0,60)
+    List.BackgroundTransparency=1
+    List.CanvasSize=UDim2.new(0,0,0,0)
+    List.ScrollBarThickness=0
+    Instance.new("UIListLayout",List).Padding=UDim.new(0,2)
+
+    local Bottom=Instance.new("Frame",Main)
+    Bottom.Size=UDim2.new(1,-16,0,60)
+    Bottom.Position=UDim2.new(0,8,0,233)
+    Bottom.BackgroundColor3=Color3.fromRGB(28,28,31)
+    Instance.new("UICorner",Bottom).CornerRadius=UDim.new(0,7)
+    local Avatar=Instance.new("ImageLabel",Bottom)
+    Avatar.Size=UDim2.new(0,36,0,36)
+    Avatar.Position=UDim2.new(0,8,0,8)
+    Avatar.BackgroundColor3=Color3.fromRGB(20,20,20)
+    Instance.new("UICorner",Avatar).CornerRadius=UDim.new(0,6)
+    local NameLabel=Instance.new("TextLabel",Bottom)
+    NameLabel.Position=UDim2.new(0,52,0,4)
+    NameLabel.Size=UDim2.new(1,-60,0,12)
+    NameLabel.BackgroundTransparency=1
+    NameLabel.Text="Select a player"
+    NameLabel.TextColor3=Color3.fromRGB(230,230,230)
+    NameLabel.Font=Enum.Font.GothamBold
+    NameLabel.TextSize=11
+    NameLabel.TextXAlignment=Enum.TextXAlignment.Left
+    NameLabel.TextTruncate=Enum.TextTruncate.AtEnd
+    local IDLabel=Instance.new("TextLabel",Bottom)
+    IDLabel.Position=UDim2.new(0,52,0,18)
+    IDLabel.Size=UDim2.new(1,-60,0,10)
+    IDLabel.BackgroundTransparency=1
+    IDLabel.Text="ID: -"
+    IDLabel.TextColor3=Color3.fromRGB(115,115,120)
+    IDLabel.Font=Enum.Font.Gotham
+    IDLabel.TextSize=9
+    IDLabel.TextXAlignment=Enum.TextXAlignment.Left
+    local AgeLabel=Instance.new("TextLabel",Bottom)
+    AgeLabel.Position=UDim2.new(0,52,0,30)
+    AgeLabel.Size=UDim2.new(1,-60,0,10)
+    AgeLabel.BackgroundTransparency=1
+    AgeLabel.Text="Account Age: -"
+    AgeLabel.TextColor3=Color3.fromRGB(115,115,120)
+    AgeLabel.Font=Enum.Font.Gotham
+    AgeLabel.TextSize=9
+    AgeLabel.TextXAlignment=Enum.TextXAlignment.Left
+
+    local selected,selectedRow,ExternalGui,loopTPConn,loopBringConn=nil,nil,nil
+
+    local function createToolsGui()
+        if ExternalGui then ExternalGui:Destroy() end
+        local sg=Instance.new("ScreenGui",CoreGui)
+        sg.Name="DKToolsFinal"
+        sg.ResetOnSpawn=false
+        sg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+        ExternalGui=sg
+        local Popup=Instance.new("Frame",sg)
+        Popup.Size=UDim2.new(0,170,0,125)
+        Popup.Position=UDim2.new(0.5,120,0.5,-80)
+        Popup.BackgroundColor3=Color3.fromRGB(20,20,22)
+        Popup.Active=true
+        Popup.Draggable=true
+        Instance.new("UICorner",Popup).CornerRadius=UDim.new(0,8)
+        Instance.new("UIStroke",Popup).Color=Color3.fromRGB(45,45,50)
+        local Title=Instance.new("TextLabel",Popup)
+        Title.Size=UDim2.new(1,-24,0,18)
+        Title.Position=UDim2.new(0,8,0,4)
+        Title.BackgroundTransparency=1
+        Title.Text="DK's HUB"
+        Title.TextColor3=Color3.fromRGB(220,220,225)
+        Title.Font=Enum.Font.GothamBold
+        Title.TextSize=11
+        Title.TextXAlignment=Enum.TextXAlignment.Left
+        local Close=Instance.new("TextButton",Popup)
+        Close.Size=UDim2.new(0,16,0,16)
+        Close.Position=UDim2.new(1,-20,0,4)
+        Close.BackgroundColor3=Color3.fromRGB(32,32,36)
+        Close.Text="x"
+        Close.TextColor3=Color3.fromRGB(160,160,160)
+        Close.Font=Enum.Font.GothamBold
+        Close.TextSize=9
+        Instance.new("UICorner",Close).CornerRadius=UDim.new(0,3)
+        local function addToggle(name,y)
+            local r=Instance.new("Frame",Popup)
+            r.Size=UDim2.new(1,-8,0,18)
+            r.Position=UDim2.new(0,4,0,y)
+            r.BackgroundTransparency=1
+            local l=Instance.new("TextLabel",r)
+            l.Text=name
+            l.Size=UDim2.new(1,-24,1,0)
+            l.BackgroundTransparency=1
+            l.TextColor3=Color3.fromRGB(170,170,175)
+            l.Font=Enum.Font.Gotham
+            l.TextSize=10
+            l.TextXAlignment=Enum.TextXAlignment.Left
+            local b=Instance.new("Frame",r)
+            b.Size=UDim2.new(0,22,0,11)
+            b.Position=UDim2.new(1,-22,0.5,-5)
+            b.BackgroundColor3=Color3.fromRGB(50,50,55)
+            Instance.new("UICorner",b).CornerRadius=UDim.new(1,0)
+            local d=Instance.new("Frame",b)
+            d.Size=UDim2.new(0,7,0,7)
+            d.Position=UDim2.new(0,2,0,2)
+            d.BackgroundColor3=Color3.new(1,1,1)
+            Instance.new("UICorner",d).CornerRadius=UDim.new(1,0)
+            local btn=Instance.new("TextButton",b)
+            btn.Size=UDim2.new(1,0,1,0)
+            btn.BackgroundTransparency=1
+            btn.Text=""
+            local on=false
+            btn.MouseButton1Click:Connect(function()
+                on=not on
+                if on then
+                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(220,220,220)}):Play()
+                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(1,-9,0,2)}):Play()
+                else
+                    TweenService:Create(b,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(50,50,55)}):Play()
+                    TweenService:Create(d,TweenInfo.new(0.12),{Position=UDim2.new(0,2,0,2)}):Play()
+                end
+            end)
+            return {btn=btn, get=function() return on end}
+        end
+        local function addBtn(txt,y)
+            local b=Instance.new("TextButton",Popup)
+            b.Size=UDim2.new(1,-8,0,20)
+            b.Position=UDim2.new(0,4,0,y)
+            b.BackgroundColor3=Color3.fromRGB(32,32,36)
+            b.Text=txt
+            b.TextColor3=Color3.fromRGB(200,200,205)
+            b.Font=Enum.Font.Gotham
+            b.TextSize=10
+            Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
+            return b
+        end
+        local spec=addToggle("Spectate",24)
+        local ltp=addToggle("Loop TP to Player",44)
+        local lbring=addToggle("Loop Bring to you",64)
+        local tp=addBtn("Teleport to Player",86)
+        spec.btn.MouseButton1Click:Connect(function() task.wait(0.11) if spec.get() then if selected and selected.Character and selected.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=selected.Character.Humanoid end else if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end end end)
+        ltp.btn.MouseButton1Click:Connect(function() task.wait(0.11) if ltp.get() then loopTPConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,2) end end) else if loopTPConn then loopTPConn:Disconnect() end end end)
+        lbring.btn.MouseButton1Click:Connect(function() task.wait(0.11) if lbring.get() then loopBringConn=RunService.Heartbeat:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then selected.Character.HumanoidRootPart.CFrame=LP.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,3) end end) else if loopBringConn then loopBringConn:Disconnect() end end end)
+        tp.MouseButton1Click:Connect(function() if selected and selected.Character and selected.Character:FindFirstChild("HumanoidRootPart") then LP.Character.HumanoidRootPart.CFrame=selected.Character.HumanoidRootPart.CFrame end end)
+        Close.MouseButton1Click:Connect(function() if loopTPConn then loopTPConn:Disconnect() end if loopBringConn then loopBringConn:Disconnect() end if LP.Character and LP.Character:FindFirstChild("Humanoid") then workspace.CurrentCamera.CameraSubject=LP.Character.Humanoid end sg:Destroy() ExternalGui=nil end)
+    end
+
+    local function refresh()
+        local st=Search.Text:lower():gsub("%s+","")
+        for _,c in pairs(List:GetChildren()) do if c:IsA("Frame") then c:Destroy() end end
+        local y=0
+        for _,plr in pairs(Players:GetPlayers()) do
+            if st=="" or plr.Name:lower():find(st,1,true) or plr.DisplayName:lower():find(st,1,true) then
+                local row=Instance.new("Frame",List)
+                row.Size=UDim2.new(1,0,0,22)
+                row.BackgroundColor3= (selected and selected==plr) and Color3.fromRGB(55,55,60) or Color3.fromRGB(22,22,24)
+                Instance.new("UICorner",row).CornerRadius=UDim.new(0,4)
+                local n=Instance.new("TextLabel",row)
+                n.Position=UDim2.new(0,8,0,0)
+                n.Size=UDim2.new(0.38,0,1,0)
+                n.BackgroundTransparency=1
+                n.Text=plr.Name
+                n.TextColor3=Color3.fromRGB(210,210,215)
+                n.Font=Enum.Font.Gotham
+                n.TextSize=11
+                n.TextXAlignment=Enum.TextXAlignment.Left
+                n.TextTruncate=Enum.TextTruncate.AtEnd
+                local t=Instance.new("TextLabel",row)
+                t.Position=UDim2.new(0.38,0,0,0)
+                t.Size=UDim2.new(0.34,0,1,0)
+                t.BackgroundTransparency=1
+                t.Text=plr.Team and plr.Team.Name or "None"
+                t.TextColor3=Color3.fromRGB(150,150,155)
+                t.Font=Enum.Font.Gotham
+                t.TextSize=11
+                local h=Instance.new("TextLabel",row)
+                h.Position=UDim2.new(0.72,0,0,0)
+                h.Size=UDim2.new(0.28,0,1,0)
+                h.BackgroundTransparency=1
+                local hum=plr.Character and plr.Character:FindFirstChild("Humanoid")
+                h.Text= hum and tostring(math.floor(hum.Health)) or "100"
+                h.TextColor3=Color3.fromRGB(150,150,155)
+                h.Font=Enum.Font.Gotham
+                h.TextSize=11
+                local b=Instance.new("TextButton",row)
+                b.Size=UDim2.new(1,0,1,0)
+                b.BackgroundTransparency=1
+                b.Text=""
+                b.MouseButton1Click:Connect(function()
+                    if selectedRow then TweenService:Create(selectedRow,TweenInfo.new(0.1),{BackgroundColor3=Color3.fromRGB(22,22,24)}):Play() end
+                    selectedRow=row
+                    selected=plr
+                    TweenService:Create(row,TweenInfo.new(0.1),{BackgroundColor3=Color3.fromRGB(55,55,60)}):Play()
+                    NameLabel.Text=plr.Name.." (@"..plr.DisplayName..")"
+                    IDLabel.Text="ID: "..plr.UserId
+                    AgeLabel.Text="Account Age: "..plr.AccountAge.." days"
+                    Avatar.Image="https://www.roblox.com/headshot-thumbnail/image?userId="..plr.UserId.."&width=150&height=150&format=png"
+                    createToolsGui()
+                end)
+                y+=24
+            end
+        end
+        List.CanvasSize=UDim2.new(0,0,0,y)
+    end
+    Search:GetPropertyChangedSignal("Text"):Connect(refresh)
+    Players.PlayerAdded:Connect(refresh)
+    Players.PlayerRemoving:Connect(refresh)
+    task.spawn(function() while Main.Parent do pcall(refresh) task.wait(1) end if ExternalGui then ExternalGui:Destroy() end end)
+    refresh()
+    return Main
+end,
+                
         local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -2272,8 +3841,8 @@ function Tab:CreateToggle(ToggleSettings)
 	local PICKER_OFFSET_X = -35
 	local PICKER_OFFSET_Y = 15
 	
-	-- Changed to emoji ⚠️ and lighter standing-out yellow
-	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " ⚠️") or ToggleSettings.Name
+	-- Changed to emoji â ï¸ and lighter standing-out yellow
+	local ToggleTitle = ToggleSettings.Warning and (ToggleSettings.Name .. " â ï¸") or ToggleSettings.Name
 	local ToggleTitleColor = ToggleSettings.Warning and Color3.fromRGB(255, 215, 80) or SelectedTheme.TextColor -- Lighter yellow
 	local WarningHoverColor = Color3.fromRGB(255, 235, 120) -- Even lighter for hover
 
@@ -3112,124 +4681,51 @@ end)
 	return ColorPickerSettings
 end
 
-		
-		function Tab:CreateSection(SectionName, IconId)
-	local SectionValue = {}
+		-- Section
+		function Tab:CreateSection(SectionName)
 
-	if SDone then
-		local SectionSpace = Elements.Template.SectionSpacing:Clone()
-		SectionSpace.Visible = true
-		SectionSpace.Parent = TabPage
-	end
+			local SectionValue = {}
 
-	local Section = Elements.Template.SectionTitle:Clone()
-	Section.Visible = true
-	Section.ClipsDescendants = false
-	Section.Parent = TabPage
+			if SDone then
+				local SectionSpace = Elements.Template.SectionSpacing:Clone()
+				SectionSpace.Visible = true
+				SectionSpace.Parent = TabPage
+			end
 
-	local Layout = Section:FindFirstChildOfClass("UIListLayout")
-	if not Layout then
-		Layout = Instance.new("UIListLayout")
-		Layout.Parent = Section
-	end
-	Layout.FillDirection = Enum.FillDirection.Horizontal
-	Layout.VerticalAlignment = Enum.VerticalAlignment.Center
-	Layout.Padding = UDim.new(0, 8)
-	Layout.SortOrder = Enum.SortOrder.LayoutOrder
+			local Section = Elements.Template.SectionTitle:Clone()
+			Section.Title.Text = SectionName
+			Section.Visible = true
+			Section.Parent = TabPage
 
-	Section.Title.Text = SectionName
-	Section.Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Section.Title.BackgroundTransparency = 1
-	Section.Title.LayoutOrder = 1
-	Section.Title.TextTransparency = 1
-	Section.Title.AutomaticSize = Enum.AutomaticSize.X
+			Section.Title.TextTransparency = 1
+			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
 
-	local IconObject = Section:FindFirstChild("Icon", true)
-	if IconObject then
-		IconObject:Destroy()
-	end
+			function SectionValue:Set(NewSection)
+				Section.Title.Text = NewSection
+			end
 
-	IconObject = Instance.new("ImageLabel")
-	IconObject.Name = "Icon"
-	IconObject.BackgroundTransparency = 1
-	IconObject.Size = UDim2.new(0, 20, 0, 20)
-	IconObject.LayoutOrder = 0
-	IconObject.ImageTransparency = 1
-	IconObject.Visible = false
-	IconObject.Parent = Section
+			SDone = true
 
-	if IconId and tostring(IconId) ~= "" then
-		local AssetId = tostring(IconId):gsub("rbxassetid://", ""):gsub("%D", "")
-		IconObject.Image = "rbxassetid://" .. AssetId
-		IconObject.ImageColor3 = Color3.fromRGB(57, 255, 20)
-		IconObject.Visible = true
-		TweenService:Create(IconObject, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
-	end
-
-	TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
-
-	function SectionValue:Set(NewSection, NewIconId)
-		Section.Title.Text = NewSection
-		if NewIconId and tostring(NewIconId) ~= "" then
-			local AssetId = tostring(NewIconId):gsub("rbxassetid://", ""):gsub("%D", "")
-			IconObject.Image = "rbxassetid://" .. AssetId
-			IconObject.Visible = true
-			IconObject.ImageTransparency = 0
+			return SectionValue
 		end
-	end
 
-	SDone = true
-	return SectionValue
-end
+		-- Divider
+		function Tab:CreateDivider()
+			local DividerValue = {}
 
-		function Tab:CreateTextDivider(SectionText)
-	local SectionValue = {}
+			local Divider = Elements.Template.Divider:Clone()
+			Divider.Visible = true
+			Divider.Parent = TabPage
 
-	local Section = Elements.Template.Divider:Clone()
-	Section.Name = "TextDivider"
-	Section.Visible = true
-	Section.Parent = TabPage
-	Section.BackgroundTransparency = 1
-	Section.Size = UDim2.new(1, 0, 0, 20)
+			Divider.Divider.BackgroundTransparency = 1
+			TweenService:Create(Divider.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.85}):Play()
 
-	local Container = Instance.new("Frame")
-	Container.Parent = Section
-	Container.BackgroundTransparency = 1
-	Container.Size = UDim2.new(1, 0, 0, 20)
+			function DividerValue:Set(Value)
+				Divider.Visible = Value
+			end
 
-	local textWidth = 55
-	local gap = 10
-
-	local LeftBar = Instance.new("Frame")
-	LeftBar.Parent = Container
-	LeftBar.BackgroundColor3 = Color3.fromRGB(70, 70, 75)
-	LeftBar.BorderSizePixel = 0
-	LeftBar.Size = UDim2.new(0.5, -(textWidth/2 + gap), 0, 1)
-	LeftBar.Position = UDim2.new(0, 0, 0.5, 0)
-
-	local Title = Instance.new("TextLabel")
-	Title.Parent = Container
-	Title.BackgroundTransparency = 1
-	Title.Size = UDim2.new(0, textWidth, 1, 0)
-	Title.Position = UDim2.new(0.5, -textWidth/2, 0, 0)
-	Title.Text = SectionText or "Chams"
-	Title.Font = Enum.Font.GothamBold
-	Title.TextSize = 12
-	Title.TextColor3 = Color3.fromRGB(235, 235, 235)
-
-	local RightBar = Instance.new("Frame")
-	RightBar.Parent = Container
-	RightBar.BackgroundColor3 = Color3.fromRGB(70, 70, 75)
-	RightBar.BorderSizePixel = 0
-	RightBar.Size = UDim2.new(0.5, -(textWidth/2 + gap), 0, 1)
-	RightBar.Position = UDim2.new(0.5, (textWidth/2 + gap), 0.5, 0)
-
-	function SectionValue:Set(v)
-		Section.Visible = v
-	end
-
-	return SectionValue
-end
+			return DividerValue
+		end
 
 		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean)
 	local LabelValue = {}
@@ -4597,85 +6093,4 @@ if useStudio then
 	--	Shadow = Color3.fromRGB(200, 210, 220),
 
 	--	NotificationBackground = Color3.fromRGB(210, 220, 230),
-	--	NotificationActionsBackground = Color3.fromRGB(225, 230, 240),
-
-	--	TabBackground = Color3.fromRGB(200, 210, 220),
-	--	TabStroke = Color3.fromRGB(180, 190, 200),
-	--	TabBackgroundSelected = Color3.fromRGB(175, 185, 200),
-	--	TabTextColor = Color3.fromRGB(50, 55, 60),
-	--	SelectedTabTextColor = Color3.fromRGB(30, 35, 40),
-
-	--	ElementBackground = Color3.fromRGB(210, 220, 230),
-	--	ElementBackgroundHover = Color3.fromRGB(220, 230, 240),
-	--	SecondaryElementBackground = Color3.fromRGB(200, 210, 220),
-	--	ElementStroke = Color3.fromRGB(190, 200, 210),
-	--	SecondaryElementStroke = Color3.fromRGB(180, 190, 200),
-
-	--	SliderBackground = Color3.fromRGB(200, 220, 235),  -- Lighter shade
-	--	SliderProgress = Color3.fromRGB(70, 130, 180),
-	--	SliderStroke = Color3.fromRGB(150, 180, 220),
-
-	--	ToggleBackground = Color3.fromRGB(210, 220, 230),
-	--	ToggleEnabled = Color3.fromRGB(70, 160, 210),
-	--	ToggleDisabled = Color3.fromRGB(180, 180, 180),
-	--	ToggleEnabledStroke = Color3.fromRGB(60, 150, 200),
-	--	ToggleDisabledStroke = Color3.fromRGB(140, 140, 140),
-	--	ToggleEnabledOuterStroke = Color3.fromRGB(100, 120, 140),
-	--	ToggleDisabledOuterStroke = Color3.fromRGB(120, 120, 130),
-
-	--	DropdownSelected = Color3.fromRGB(220, 230, 240),
-	--	DropdownUnselected = Color3.fromRGB(200, 210, 220),
-
-	--	InputBackground = Color3.fromRGB(220, 230, 240),
-	--	InputStroke = Color3.fromRGB(180, 190, 200),
-	--	PlaceholderColor = Color3.fromRGB(150, 150, 150)
-	--})
-
-	--local Keybind = Tab:CreateKeybind({
-	--	Name = "Keybind Example",
-	--	CurrentKeybind = "Q",
-	--	HoldToInteract = false,
-	--	Flag = "Keybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	--	Callback = function(Keybind)
-	--		-- The function that takes place when the keybind is pressed
-	--		-- The variable (Keybind) is a boolean for whether the keybind is being held or not (HoldToInteract needs to be true)
-	--	end,
-	--})
-
-	--local Label = Tab:CreateLabel("Label Example")
-
-	--local Label2 = Tab:CreateLabel("Warning", 4483362458, Color3.fromRGB(255, 159, 49),  true)
-
-	--local Paragraph = Tab:CreateParagraph({Title = "Paragraph Example", Content = "Paragraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph ExampleParagraph Example"})
-end
-
-if CEnabled and Main:FindFirstChild('Notice') then
-	Main.Notice.BackgroundTransparency = 1
-	Main.Notice.Title.TextTransparency = 1
-	Main.Notice.Size = UDim2.new(0, 0, 0, 0)
-	Main.Notice.Position = UDim2.new(0.5, 0, 0, -100)
-	Main.Notice.Visible = true
-
-
-	TweenService:Create(Main.Notice, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {Size = UDim2.new(0, 280, 0, 35), Position = UDim2.new(0.5, 0, 0, -50), BackgroundTransparency = 0.5}):Play()
-	TweenService:Create(Main.Notice.Title, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0.1}):Play()
-end
--- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA why :(
---if not useStudio then
---	task.spawn(loadWithTimeout, "https://raw.githubusercontent.com/SiriusSoftwareLtd/Sirius/refs/heads/request/boost.lua")
---end
-
-globalLoaded = true
-
-task.delay(4, function()
-	if Main:FindFirstChild('Notice') and Main.Notice.Visible then
-		TweenService:Create(Main.Notice, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {Size = UDim2.new(0, 100, 0, 25), Position = UDim2.new(0.5, 0, 0, -100), BackgroundTransparency = 1}):Play()
-		TweenService:Create(Main.Notice.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
-
-		task.wait(0.5)
-		Main.Notice.Visible = false
-	end
-end)
-
-
-return RayfieldLibrary
+	--	NotificationActionsBack
