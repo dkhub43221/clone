@@ -3144,43 +3144,53 @@ end
     local Section = Elements.Template.SectionTitle:Clone()
     Section.Visible = true
     Section.Parent = TabPage
+    Section.ClipsDescendants = false
 
     Section.Title.Text = SectionName
     Section.Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Section.Title.TextTransparency = 1
 
-    local IconObject = Section:FindFirstChild("Icon", true)
-
+    -- FIX: don't use recursive search, it grabs icons from other templates
+    local IconObject = Section:FindFirstChild("Icon")
     if not IconObject then
         IconObject = Instance.new("ImageLabel")
         IconObject.Name = "Icon"
         IconObject.BackgroundTransparency = 1
         IconObject.Size = UDim2.new(0, 18, 0, 18)
-        IconObject.Position = UDim2.new(0, 0, 0.5, 0)
+        IconObject.Position = UDim2.new(0, 4, 0.5, 0) -- FIX: was 0,0 clipped on border
         IconObject.AnchorPoint = Vector2.new(0, 0.5)
+        IconObject.ZIndex = 2
         IconObject.Parent = Section
     end
 
-    if IconId and tostring(IconId) ~= "" then
+    local hasIcon = IconId and tostring(IconId) ~= "" and tostring(IconId) ~= "0"
+    if hasIcon then
         local AssetId = tostring(IconId):gsub("rbxassetid://", "")
         IconObject.Visible = true
         IconObject.Image = "rbxassetid://" .. AssetId
         IconObject.ImageColor3 = Color3.fromRGB(57, 255, 20)
         IconObject.ImageTransparency = 1
         TweenService:Create(IconObject, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
-        Section.Title.Position = UDim2.new(0, 24, 0.5, 0)
+        Section.Title.Position = UDim2.new(0, 28, 0.5, 0) -- FIX: leave space for icon
     else
         IconObject.Visible = false
+        IconObject.ImageTransparency = 1
+        Section.Title.Position = UDim2.new(0, 4, 0.5, 0) -- FIX: reset when no icon
     end
 
     TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 
     function SectionValue:Set(NewSection, NewIconId)
         Section.Title.Text = NewSection
-        if NewIconId then
+        if NewIconId and tostring(NewIconId) ~= "" and tostring(NewIconId) ~= "0" then
             local AssetId = tostring(NewIconId):gsub("rbxassetid://", "")
             IconObject.Image = "rbxassetid://" .. AssetId
             IconObject.Visible = true
+            IconObject.ImageTransparency = 0
+            Section.Title.Position = UDim2.new(0, 28, 0.5, 0)
+        else
+            IconObject.Visible = false
+            Section.Title.Position = UDim2.new(0, 4, 0.5, 0)
         end
     end
 
