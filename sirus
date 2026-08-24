@@ -3132,33 +3132,61 @@ end)
 	return ColorPickerSettings
 end
 
-		-- Section
-		function Tab:CreateSection(SectionName)
+		function Tab:CreateSection(SectionName, IconId)
+    local SectionValue = {}
 
-			local SectionValue = {}
+    if SDone then
+        local SectionSpace = Elements.Template.SectionSpacing:Clone()
+        SectionSpace.Visible = true
+        SectionSpace.Parent = TabPage
+    end
 
-			if SDone then
-				local SectionSpace = Elements.Template.SectionSpacing:Clone()
-				SectionSpace.Visible = true
-				SectionSpace.Parent = TabPage
-			end
+    local Section = Elements.Template.SectionTitle:Clone()
+    Section.Visible = true
+    Section.Parent = TabPage
 
-			local Section = Elements.Template.SectionTitle:Clone()
-			Section.Title.Text = SectionName
-			Section.Visible = true
-			Section.Parent = TabPage
+    Section.Title.Text = SectionName
+    Section.Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Section.Title.TextTransparency = 1
 
-			Section.Title.TextTransparency = 1
-			TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.4}):Play()
+    local IconObject = Section:FindFirstChild("Icon", true)
 
-			function SectionValue:Set(NewSection)
-				Section.Title.Text = NewSection
-			end
+    if not IconObject then
+        IconObject = Instance.new("ImageLabel")
+        IconObject.Name = "Icon"
+        IconObject.BackgroundTransparency = 1
+        IconObject.Size = UDim2.new(0, 18, 0, 18)
+        IconObject.Position = UDim2.new(0, 0, 0.5, 0)
+        IconObject.AnchorPoint = Vector2.new(0, 0.5)
+        IconObject.Parent = Section
+    end
 
-			SDone = true
+    if IconId and tostring(IconId) ~= "" then
+        local AssetId = tostring(IconId):gsub("rbxassetid://", "")
+        IconObject.Visible = true
+        IconObject.Image = "rbxassetid://" .. AssetId
+        IconObject.ImageColor3 = Color3.fromRGB(57, 255, 20)
+        IconObject.ImageTransparency = 1
+        TweenService:Create(IconObject, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+        Section.Title.Position = UDim2.new(0, 24, 0.5, 0)
+    else
+        IconObject.Visible = false
+    end
 
-			return SectionValue
-		end
+    TweenService:Create(Section.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+
+    function SectionValue:Set(NewSection, NewIconId)
+        Section.Title.Text = NewSection
+        if NewIconId then
+            local AssetId = tostring(NewIconId):gsub("rbxassetid://", "")
+            IconObject.Image = "rbxassetid://" .. AssetId
+            IconObject.Visible = true
+        end
+    end
+
+    SDone = true
+    return SectionValue
+end
 
 		-- Divider
 		function Tab:CreateDivider()
